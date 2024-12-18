@@ -15,6 +15,39 @@ tokenTable* createTokenTable(){
     return (tokenTable*)calloc(1,sizeof(tokenTable));
 }
 
+void printTokenTable(tokenTable* table){
+    if(!table){
+        printf("Empty or null token table detected.\n");
+        return;
+    }
+    char* keywords[] = {"char", "int", "long", "boolean", "double", "unsigned", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof"};
+    tokenNode* n = table->start;
+    while(n){
+        switch(n->t->type){
+            case KEYWORD:
+                printf("TokenType = Keyword, TokenValue = %s\n", keywords[n->t->data.key_val]);
+                break;
+            case NUMBER:
+                printf("TokenType = Number, TokenValue = %s\n", n->t->data.str_val);
+                break;
+            case IDENTIFIER:
+                printf("TokenType = Identifier, TokenValue = %s\n", n->t->data.str_val);
+                break;
+            case SYMBOL:
+                printf("TokenType = Symbol, TokenValue = %c\n", n->t->data.char_val);
+                break;
+            case BRACKET:
+                printf("TokenType = Bracket, TokenValue = %c\n", n->t->data.char_val);
+                break;
+            case SEMICOLON:
+                printf("TokenType = Semicolon, TokenValue = %c\n", n->t->data.char_val);
+                break;
+        }
+        
+        n = n->next;
+    }
+}
+
 bool writeToken(token* t, tokenTable* table){
     if(!t || !table){
         return false;

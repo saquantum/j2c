@@ -6,5 +6,8 @@ int main(int argc, char** argv){
     //FILE* output = fopen(argv[2], "w");
     
     tokenTable* ttable = lexFile(input);
+    
+    printTokenTable(ttable);
+    
     freeTokenTable(&ttable);
 }

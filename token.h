@@ -6,7 +6,6 @@ typedef enum tokenType{
     NUMBER,
     IDENTIFIER,
     SYMBOL,
-    BRACE,
     BRACKET,
     SEMICOLON
 } tokenType; 
@@ -58,6 +57,8 @@ token* createToken();
 void freeToken(token* t);
 
 tokenTable* createTokenTable();
+
+void printTokenTable(tokenTable* table);
 
 // store token in token table
 bool writeToken(token* t, tokenTable* table);

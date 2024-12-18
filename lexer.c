@@ -45,7 +45,7 @@ tokenTable* lexFile(FILE* f){
                     exit(1);
                 }
                 insert2HLL(c, h);
-                printf("Debug: insert %c into buffer.\n",c);
+                //printf("Debug: insert %c into buffer.\n",c);
                 in_string = true;
                 prev = '\"';
             }
@@ -57,7 +57,7 @@ tokenTable* lexFile(FILE* f){
                     exit(1);
                 }
                 insert2HLL(c, h);
-                printf("Debug: 1insert %c into buffer.\n",c);
+                //printf("Debug: 1insert %c into buffer.\n",c);
                 in_id = true;
             }
             // we encounter a digit, turn on in_number.
@@ -68,7 +68,7 @@ tokenTable* lexFile(FILE* f){
                     exit(1);
                 }
                 insert2HLL(c, h);
-                printf("Debug: insert %c into buffer.\n",c);
+                //printf("Debug: insert %c into buffer.\n",c);
                 in_number = true;
             }
             // we encounter a . , should lookahead its next char to determine.
@@ -81,7 +81,7 @@ tokenTable* lexFile(FILE* f){
                         exit(1);
                 }
                 insert2HLL(c, h);
-                printf("Debug: insert %c into buffer.\n",c);
+                //printf("Debug: insert %c into buffer.\n",c);
                 in_number = true;
                 ungetc(next, f);
                 }else{
@@ -90,7 +90,7 @@ tokenTable* lexFile(FILE* f){
                     writeToken(lexToken(tmp), ttable);
                 }
             }
-            // else, curent char might be a symbol, brace, bracket, semicolon or unknown char.
+            // else, curent char might be a symbol, bracket, semicolon or unknown char.
             else{
                 char tmp[2]={0};
                 tmp[0]=c;
@@ -104,11 +104,12 @@ tokenTable* lexFile(FILE* f){
             if(prev != '\\' && c == '\"'){
                 in_string = false;
                 insert2HLL(c, h);
-                printf("Debug: insert %c into buffer.\n",c);
+                //printf("Debug: insert %c into buffer.\n",c);
                 prev = c;
                 char* str = hll2str(h);
-                printf("Debug: string is %s\n",str);
+                //printf("Debug: string is %s\n",str);
                 writeToken(lexToken(str), ttable);
+                free(str);
                 freeHLL(&h);
             }
             // unexpected exit
@@ -118,7 +119,7 @@ tokenTable* lexFile(FILE* f){
             }
             else{
                 insert2HLL(c, h);
-                printf("Debug: insert %c into buffer.\n",c);
+                //printf("Debug: insert %c into buffer.\n",c);
                 prev = c;
             }
         }
@@ -129,14 +130,15 @@ tokenTable* lexFile(FILE* f){
             if(c != '.' && !isdigit(c)){
                 in_number = false;
                 char* str = hll2str(h);
-                printf("Debug: number is %s\n",str);
+                //printf("Debug: number is %s\n",str);
                 writeToken(lexToken(str), ttable);
+                free(str);
                 freeHLL(&h);
                 ungetc(c, f);
             }
             else{
                 insert2HLL(c, h);
-                printf("Debug: insert %c into buffer.\n",c);
+                //printf("Debug: insert %c into buffer.\n",c);
             }
         }
         
@@ -146,18 +148,19 @@ tokenTable* lexFile(FILE* f){
             if(c != '_' && !isalnum(c)){
                 in_id = false;
                 char* str = hll2str(h);
-                printf("Debug: identifier is %s\n",str);
+                //printf("Debug: identifier is %s\n",str);
                 writeToken(lexToken(str), ttable);
+                free(str);
                 freeHLL(&h);
                 ungetc(c, f);
             }
             else{
                 insert2HLL(c, h);
-                printf("Debug: 2insert %c into buffer.\n",c);
+                //printf("Debug: 2insert %c into buffer.\n",c);
             }
         }
     }
-    
+    freeHLL(&h);
     return ttable;
 }
 
@@ -175,17 +178,12 @@ token* lexToken(char* str){
     int len = strlen(str);
     
     if(len == 1){
-        if(str[0]=='+' || str[0]=='-' || str[0]=='*' || str[0]=='/' || str[0]=='%' || str[0]=='?' || str[0]==':' || str[0]=='|' || str[0]=='&' || str[0]=='!' || str[0]=='~' || str[0]=='^' || str[0]=='>' || str[0]=='<' || str[0]=='=' || str[0]=='@' || str[0]=='.'){
+        if(str[0]=='+' || str[0]=='-' || str[0]=='*' || str[0]=='/' || str[0]=='%' || str[0]=='?' || str[0]==':' || str[0]=='|' || str[0]=='&' || str[0]=='!' || str[0]=='~' || str[0]=='^' || str[0]=='>' || str[0]=='<' || str[0]=='=' || str[0]=='@' || str[0]=='.' || str[0]=='\''){
             t->type = SYMBOL;
             t->data.char_val = str[0];
             return t;
         }
-        if(str[0]=='{' || str[0]=='}'){
-            t->type = BRACE;
-            t->data.char_val = str[0];
-            return t;
-        }
-        if(str[0]=='(' || str[0]==')'){
+        if(str[0]=='{' || str[0]=='}' || str[0]=='(' || str[0]==')' || str[0]=='[' || str[0]==']'){
             t->type = BRACKET;
             t->data.char_val = str[0];
             return t;
@@ -263,6 +261,10 @@ hll* createHLL(){
 }
 
 void insert2HLL(char c, hll* h){
+    if(!h){
+        fprintf(stderr, "Error insert2HLL line %d: inserting into null buffer.\n", lineNumber);
+        exit(1);
+    }
     bool flag = true;
     while(flag){
         if(h->current>=256){
@@ -288,6 +290,9 @@ void insert2HLL(char c, hll* h){
 }
 
 char* hll2str(hll* h){
+    if(!h){
+        return NULL;
+    }
     int len = 0;
     hll* p = h;
     while(p){
@@ -311,6 +316,9 @@ char* hll2str(hll* h){
 }
 
 void freeHLL(hll** h){
+    if(!h){
+        return;
+    }
     hll* p = *h;
     while(p){
         hll* tmp = p->next;
