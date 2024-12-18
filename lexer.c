@@ -83,17 +83,20 @@ tokenTable* lexFile(FILE* f){
                 insert2HLL(c, h);
                 //printf("Debug: insert %c into buffer.\n",c);
                 in_number = true;
-                ungetc(next, f);
+                
                 }else{
                     char tmp[2]={0};
                     tmp[0]=c;
+                    //printf("Debug: symbol %c inserted into table.\n",c);
                     writeToken(lexToken(tmp), ttable);
                 }
+                ungetc(next, f);
             }
             // else, curent char might be a symbol, bracket, semicolon or unknown char.
             else{
                 char tmp[2]={0};
                 tmp[0]=c;
+                //printf("Debug: symbol %c inserted into table.\n",c);
                 writeToken(lexToken(tmp), ttable);
             }
         }
@@ -231,6 +234,13 @@ token* lexToken(char* str){
         }
     }
     
+    if(str[0]=='\"' && str[len-1]=='\"'){
+        t->type = STRING;
+        t->data.str_val = calloc(len+1, sizeof(char));
+        strcpy(t->data.str_val, str);
+        return t;
+    }
+    
     // an identifier cannot start with a digit.
     if(isdigit(str[0])){
         fprintf(stderr, "Error lexToken line %d: identifier %s cannnot start with a digit.\n", lineNumber, str);
@@ -243,13 +253,14 @@ token* lexToken(char* str){
             isid = false;
         }
     }
-    
     if(isid){
         t->type = IDENTIFIER;
         t->data.str_val = calloc(len+1, sizeof(char));
         strcpy(t->data.str_val, str);
         return t;
     }
+    
+    
     
     // deal with unknown token.
     fprintf(stderr, "Error lexToken line %d: unknown identifier %s.\n", lineNumber, str);

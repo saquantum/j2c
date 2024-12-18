@@ -33,6 +33,9 @@ void printTokenTable(tokenTable* table){
             case IDENTIFIER:
                 printf("TokenType = Identifier, TokenValue = %s\n", n->t->data.str_val);
                 break;
+            case STRING:
+                printf("TokenType = String, TokenValue = %s\n", n->t->data.str_val);
+                break;
             case SYMBOL:
                 printf("TokenType = Symbol, TokenValue = %c\n", n->t->data.char_val);
                 break;
