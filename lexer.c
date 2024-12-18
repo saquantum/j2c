@@ -45,6 +45,7 @@ tokenTable* lexFile(FILE* f){
                     exit(1);
                 }
                 insert2HLL(c, h);
+                printf("Debug: insert %c into buffer.\n",c);
                 in_string = true;
                 prev = '\"';
             }
@@ -56,6 +57,7 @@ tokenTable* lexFile(FILE* f){
                     exit(1);
                 }
                 insert2HLL(c, h);
+                printf("Debug: 1insert %c into buffer.\n",c);
                 in_id = true;
             }
             // we encounter a digit, turn on in_number.
@@ -66,6 +68,7 @@ tokenTable* lexFile(FILE* f){
                     exit(1);
                 }
                 insert2HLL(c, h);
+                printf("Debug: insert %c into buffer.\n",c);
                 in_number = true;
             }
             // we encounter a . , should lookahead its next char to determine.
@@ -78,6 +81,7 @@ tokenTable* lexFile(FILE* f){
                         exit(1);
                 }
                 insert2HLL(c, h);
+                printf("Debug: insert %c into buffer.\n",c);
                 in_number = true;
                 ungetc(next, f);
                 }else{
@@ -95,13 +99,15 @@ tokenTable* lexFile(FILE* f){
         }
         
         // if in_string is on, we exit at a \" without previous \\.
-        if(in_string){
+        else if(in_string){
             // expected exit
             if(prev != '\\' && c == '\"'){
                 in_string = false;
                 insert2HLL(c, h);
+                printf("Debug: insert %c into buffer.\n",c);
                 prev = c;
                 char* str = hll2str(h);
+                printf("Debug: string is %s\n",str);
                 writeToken(lexToken(str), ttable);
                 freeHLL(&h);
             }
@@ -112,37 +118,42 @@ tokenTable* lexFile(FILE* f){
             }
             else{
                 insert2HLL(c, h);
+                printf("Debug: insert %c into buffer.\n",c);
                 prev = c;
             }
         }
         
         // if in_number is on, we exit at anything that's not a digit or dot.
-        if(in_number){
+        else if(in_number){
             // expected exit
             if(c != '.' && !isdigit(c)){
                 in_number = false;
                 char* str = hll2str(h);
+                printf("Debug: number is %s\n",str);
                 writeToken(lexToken(str), ttable);
                 freeHLL(&h);
                 ungetc(c, f);
             }
             else{
                 insert2HLL(c, h);
+                printf("Debug: insert %c into buffer.\n",c);
             }
         }
         
         // if in_id is on, we exit at anything that's not a digit, letter or underscore.
-        if(in_id){
+        else if(in_id){
             // expected exit
             if(c != '_' && !isalnum(c)){
                 in_id = false;
                 char* str = hll2str(h);
+                printf("Debug: identifier is %s\n",str);
                 writeToken(lexToken(str), ttable);
                 freeHLL(&h);
                 ungetc(c, f);
             }
             else{
                 insert2HLL(c, h);
+                printf("Debug: 2insert %c into buffer.\n",c);
             }
         }
     }
@@ -234,10 +245,12 @@ token* lexToken(char* str){
             isid = false;
         }
     }
+    
     if(isid){
         t->type = IDENTIFIER;
         t->data.str_val = calloc(len+1, sizeof(char));
         strcpy(t->data.str_val, str);
+        return t;
     }
     
     // deal with unknown token.
