@@ -5,7 +5,7 @@ token* createToken(){
 }
 
 void freeToken(token* t){
-    if(t->type == IDENTIFIER || t->type == NUMBER){
+    if(t->type == IDENTIFIER || t->type == STRING || t->type == NUMBER){
         free(t->data.str_val);
     }
     free(t);
