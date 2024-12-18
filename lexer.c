@@ -181,7 +181,7 @@ token* lexToken(char* str){
     int len = strlen(str);
     
     if(len == 1){
-        if(str[0]=='+' || str[0]=='-' || str[0]=='*' || str[0]=='/' || str[0]=='%' || str[0]=='?' || str[0]==':' || str[0]=='|' || str[0]=='&' || str[0]=='!' || str[0]=='~' || str[0]=='^' || str[0]=='>' || str[0]=='<' || str[0]=='=' || str[0]=='@' || str[0]=='.' || str[0]=='\''){
+        if(str[0]=='+' || str[0]=='-' || str[0]=='*' || str[0]=='/' || str[0]=='%' || str[0]=='?' || str[0]==':' || str[0]=='|' || str[0]=='&' || str[0]=='!' || str[0]=='~' || str[0]=='^' || str[0]=='>' || str[0]=='<' || str[0]=='=' || str[0]=='@' || str[0]=='.' || str[0]=='\'' || str[0]==','){
             t->type = SYMBOL;
             t->data.char_val = str[0];
             return t;
