@@ -20,7 +20,7 @@ void printTokenTable(tokenTable* table){
         printf("Empty or null token table detected.\n");
         return;
     }
-    char* keywords[] = {"char", "int", "long", "boolean", "double", "unsigned", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof"};
+    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
     tokenNode* n = table->start;
     while(n){
         switch(n->t->type){

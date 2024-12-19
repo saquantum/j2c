@@ -12,7 +12,7 @@ typedef enum tokenType{
 } tokenType; 
 
 typedef enum keyword{
-    CHAR, INT, LONG, BOOLEAN, DOUBLE, UNSIGNED,
+    CHAR, INT, LONG, BOOLEAN, DOUBLE,
     FOR, WHILE, DO, IF, ELSE, SWITCH, CASE, DEFAULT, CONTINUE, BREAK, RETURN,
     PUBLIC, PRIVATE,
     STATIC, FINAL, 
@@ -24,7 +24,8 @@ typedef enum keyword{
     EXTENDS, IMPLEMENTS, 
     THIS, SUPER,
     NEW,
-    INSTANCEOF
+    INSTANCEOF,
+    NATIVE
 } keyword;
 
 typedef union tokenData{

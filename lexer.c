@@ -23,11 +23,15 @@ tokenTable* lexFile(FILE* f){
     bool in_number = false;
     // if we encounter a letter or underscore, turn in_id on. turn it off when reach anything else than letter, digit or underscore.
     bool in_id = false;
+    // if we encounter a // ,turn it on. turn it off when reach another // .
+    bool in_one_comment = false;
+    // /* */
+    bool in_multi_comment = false;
     
     while((c=fgetc(f))!=EOF){
-        // at most one of the three flags can be on.
-        // if three flags are all off:
-        if(!in_string && !in_number && !in_id){
+        // at most one of the flags can be on.
+        // if flags are all off:
+        if(!in_string && !in_number && !in_id && !in_one_comment && !in_multi_comment){
             // we encounter a newline, should increment line number.
             // if you are a Mac user, good luck.
             if(c=='\n'){
@@ -36,6 +40,17 @@ tokenTable* lexFile(FILE* f){
             // we encounter a white space, skip current char.
             else if(isspace(c)){
                 continue;
+            }
+            // we encounter a '/', first check if it has a next '/' or '*'. if no, throws error.
+            else if(c=='/'){
+                char next = fgetc(f);
+                if(next == '/'){
+                    in_one_comment = true;
+                }else if (next == '*'){
+                    in_multi_comment = true;
+                }else{
+                    fprintf(stderr, "Error lexFile line %d: wrong usage of comment.\n", lineNumber);
+                }
             }
             // we encounter a \", turn on in_string.
             else if(c=='\"'){
@@ -98,6 +113,20 @@ tokenTable* lexFile(FILE* f){
                 tmp[0]=c;
                 //printf("Debug: symbol %c inserted into table.\n",c);
                 writeToken(lexToken(tmp), ttable);
+            }
+        }
+        
+        else if(in_one_comment){
+            if(c=='\n'){
+                in_one_comment = false;
+            }
+        }
+        else if(in_multi_comment){
+            if(c=='*'){
+                char next = fgetc(f);
+                if(next == '/'){
+                    in_multi_comment = false;
+                }
             }
         }
         
@@ -198,7 +227,7 @@ token* lexToken(char* str){
         }
     }
     
-    char* keywords[] = {"char", "int", "long", "boolean", "double", "unsigned", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof"};
+    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
     for(int i=0;i<(int)(sizeof(keywords)/sizeof(keywords[0]));i++){
         if(!strcmp(str, keywords[i])){
             t->type = KEYWORD;
