@@ -25,25 +25,25 @@ void printTokenTable(tokenTable* table){
     while(n){
         switch(n->t->type){
             case KEYWORD:
-                printf("TokenType = Keyword, TokenValue = %s\n", keywords[n->t->data.key_val]);
+                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d\n", keywords[n->t->data.key_val], n->t->lineNumber);
                 break;
             case NUMBER:
-                printf("TokenType = Number, TokenValue = %s\n", n->t->data.str_val);
+                printf("TokenType = Number, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
                 break;
             case IDENTIFIER:
-                printf("TokenType = Identifier, TokenValue = %s\n", n->t->data.str_val);
+                printf("TokenType = Identifier, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
                 break;
             case STRING:
-                printf("TokenType = String, TokenValue = %s\n", n->t->data.str_val);
+                printf("TokenType = String, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
                 break;
             case SYMBOL:
-                printf("TokenType = Symbol, TokenValue = %c\n", n->t->data.char_val);
+                printf("TokenType = Symbol, TokenValue = %c, lineNumber = %d\n", n->t->data.char_val, n->t->lineNumber);
                 break;
             case BRACKET:
-                printf("TokenType = Bracket, TokenValue = %c\n", n->t->data.char_val);
+                printf("TokenType = Bracket, TokenValue = %c, lineNumber = %d\n", n->t->data.char_val, n->t->lineNumber);
                 break;
             case SEMICOLON:
-                printf("TokenType = Semicolon, TokenValue = %c\n", n->t->data.char_val);
+                printf("TokenType = Semicolon, TokenValue = %c, lineNumber = %d\n", n->t->data.char_val, n->t->lineNumber);
                 break;
         }
         

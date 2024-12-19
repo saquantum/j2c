@@ -1,160 +1,160 @@
-TokenType = Keyword, TokenValue = public
-TokenType = Keyword, TokenValue = class
-TokenType = Identifier, TokenValue = student
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = private
-TokenType = Identifier, TokenValue = String
-TokenType = Identifier, TokenValue = name
-TokenType = Semicolon, TokenValue = ;
-TokenType = Keyword, TokenValue = private
-TokenType = Keyword, TokenValue = boolean
-TokenType = Identifier, TokenValue = gender
-TokenType = Semicolon, TokenValue = ;
-TokenType = Keyword, TokenValue = private
-TokenType = Keyword, TokenValue = int
-TokenType = Identifier, TokenValue = age
-TokenType = Semicolon, TokenValue = ;
-TokenType = Keyword, TokenValue = private
-TokenType = Identifier, TokenValue = String
-TokenType = Identifier, TokenValue = id
-TokenType = Semicolon, TokenValue = ;
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = student
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = student
-TokenType = Bracket, TokenValue = (
-TokenType = Identifier, TokenValue = String
-TokenType = Identifier, TokenValue = name
-TokenType = Symbol, TokenValue = ,
-TokenType = Keyword, TokenValue = boolean
-TokenType = Identifier, TokenValue = gender
-TokenType = Symbol, TokenValue = ,
-TokenType = Keyword, TokenValue = int
-TokenType = Identifier, TokenValue = age
-TokenType = Symbol, TokenValue = ,
-TokenType = Identifier, TokenValue = String
-TokenType = Identifier, TokenValue = id
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = name
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = name
-TokenType = Semicolon, TokenValue = ;
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = gender
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = gender
-TokenType = Semicolon, TokenValue = ;
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = age
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = age
-TokenType = Semicolon, TokenValue = ;
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = id
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = id
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = String
-TokenType = Identifier, TokenValue = getName
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = return
-TokenType = Identifier, TokenValue = name
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = void
-TokenType = Identifier, TokenValue = setName
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = name
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = name
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Keyword, TokenValue = boolean
-TokenType = Identifier, TokenValue = getGender
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = return
-TokenType = Identifier, TokenValue = gender
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = void
-TokenType = Identifier, TokenValue = setGender
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = gender
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = gender
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Keyword, TokenValue = int
-TokenType = Identifier, TokenValue = getAge
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = return
-TokenType = Identifier, TokenValue = age
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = void
-TokenType = Identifier, TokenValue = setAge
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = age
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = age
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = String
-TokenType = Identifier, TokenValue = getId
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = return
-TokenType = Identifier, TokenValue = id
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Keyword, TokenValue = public
-TokenType = Identifier, TokenValue = void
-TokenType = Identifier, TokenValue = setId
-TokenType = Bracket, TokenValue = (
-TokenType = Bracket, TokenValue = )
-TokenType = Bracket, TokenValue = {
-TokenType = Keyword, TokenValue = this
-TokenType = Symbol, TokenValue = .
-TokenType = Identifier, TokenValue = id
-TokenType = Symbol, TokenValue = =
-TokenType = Identifier, TokenValue = id
-TokenType = Semicolon, TokenValue = ;
-TokenType = Bracket, TokenValue = }
-TokenType = Bracket, TokenValue = }
+TokenType = Keyword, TokenValue = public, lineNumber = 4
+TokenType = Keyword, TokenValue = class, lineNumber = 4
+TokenType = Identifier, TokenValue = student, lineNumber = 4
+TokenType = Bracket, TokenValue = {, lineNumber = 4
+TokenType = Keyword, TokenValue = private, lineNumber = 5
+TokenType = Identifier, TokenValue = String, lineNumber = 5
+TokenType = Identifier, TokenValue = name, lineNumber = 5
+TokenType = Semicolon, TokenValue = ;, lineNumber = 5
+TokenType = Keyword, TokenValue = private, lineNumber = 6
+TokenType = Keyword, TokenValue = boolean, lineNumber = 6
+TokenType = Identifier, TokenValue = gender, lineNumber = 6
+TokenType = Semicolon, TokenValue = ;, lineNumber = 6
+TokenType = Keyword, TokenValue = private, lineNumber = 7
+TokenType = Keyword, TokenValue = int, lineNumber = 7
+TokenType = Identifier, TokenValue = age, lineNumber = 7
+TokenType = Semicolon, TokenValue = ;, lineNumber = 7
+TokenType = Keyword, TokenValue = private, lineNumber = 8
+TokenType = Identifier, TokenValue = String, lineNumber = 8
+TokenType = Identifier, TokenValue = id, lineNumber = 8
+TokenType = Semicolon, TokenValue = ;, lineNumber = 8
+TokenType = Keyword, TokenValue = public, lineNumber = 11
+TokenType = Identifier, TokenValue = student, lineNumber = 11
+TokenType = Bracket, TokenValue = (, lineNumber = 11
+TokenType = Bracket, TokenValue = ), lineNumber = 11
+TokenType = Bracket, TokenValue = {, lineNumber = 11
+TokenType = Bracket, TokenValue = }, lineNumber = 12
+TokenType = Keyword, TokenValue = public, lineNumber = 14
+TokenType = Identifier, TokenValue = student, lineNumber = 14
+TokenType = Bracket, TokenValue = (, lineNumber = 14
+TokenType = Identifier, TokenValue = String, lineNumber = 14
+TokenType = Identifier, TokenValue = name, lineNumber = 14
+TokenType = Symbol, TokenValue = ,, lineNumber = 14
+TokenType = Keyword, TokenValue = boolean, lineNumber = 14
+TokenType = Identifier, TokenValue = gender, lineNumber = 14
+TokenType = Symbol, TokenValue = ,, lineNumber = 14
+TokenType = Keyword, TokenValue = int, lineNumber = 14
+TokenType = Identifier, TokenValue = age, lineNumber = 14
+TokenType = Symbol, TokenValue = ,, lineNumber = 14
+TokenType = Identifier, TokenValue = String, lineNumber = 14
+TokenType = Identifier, TokenValue = id, lineNumber = 14
+TokenType = Bracket, TokenValue = ), lineNumber = 14
+TokenType = Bracket, TokenValue = {, lineNumber = 14
+TokenType = Keyword, TokenValue = this, lineNumber = 15
+TokenType = Symbol, TokenValue = ., lineNumber = 15
+TokenType = Identifier, TokenValue = name, lineNumber = 15
+TokenType = Symbol, TokenValue = =, lineNumber = 15
+TokenType = Identifier, TokenValue = name, lineNumber = 15
+TokenType = Semicolon, TokenValue = ;, lineNumber = 15
+TokenType = Keyword, TokenValue = this, lineNumber = 16
+TokenType = Symbol, TokenValue = ., lineNumber = 16
+TokenType = Identifier, TokenValue = gender, lineNumber = 16
+TokenType = Symbol, TokenValue = =, lineNumber = 16
+TokenType = Identifier, TokenValue = gender, lineNumber = 16
+TokenType = Semicolon, TokenValue = ;, lineNumber = 16
+TokenType = Keyword, TokenValue = this, lineNumber = 17
+TokenType = Symbol, TokenValue = ., lineNumber = 17
+TokenType = Identifier, TokenValue = age, lineNumber = 17
+TokenType = Symbol, TokenValue = =, lineNumber = 17
+TokenType = Identifier, TokenValue = age, lineNumber = 17
+TokenType = Semicolon, TokenValue = ;, lineNumber = 17
+TokenType = Keyword, TokenValue = this, lineNumber = 18
+TokenType = Symbol, TokenValue = ., lineNumber = 18
+TokenType = Identifier, TokenValue = id, lineNumber = 18
+TokenType = Symbol, TokenValue = =, lineNumber = 18
+TokenType = Identifier, TokenValue = id, lineNumber = 18
+TokenType = Semicolon, TokenValue = ;, lineNumber = 18
+TokenType = Bracket, TokenValue = }, lineNumber = 19
+TokenType = Keyword, TokenValue = public, lineNumber = 21
+TokenType = Identifier, TokenValue = String, lineNumber = 21
+TokenType = Identifier, TokenValue = getName, lineNumber = 21
+TokenType = Bracket, TokenValue = (, lineNumber = 21
+TokenType = Bracket, TokenValue = ), lineNumber = 21
+TokenType = Bracket, TokenValue = {, lineNumber = 21
+TokenType = Keyword, TokenValue = return, lineNumber = 22
+TokenType = Identifier, TokenValue = name, lineNumber = 22
+TokenType = Semicolon, TokenValue = ;, lineNumber = 22
+TokenType = Bracket, TokenValue = }, lineNumber = 23
+TokenType = Keyword, TokenValue = public, lineNumber = 24
+TokenType = Identifier, TokenValue = void, lineNumber = 24
+TokenType = Identifier, TokenValue = setName, lineNumber = 24
+TokenType = Bracket, TokenValue = (, lineNumber = 24
+TokenType = Bracket, TokenValue = ), lineNumber = 24
+TokenType = Bracket, TokenValue = {, lineNumber = 24
+TokenType = Keyword, TokenValue = this, lineNumber = 25
+TokenType = Symbol, TokenValue = ., lineNumber = 25
+TokenType = Identifier, TokenValue = name, lineNumber = 25
+TokenType = Symbol, TokenValue = =, lineNumber = 25
+TokenType = Identifier, TokenValue = name, lineNumber = 25
+TokenType = Semicolon, TokenValue = ;, lineNumber = 25
+TokenType = Bracket, TokenValue = }, lineNumber = 26
+TokenType = Keyword, TokenValue = public, lineNumber = 28
+TokenType = Keyword, TokenValue = boolean, lineNumber = 28
+TokenType = Identifier, TokenValue = getGender, lineNumber = 28
+TokenType = Bracket, TokenValue = (, lineNumber = 28
+TokenType = Bracket, TokenValue = ), lineNumber = 28
+TokenType = Bracket, TokenValue = {, lineNumber = 28
+TokenType = Keyword, TokenValue = return, lineNumber = 29
+TokenType = Identifier, TokenValue = gender, lineNumber = 29
+TokenType = Semicolon, TokenValue = ;, lineNumber = 29
+TokenType = Bracket, TokenValue = }, lineNumber = 30
+TokenType = Keyword, TokenValue = public, lineNumber = 31
+TokenType = Identifier, TokenValue = void, lineNumber = 31
+TokenType = Identifier, TokenValue = setGender, lineNumber = 31
+TokenType = Bracket, TokenValue = (, lineNumber = 31
+TokenType = Bracket, TokenValue = ), lineNumber = 31
+TokenType = Bracket, TokenValue = {, lineNumber = 31
+TokenType = Keyword, TokenValue = this, lineNumber = 32
+TokenType = Symbol, TokenValue = ., lineNumber = 32
+TokenType = Identifier, TokenValue = gender, lineNumber = 32
+TokenType = Symbol, TokenValue = =, lineNumber = 32
+TokenType = Identifier, TokenValue = gender, lineNumber = 32
+TokenType = Semicolon, TokenValue = ;, lineNumber = 32
+TokenType = Bracket, TokenValue = }, lineNumber = 33
+TokenType = Keyword, TokenValue = public, lineNumber = 35
+TokenType = Keyword, TokenValue = int, lineNumber = 35
+TokenType = Identifier, TokenValue = getAge, lineNumber = 35
+TokenType = Bracket, TokenValue = (, lineNumber = 35
+TokenType = Bracket, TokenValue = ), lineNumber = 35
+TokenType = Bracket, TokenValue = {, lineNumber = 35
+TokenType = Keyword, TokenValue = return, lineNumber = 36
+TokenType = Identifier, TokenValue = age, lineNumber = 36
+TokenType = Semicolon, TokenValue = ;, lineNumber = 36
+TokenType = Bracket, TokenValue = }, lineNumber = 37
+TokenType = Keyword, TokenValue = public, lineNumber = 38
+TokenType = Identifier, TokenValue = void, lineNumber = 38
+TokenType = Identifier, TokenValue = setAge, lineNumber = 38
+TokenType = Bracket, TokenValue = (, lineNumber = 38
+TokenType = Bracket, TokenValue = ), lineNumber = 38
+TokenType = Bracket, TokenValue = {, lineNumber = 38
+TokenType = Keyword, TokenValue = this, lineNumber = 39
+TokenType = Symbol, TokenValue = ., lineNumber = 39
+TokenType = Identifier, TokenValue = age, lineNumber = 39
+TokenType = Symbol, TokenValue = =, lineNumber = 39
+TokenType = Identifier, TokenValue = age, lineNumber = 39
+TokenType = Semicolon, TokenValue = ;, lineNumber = 39
+TokenType = Bracket, TokenValue = }, lineNumber = 40
+TokenType = Keyword, TokenValue = public, lineNumber = 42
+TokenType = Identifier, TokenValue = String, lineNumber = 42
+TokenType = Identifier, TokenValue = getId, lineNumber = 42
+TokenType = Bracket, TokenValue = (, lineNumber = 42
+TokenType = Bracket, TokenValue = ), lineNumber = 42
+TokenType = Bracket, TokenValue = {, lineNumber = 42
+TokenType = Keyword, TokenValue = return, lineNumber = 43
+TokenType = Identifier, TokenValue = id, lineNumber = 43
+TokenType = Semicolon, TokenValue = ;, lineNumber = 43
+TokenType = Bracket, TokenValue = }, lineNumber = 44
+TokenType = Keyword, TokenValue = public, lineNumber = 45
+TokenType = Identifier, TokenValue = void, lineNumber = 45
+TokenType = Identifier, TokenValue = setId, lineNumber = 45
+TokenType = Bracket, TokenValue = (, lineNumber = 45
+TokenType = Bracket, TokenValue = ), lineNumber = 45
+TokenType = Bracket, TokenValue = {, lineNumber = 45
+TokenType = Keyword, TokenValue = this, lineNumber = 46
+TokenType = Symbol, TokenValue = ., lineNumber = 46
+TokenType = Identifier, TokenValue = id, lineNumber = 46
+TokenType = Symbol, TokenValue = =, lineNumber = 46
+TokenType = Identifier, TokenValue = id, lineNumber = 46
+TokenType = Semicolon, TokenValue = ;, lineNumber = 46
+TokenType = Bracket, TokenValue = }, lineNumber = 47
+TokenType = Bracket, TokenValue = }, lineNumber = 48

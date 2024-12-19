@@ -103,7 +103,7 @@ tokenTable* lexFile(FILE* f){
                     char tmp[2]={0};
                     tmp[0]=c;
                     //printf("Debug: symbol %c inserted into table.\n",c);
-                    writeToken(lexToken(tmp), ttable);
+                    writeToken(lexToken(tmp, lineNumber), ttable);
                 }
                 ungetc(next, f);
             }
@@ -112,13 +112,14 @@ tokenTable* lexFile(FILE* f){
                 char tmp[2]={0};
                 tmp[0]=c;
                 //printf("Debug: symbol %c inserted into table.\n",c);
-                writeToken(lexToken(tmp), ttable);
+                writeToken(lexToken(tmp, lineNumber), ttable);
             }
         }
         
         else if(in_one_comment){
             if(c=='\n'){
                 in_one_comment = false;
+                lineNumber++;
             }
         }
         else if(in_multi_comment){
@@ -127,6 +128,8 @@ tokenTable* lexFile(FILE* f){
                 if(next == '/'){
                     in_multi_comment = false;
                 }
+            } else if(c=='\n'){
+                lineNumber++;
             }
         }
         
@@ -140,13 +143,18 @@ tokenTable* lexFile(FILE* f){
                 prev = c;
                 char* str = hll2str(h);
                 //printf("Debug: string is %s\n",str);
-                writeToken(lexToken(str), ttable);
+                writeToken(lexToken(str, lineNumber), ttable);
                 free(str);
                 freeHLL(&h);
             }
             // unexpected exit
             else if(c == EOF){
                 fprintf(stderr, "Error lexFile line %d: unfinished string literal.\n", lineNumber);
+                exit(1);
+            }
+            // non printable char
+            else if(!isprint(c)){
+                fprintf(stderr, "Error lexFile line %d: non-printable char detected in string literal.\n", lineNumber);
                 exit(1);
             }
             else{
@@ -163,7 +171,7 @@ tokenTable* lexFile(FILE* f){
                 in_number = false;
                 char* str = hll2str(h);
                 //printf("Debug: number is %s\n",str);
-                writeToken(lexToken(str), ttable);
+                writeToken(lexToken(str, lineNumber), ttable);
                 free(str);
                 freeHLL(&h);
                 ungetc(c, f);
@@ -181,7 +189,7 @@ tokenTable* lexFile(FILE* f){
                 in_id = false;
                 char* str = hll2str(h);
                 //printf("Debug: identifier is %s\n",str);
-                writeToken(lexToken(str), ttable);
+                writeToken(lexToken(str, lineNumber), ttable);
                 free(str);
                 freeHLL(&h);
                 ungetc(c, f);
@@ -196,7 +204,7 @@ tokenTable* lexFile(FILE* f){
     return ttable;
 }
 
-token* lexToken(char* str){
+token* lexToken(char* str, int lineNumber){
     if(!str || !str[0]){
         return NULL;
     }
@@ -206,7 +214,7 @@ token* lexToken(char* str){
         fprintf(stderr, "Error lexToken line %d: not enough heap memory, cannot create token.\n", lineNumber);
         exit(1);
     }
-    
+    t->lineNumber = lineNumber;
     int len = strlen(str);
     
     if(len == 1){

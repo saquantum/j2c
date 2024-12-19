@@ -37,6 +37,7 @@ typedef union tokenData{
 typedef struct token{
     tokenType type;
     tokenData data;
+    int lineNumber;
 } token;
 
 // store all tokens in a linked list

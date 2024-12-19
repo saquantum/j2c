@@ -10,7 +10,7 @@ typedef struct hll{
 
 tokenTable* lexFile(FILE* f);
 
-token* lexToken(char* str);
+token* lexToken(char* str, int lineNumber);
 
 hll* createHLL();
 
