@@ -43,6 +43,7 @@ typedef struct token{
 
 typedef struct tokenNode{
     token* t;
+    struct tokenNode* prev;
     struct tokenNode* next;
 } tokenNode;
 
@@ -68,7 +69,10 @@ bool writeToken(token* t, tokenTable* table);
 // table has more nodes?
 bool hasNext(tokenTable* table);
 
-// read the next node
+// read the next node, and move current pointer forward.
 tokenNode* nextNode(tokenTable* table);
+
+// read the previous node. NOTICE: this does not move pointer current.
+tokenNode* prevNode(tokenTable* table);
 
 void freeTokenTable(tokenTable** table);

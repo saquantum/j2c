@@ -67,6 +67,7 @@ bool writeToken(token* t, tokenTable* table){
         table->current = node;
     }else{
         table->end->next = node;
+        node->prev = table->end;
     }
     table->end = node;
     return true;
@@ -86,6 +87,16 @@ tokenNode* nextNode(tokenTable* table){
     tokenNode* tmp = table->current;
     table->current = table->current->next;
     return tmp;
+}
+
+tokenNode* prevNode(tokenTable* table){
+    if (!table || !table->start){
+        return NULL;
+    }
+    if(!table->current){
+        return table->end;
+    }
+    return table->current->prev;
 }
 
 void freeTokenTable(tokenTable** table){
