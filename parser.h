@@ -14,6 +14,8 @@ typedef struct CST{
     
 }CST;
 
-treeNode** insertTreeNode(treeNode** children, int capacity, int childCount);
+
 
 treeNode* createTreeNode(char* rule, token* t);
+
+void insertChildNode(treeNode** children, int capacity, int childCount);

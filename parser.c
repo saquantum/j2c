@@ -22,12 +22,39 @@ treeNode* createTreeNode(char* rule, token* t){
         exit(1);
     } 
     n->ruleType = calloc((int)strlen(rule)+1, sizeof(char));
-    if(!n){
+    if(!n->ruleType){
         fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create rule type string.\n", t->lineNumber);
         exit(1);
     } 
+    strcpy(n->ruleType, rule);
+    n->assoToken = t;
+    n->children = calloc(16, sizeof(treeNode*));
+    if(!n->children){
+        fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create children array.\n", t->lineNumber);
+        exit(1);
+    } 
+    n->capacity = 16;
 }
 
-treeNode** insertTreeNode(treeNode** children, int capacity, int childCount){
-    
+void insertChildNode(treeNode* n, treeNode* child){
+    if(n->capacity < n->childCount){
+        if(n->assoToken){
+            fprintf(stderr, "Error insertChildNode line %d: code of parser has destructively wrong logic.\n", n->assoToken->lineNumber);
+        }else{
+            fprintf(stderr, "Error insertChildNode: code of parser has destructively wrong logic.\n");
+        }
+        exit(1);
+    }
+    if(n->capacity == n->childCount){
+        n->children = (treeNode**)realloc(n->children, 2*(n->capacity));
+        if(!n->children){
+            if(n->assoToken){
+                fprintf(stderr, "Error insertChildNode line %d: not enough memory, cannot realloc children array.\n", n->assoToken->lineNumber);
+            }else{
+                fprintf(stderr, "Error insertChildNode: not enough memory, cannot realloc children array.\n");
+            }
+            exit(1);
+        }
+    }
+    n->children[n->childcount++] = child;
 }
