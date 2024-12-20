@@ -6,16 +6,11 @@ void parseLetStatement(tokenNode* n0, tokenNode* nf){
     
 }
 
-typedef struct treeNode{
-    char* ruleType;
-    token* assoToken;
-    struct treeNode** children;
-    int capacity;
-    int childCount;
-    struct treeNode* parent;
-}treeNode;
-
 treeNode* createTreeNode(char* rule, token* t){
+    if(!rule || !t){
+        fprintf(stderr, "Error createTreeNode: null pointer provided.\n");
+        exit(1);
+    }
     treeNode* n = calloc(1,sizeof(treeNode));
     if(!n){
         fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create tree node.\n", t->lineNumber);
@@ -34,9 +29,14 @@ treeNode* createTreeNode(char* rule, token* t){
         exit(1);
     } 
     n->capacity = 16;
+    return n;
 }
 
 void insertChildNode(treeNode* n, treeNode* child){
+    if(!n || !child){
+        fprintf(stderr, "Error insertChildNode: null pointer provided.\n");
+        exit(1);
+    }
     if(n->capacity < n->childCount){
         if(n->assoToken){
             fprintf(stderr, "Error insertChildNode line %d: code of parser has destructively wrong logic.\n", n->assoToken->lineNumber);
@@ -46,7 +46,7 @@ void insertChildNode(treeNode* n, treeNode* child){
         exit(1);
     }
     if(n->capacity == n->childCount){
-        n->children = (treeNode**)realloc(n->children, 2*(n->capacity));
+        n->children = (treeNode**)realloc(n->children, 2*(n->capacity)*sizeof(treeNode*));
         if(!n->children){
             if(n->assoToken){
                 fprintf(stderr, "Error insertChildNode line %d: not enough memory, cannot realloc children array.\n", n->assoToken->lineNumber);
@@ -55,6 +55,28 @@ void insertChildNode(treeNode* n, treeNode* child){
             }
             exit(1);
         }
+        n->capacity = 2 * (n->capacity);
     }
-    n->children[n->childcount++] = child;
+    n->children[n->childCount++] = child;
+    child->parent = n;
+}
+
+void freeCST(CST** cst){
+    if(!cst || !(*cst)){
+        return;
+    }
+    freeTreeNode(cst->root);
+    *cst = NULL;
+}
+
+void freeTreeNode(treeNode* n){
+    if(!n){
+        return;
+    }
+    for(int i=0; i < n->childCount; i++){
+        freeTreeNode(n->children[i]);
+    }
+    free(n->children);
+    free(n->ruleType);
+    free(n);
 }

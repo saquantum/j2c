@@ -20,3 +20,7 @@ typedef struct CST{
 treeNode* createTreeNode(char* rule, token* t);
 
 void insertChildNode(treeNode* n, treeNode* child);
+
+void freeCST(CST** cst);
+
+void freeTreeNode(treeNode* n);
