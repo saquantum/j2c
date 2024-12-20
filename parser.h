@@ -15,6 +15,20 @@ typedef struct CST{
     treeNode* root;
 }CST;
 
+bool isBinaryOp(token* t);
+
+bool isLogicalOp(token* t);
+
+bool isLogicalBindOp(token* t);
+
+bool isRelationalOp(token* t);
+
+bool isShiftOp(token* t);
+
+bool isAssignmentOp(token* t);
+
+bool isSelfOp(token* t);
+
 treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent);
 
 // this function never returns null pointer, it only crashes.

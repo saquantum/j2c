@@ -1,8 +1,6 @@
 #include "parser.h"
 
-void parseExpression(treeNode* parent, tokenTable* table){
-    
-}
+//void parseExpression(treeNode* parent, tokenTable* table){}
 
 void parseTerm(treeNode* parent, tokenTable* table){
     tokenNode* n = nextNode(table);
@@ -22,7 +20,7 @@ void parseTerm(treeNode* parent, tokenTable* table){
         insertNewNode2Parent("string", n->t, term);
         return;
     }
-    // term is a variable or an array entry
+    // term is a variable or an array entry, or a variable with post self in/decrement, or a subroutine call
     else if(n->t->type==IDENTIFIER){
         tokenNode* peeknext = peekNextNode(table);
         if(peeknext->t->type==BRACKET && peeknext->t->data.char_val=='['){
@@ -43,7 +41,21 @@ void parseTerm(treeNode* parent, tokenTable* table){
             }
             insertNewNode2Parent("bracket", n->t, term);
             return;
-        } else{
+        } else if(isSelfOp(peeknext->t)){
+        
+            treeNode* term = insertNewNode2Parent("term", NULL, parent);
+            
+            insertNewNode2Parent("identifier", n->t, term);
+            
+            n = nextNode(table);
+            insertNewNode2Parent("selfOperator", n->t, term);
+            
+            return;
+        } else if ((peeknext->t->type==BRACKET && peeknext->t->data.char_val=='(') || (peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='.')){
+            unread(table);
+            treeNode* term = insertNewNode2Parent("term", NULL, parent);
+            parseSubroutineCall(term, table);
+        }else{
             insertNewNode2Parent("term", n->t, parent);
             return;
         }
@@ -65,88 +77,53 @@ void parseTerm(treeNode* parent, tokenTable* table){
         return;
     }
     // term is an unary operator acting on another term
-    else if(n->t->type==SYMBOL && (n->t->data.char_val=='!' | n->t->data.char_val=='~' | (n->t->data.char_val=='-' && peekNextNode(table)->t->type!=SYMBOL ))){}
+    else if(n->t->type==SYMBOL && (n->t->data.char_val=='!' || n->t->data.char_val=='~' || n->t->data.char_val=='-')){
+        treeNode* term = insertNewNode2Parent("term", NULL, parent);
+        
+        insertNewNode2Parent("unaryOperator", n->t, term);
+        
+        parseTerm(term, table);
 
-}
-
-treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent){
-    treeNode* child = createTreeNode(rule, t);
-    child->parent = parent;
-    insertChildNode(parent, child);
-    return child;
-}
-
-treeNode* createTreeNode(char* rule, token* t){
-    if(!rule){
-        fprintf(stderr, "Error createTreeNode: null rule provided.\n");
-        exit(1);
+        return;
     }
-    treeNode* n = calloc(1,sizeof(treeNode));
-    if(!n){
-        fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create tree node.\n", t->lineNumber);
-        exit(1);
-    } 
-    n->ruleType = calloc((int)strlen(rule)+1, sizeof(char));
-    if(!n->ruleType){
-        fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create rule type string.\n", t->lineNumber);
-        exit(1);
-    } 
-    strcpy(n->ruleType, rule);
-    n->assoToken = t;
-    n->children = calloc(16, sizeof(treeNode*));
-    if(!n->children){
-        fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create children array.\n", t->lineNumber);
-        exit(1);
-    } 
-    n->capacity = 16;
-    return n;
-}
-
-void insertChildNode(treeNode* n, treeNode* child){
-    if(!n || !child){
-        fprintf(stderr, "Error insertChildNode: null pointer provided.\n");
-        exit(1);
-    }
-    if(n->capacity < n->childCount){
-        if(n->assoToken){
-            fprintf(stderr, "Error insertChildNode line %d: code of parser has destructively wrong logic.\n", n->assoToken->lineNumber);
-        }else{
-            fprintf(stderr, "Error insertChildNode: code of parser has destructively wrong logic.\n");
-        }
-        exit(1);
-    }
-    if(n->capacity == n->childCount){
-        n->children = (treeNode**)realloc(n->children, 2*(n->capacity)*sizeof(treeNode*));
-        if(!n->children){
-            if(n->assoToken){
-                fprintf(stderr, "Error insertChildNode line %d: not enough memory, cannot realloc children array.\n", n->assoToken->lineNumber);
-            }else{
-                fprintf(stderr, "Error insertChildNode: not enough memory, cannot realloc children array.\n");
+    // term is a pre in/decremented identifier
+    else if(isSelfOp(n->t)){
+        treeNode* term = insertNewNode2Parent("term", NULL, parent);
+            
+        insertNewNode2Parent("selfOperator", n->t, term);
+        
+        n = nextNode(table);
+            if(n->t->type!=IDENTIFIER){
+                fprintf(stderr, "Error parseTerm line %d: missing identifier.\n", n->t->lineNumber);
+                exit(1);
             }
-            exit(1);
-        }
-        n->capacity = 2 * (n->capacity);
+        insertNewNode2Parent("identifier", n->t, term);
     }
-    n->children[n->childCount++] = child;
-    child->parent = n;
+    // term is a ternary expression
+    else{
+        unread(table);
+        treeNode* term = insertNewNode2Parent("term", NULL, parent);
+        
+        parseExpression(term, table);
+        
+        n = nextNode(table);
+            if(n->t->type!=SYMBOL || n->t->data.char_val!='?'){
+                fprintf(stderr, "Error parseTerm line %d: missing '?' in ternary expression.\n", n->t->lineNumber);
+                exit(1);
+            }
+        insertNewNode2Parent("symbol", n->t, term);
+        
+        parseExpression(term, table);
+        
+        n = nextNode(table);
+            if(n->t->type!=SYMBOL || n->t->data.char_val!=':'){
+                fprintf(stderr, "Error parseTerm line %d: missing ':' in ternary expression.\n", n->t->lineNumber);
+                exit(1);
+            }
+        insertNewNode2Parent("symbol", n->t, term);
+        
+        parseExpression(term, table);
+    }
+    
 }
 
-void freeCST(CST** cst){
-    if(!cst || !(*cst)){
-        return;
-    }
-    freeTreeNode(cst->root);
-    *cst = NULL;
-}
-
-void freeTreeNode(treeNode* n){
-    if(!n){
-        return;
-    }
-    for(int i=0; i < n->childCount; i++){
-        freeTreeNode(n->children[i]);
-    }
-    free(n->children);
-    free(n->ruleType);
-    free(n);
-}

@@ -92,6 +92,20 @@ tokenNode* nextNode(tokenTable* table){
     return tmp;
 }
 
+void unread(tokenTable* table){
+    if(!table){
+        return;
+    }
+    if(!table->current){
+        table->current = table->end;
+        return;
+    }
+    if(table->current == table->start){
+        return;
+    }
+    table->current = table->current->prev;
+}
+
 tokenNode* peekNextNode(tokenTable* table){
     if (!table || !table->current || !table->start){
         return NULL;
