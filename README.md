@@ -181,5 +181,5 @@ no package.
 
 #### advanced techniques
 
-method reference, lambda expressions, inner classes are not included in this grammar to keep it simple.
+method reference, lambda expressions, inner classes and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
 
