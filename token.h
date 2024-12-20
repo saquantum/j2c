@@ -73,6 +73,9 @@ bool hasNext(tokenTable* table);
 // read the next node, and move current pointer forward.
 tokenNode* nextNode(tokenTable* table);
 
+// read the next node, but does not move current pointer forward.
+tokenNode* peekNextNode(tokenTable* table);
+
 // read the previous node. NOTICE: this does not move pointer current.
 tokenNode* prevNode(tokenTable* table);
 

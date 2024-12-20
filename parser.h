@@ -10,12 +10,13 @@ typedef struct treeNode{
     struct treeNode* parent;
 }treeNode;
 
+// every .java file has one CST.
 typedef struct CST{
-    
+    treeNode* root;
 }CST;
 
 
 
 treeNode* createTreeNode(char* rule, token* t);
 
-void insertChildNode(treeNode** children, int capacity, int childCount);
+void insertChildNode(treeNode* n, treeNode* child);

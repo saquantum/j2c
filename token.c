@@ -89,6 +89,13 @@ tokenNode* nextNode(tokenTable* table){
     return tmp;
 }
 
+tokenNode* peekNextNode(tokenTable* table){
+    if (!table || !table->current || !table->start){
+        return NULL;
+    }
+    return table->current->next;
+}
+
 tokenNode* prevNode(tokenTable* table){
     if (!table || !table->start){
         return NULL;
