@@ -1,14 +1,84 @@
 #include "parser.h"
 
-// public static final int x = 1 + 2 , y = 10 , z ;
-// ArrayList<String> list = new ArrayList<>();
-void parseLetStatement(tokenNode* n0, tokenNode* nf){
+void parseExpression(treeNode* parent, tokenTable* table){
     
 }
 
+void parseTerm(treeNode* parent, tokenTable* table){
+    tokenNode* n = nextNode(table);
+    // four terminal cases: true, false, null, this
+    if(n->t->type==KEYWORD && (n->t->data.key_val==BOOL_TRUE || n->t->data.key_val==BOOL_FALSE || n->t->data.key_val==NULLER || n->t->data.key_val==THIS)){
+        insertNewNode2Parent("term", n->t, parent);
+        return;
+    }
+    // token is a number or string
+    else if(n->t->type==NUMBER){
+        treeNode* term = insertNewNode2Parent("term", NULL, parent);
+        insertNewNode2Parent("number", n->t, term);
+        return;
+    }
+    else if(n->t->type==STRING){
+        treeNode* term = insertNewNode2Parent("term", NULL, parent);
+        insertNewNode2Parent("string", n->t, term);
+        return;
+    }
+    // term is a variable or an array entry
+    else if(n->t->type==IDENTIFIER){
+        tokenNode* peeknext = peekNextNode(table);
+        if(peeknext->t->type==BRACKET && peeknext->t->data.char_val=='['){
+        
+            treeNode* term = insertNewNode2Parent("term", NULL, parent);
+            
+            insertNewNode2Parent("identifier", n->t, term);
+            
+            n = nextNode(table);
+            insertNewNode2Parent("bracket", n->t, term);
+            
+            parseExpression(term, table);
+            
+            n = nextNode(table);
+            if(n->t->type!=BRACKET || n->t->data.char_val!=']'){
+                fprintf(stderr, "Error parseTerm line %d: missing right square bracket.\n", n->t->lineNumber);
+                exit(1);
+            }
+            insertNewNode2Parent("bracket", n->t, term);
+            return;
+        } else{
+            insertNewNode2Parent("term", n->t, parent);
+            return;
+        }
+    }
+    // term is an expression within a round bracket
+    else if(n->t->type==BRACKET && n->t->data.char_val=='('){
+        treeNode* term = insertNewNode2Parent("term", NULL, parent);
+        
+        insertNewNode2Parent("bracket", n->t, term);
+        
+        parseExpression(term, table);
+        
+        n = nextNode(table);   
+        if(n->t->type!=BRACKET || n->t->data.char_val!=')'){
+            fprintf(stderr, "Error parseTerm line %d: missing right round bracket.\n", n->t->lineNumber);
+            exit(1);
+        }
+        insertNewNode2Parent("bracket", n->t, term);
+        return;
+    }
+    // term is an unary operator acting on another term
+    else if(n->t->type==SYMBOL && (n->t->data.char_val=='!' | n->t->data.char_val=='~' | (n->t->data.char_val=='-' && peekNextNode(table)->t->type!=SYMBOL ))){}
+
+}
+
+treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent){
+    treeNode* child = createTreeNode(rule, t);
+    child->parent = parent;
+    insertChildNode(parent, child);
+    return child;
+}
+
 treeNode* createTreeNode(char* rule, token* t){
-    if(!rule || !t){
-        fprintf(stderr, "Error createTreeNode: null pointer provided.\n");
+    if(!rule){
+        fprintf(stderr, "Error createTreeNode: null rule provided.\n");
         exit(1);
     }
     treeNode* n = calloc(1,sizeof(treeNode));

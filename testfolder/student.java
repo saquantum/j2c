@@ -36,7 +36,9 @@ public class student{
         return age;
     }
     public void setAge(){
-        this.age = age;
+        if(age>=0){
+            this.age = age;
+        }
     }
     
     public String getId(){

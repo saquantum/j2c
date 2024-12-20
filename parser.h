@@ -15,8 +15,10 @@ typedef struct CST{
     treeNode* root;
 }CST;
 
+treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent);
 
-
+// this function never returns null pointer, it only crashes.
+// so we don't need null pointer check after calling this function.
 treeNode* createTreeNode(char* rule, token* t);
 
 void insertChildNode(treeNode* n, treeNode* child);

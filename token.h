@@ -5,10 +5,11 @@ typedef enum tokenType{
     KEYWORD,
     NUMBER,
     IDENTIFIER,
+    OPERATOR,
     STRING,
     SYMBOL,
     BRACKET,
-    SEMICOLON
+    SEMICOLON 
 } tokenType; 
 
 typedef enum keyword{
@@ -31,7 +32,7 @@ typedef enum keyword{
 typedef union tokenData{
     keyword key_val;
     char char_val; // this includes symbols, delimiters and newline
-    char* str_val; // this includes numbers and identifiers. deal with number later with a parser. since string literal must have \" surroundings, we can distinguish them with other identifiers, among which starts with a digit, a dot or a minus sign is a number then.
+    char* str_val; // this includes numbers, strings, operators and identifiers. deal with number later with a parser. since string literal must have \" surroundings, we can distinguish them with other identifiers, among which starts with a digit, a dot or a minus sign is a number then.
 } tokenData;
 
 typedef struct token{
@@ -78,5 +79,8 @@ tokenNode* peekNextNode(tokenTable* table);
 
 // read the previous node. NOTICE: this does not move pointer current.
 tokenNode* prevNode(tokenTable* table);
+
+// sweep the token table to combine symbols into two-symbol operators
+void combineSymbols(tokenTable* table);
 
 void freeTokenTable(tokenTable** table);

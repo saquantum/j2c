@@ -5,7 +5,7 @@ token* createToken(){
 }
 
 void freeToken(token* t){
-    if(t->type == IDENTIFIER || t->type == STRING || t->type == NUMBER){
+    if(t->type == IDENTIFIER || t->type == STRING || t->type == NUMBER || t->type == OPERATOR){
         free(t->data.str_val);
     }
     free(t);
@@ -32,6 +32,9 @@ void printTokenTable(tokenTable* table){
                 break;
             case IDENTIFIER:
                 printf("TokenType = Identifier, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
+                break;
+            case OPERATOR:
+                printf("TokenType = Operator, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
                 break;
             case STRING:
                 printf("TokenType = String, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
@@ -104,6 +107,33 @@ tokenNode* prevNode(tokenTable* table){
         return table->end;
     }
     return table->current->prev;
+}
+
+void combineSymbols(tokenTable* table){
+    if(!table || !table->start){
+        return;
+    }
+    tokenNode* current = table->start;
+    while(current && current->next){
+        if(current->t->type==SYMBOL && current->next->t->type==SYMBOL){
+            char combined[3] = {current->t->data.char_val, current->next->t->data.char_val, 0};
+            if(!strcmp(combined, "&&") || !strcmp(combined, "||") || !strcmp(combined, "==") || !strcmp(combined, "!=") || !strcmp(combined, ">=") || !strcmp(combined, "<=") || !strcmp(combined, ">>") || !strcmp(combined, "<<") || !strcmp(combined, "+=") || !strcmp(combined, "-=") || !strcmp(combined, "*=") || !strcmp(combined, "/=") ){
+                current->t->type = OPERATOR;
+                current->t->data.str_val = calloc(3,sizeof(char));
+                strcpy(current->t->data.str_val, combined);
+                tokenNode* tmp = current->next;
+                current->next = tmp->next;
+                if(tmp->next){
+                    tmp->next->prev = current;
+                }else{
+                    table->end = current;
+                }
+                freeToken(tmp->t);
+                free(tmp);
+            }
+        }
+        current = current->next;
+    }
 }
 
 void freeTokenTable(tokenTable** table){
