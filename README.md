@@ -100,12 +100,20 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 <logicalOrExpression> ::= <logicalAndExpression> { '||' <logicalAndExpression> }
 
-<logicalAndExpression> ::= <equalityExpression> { '&&' <equalityExpression> }
+<logicalAndExpression> ::= <bitwiseOrExpression> { '&&' <bitwiseOrExpression> }
+
+<bitwiseOrExpression> ::= <bitwiseXorExpression> { '|' <bitwiseXorExpression> }
+
+<bitwiseXorExpression> ::= <bitwiseAndExpression> { '^' <bitwiseAndExpression> }
+
+<bitwiseAndExpression> ::= <equalityExpression> { '&' <equalityExpression> }
 
 <equalityExpression> ::= <relationalExpression> { ('==' | '!=') <relationalExpression> }
 
-<relationalExpression> ::= <additiveExpression> [ ('<' | '<=' | '>' | '>=') <additiveExpression> ]
-                         | <additiveExpression> 'instanceof' <referenceType>
+<relationalExpression> ::= <shiftExpression> [ ('<' | '<=' | '>' | '>=') <shiftExpression> ]
+                         | <shiftExpression> 'instanceof' <shiftExpression>
+
+<shiftExpression> ::= <additiveExpression> { ('<<' | '>>') <additiveExpression> }
 
 <additiveExpression> ::= <multiplicativeExpression> { ('+' | '-') <multiplicativeExpression> }
 
@@ -119,19 +127,24 @@ we don't check if an expression is boolean or not until semantics analysis.
                       | <term>
 ```
 
+| Precedence   | Operators                                  | Grammar Rule                 | Associativity |
+| ------------ | ------------------------------------------ | ---------------------------- | ------------- |
+| 1 (Lowest)   | `? :`                                      | `<ternaryExpression>`        | Right-to-left |
+| 2            |  `\|\|`                                    | `<logicalOrExpression>`      | Left-to-right |
+| 3            | `&&`                                       | `<logicalAndExpression>`     | Left-to-right |
+| 4            | `\|`                                        | `<bitwiseOrExpression>`      | Left-to-right |
+| 5            | `^`                                        | `<bitwiseXorExpression>`     | Left-to-right |
+| 6            | `&`                                        | `<bitwiseAndExpression>`     | Left-to-right |
+| 7            | `==`, `!=`                                 | `<equalityExpression>`       | Left-to-right |
+| 8            | `<`, `<=`, `>`, `>=`, `instanceof`         | `<relationalExpression>`     | Left-to-right |
+| 9            | `<<`, `>>`                                 | `<shiftExpression>`          | Left-to-right |
+| 10           | `+`, `-`                                   | `<additiveExpression>`       | Left-to-right |
+| 11           | `*`, `/`, `%`                              | `<multiplicativeExpression>` | Left-to-right |
+| 12           | `!`, `~`, `-` (unary) `++`, `--` (prefix)  | `<unaryExpression>`          | Right-to-left |
+| 13 (Highest) | `.`, `()`, `[]`, `++`, `--` (postfix)      | `<term>`                     | Left-to-right |
 
 
-| Precedence  | Operators                                  | Grammar Rule                 | Associativity |
-| ----------- | ------------------------------------------ | ---------------------------- | ------------- |
-| 1 (Lowest)  | `? :`                                      | `<ternaryExpression>`        | Right-to-left |
-| 2           |  `\|\|`                                    | `<logicalOrExpression>`      | Left-to-right |
-| 3           | `&&`                                       | `<logicalAndExpression>`     | Left-to-right |
-| 4           | `==`, `!=`                                 | `<equalityExpression>`       | Left-to-right |
-| 5           | `<`, `<=`, `>`, `>=`, `instanceof`         | `<relationalExpression>`     | Left-to-right |
-| 6           | `+`, `-`                                   | `<additiveExpression>`       | Left-to-right |
-| 7           | `*`, `/`, `%`                              | `<multiplicativeExpression>` | Left-to-right |
-| 8           | `!`,` ~`,` -` (unary) `++`, `--` (prefix)  | `<unaryExpression>`          | Right-to-left |
-| 9 (Highest) | `.`, `()`, `[]`, `++`, `--` (postfix)      | `<term>`                     | Left-to-right |
+
 
 
 
