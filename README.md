@@ -145,9 +145,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 		 
 <arrayAccess> ::= <term> '[' <expression> ']' 
 <fieldAccess> ::= <term> '.' <identifier>
-		 
-<subroutineCall> ::= <term> '.' <identifier> '(' <expressionList> ')'
-				   | <identifier> '(' <expressionList> ')'
+<subroutineCall> ::= (<fieldAccess> | <identifier>) '(' <expressionList> ')'
 
 <expressionList> ::= [<expression> {',' <expression> } ]
 
