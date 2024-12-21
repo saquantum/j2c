@@ -65,6 +65,8 @@ tokenTable* createTokenTable();
 
 void printTokenTable(tokenTable* table);
 
+void printCurrentToken(tokenTable* table);
+
 // store token in token table
 bool writeToken(token* t, tokenTable* table);
 

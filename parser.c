@@ -12,28 +12,39 @@ CST* parseTokenTable(char* filename, tokenTable* table){
     }
     cst->root = createTreeNode(filename, NULL);
     
-    printf("Debug: in expression only mode.\n");
+    printf("Debug: in expressions only mode.\n");
     while(hasNext(table)){
         parseExpression(cst->root, table);
     }
+    return cst;
 }
 
 void parseTerm(treeNode* parent, tokenTable* table){
     treeNode* term = insertNewNode2Parent("term", NULL, parent);
     
     parseBaseTerm(term, table);
+    //printCurrentToken(table);
     
     tokenNode* peeknext = peekNextNode(table);
-    
+    /*
+    if(peeknext){
+        printf("Debug: next node is %d\n", peeknext->t->type);
+    }else{
+        printf("Debug: reached EOF\n");
+    }
+    */
     // use while loop to accomplish chaining accessing: obj.method1().field1.field2[2].method2()
     while(peeknext){
         if(peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='.'){
+            //printf("Debug: parse field access\n");
             parseFieldAccess(term, table);
         }
         else if(peeknext->t->type==BRACKET && peeknext->t->data.char_val=='['){
+            //printf("Debug: parse array access\n");
             parseArrayAccess(term, table);
         }
         else if(peeknext->t->type==BRACKET && peeknext->t->data.char_val=='('){
+            //printf("Debug: parse subroutine call\n");
             parseSubroutineCall(term, table);
         }else{
             break; // there is no more chained access
@@ -78,6 +89,7 @@ void parseBaseTerm(treeNode* parent, tokenTable* table){
     }
     else{
         fprintf(stderr, "Error parseBaseTerm line %d: invalid base term.\n", n->t->lineNumber);
+        exit(1);
     }
 }
 
@@ -85,7 +97,7 @@ void parseFieldAccess(treeNode* parent, tokenTable* table){
     treeNode* field = insertNewNode2Parent("fieldAccess", NULL, parent);
     
     // dot
-    toKenNode* n = nextNode(table);
+    tokenNode* n = nextNode(table);
     insertNewNode2Parent("symbol", n->t, field);
     
     // identifier
@@ -98,7 +110,7 @@ void parseArrayAccess(treeNode* parent, tokenTable* table){
     treeNode* array = insertNewNode2Parent("arrayAccess", NULL, parent);
     
     // left bracket
-    toKenNode* n = nextNode(table);
+    tokenNode* n = nextNode(table);
     insertNewNode2Parent("bracket", n->t, array);
     
     // expression
@@ -114,7 +126,7 @@ void parseSubroutineCall(treeNode* parent, tokenTable* table){
     treeNode* call = insertNewNode2Parent("subroutineCall", NULL, parent);
     
     // left parenthesis
-    toKenNode* n = nextNode(table);
+    tokenNode* n = nextNode(table);
     insertNewNode2Parent("bracket", n->t, call);
     
     // argument list
@@ -139,7 +151,7 @@ void parseExpressionList(treeNode* parent, tokenTable* table){
     // deal with zero or more arguments
     peeknext = peekNextNode(table);
     while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val==','){
-        n = nextNode(table);
+        tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, list);
         
         parseExpression(list, table);
@@ -171,7 +183,7 @@ void parseTernaryExpression(treeNode* parent, tokenTable* table){
     parseExpression(ternary, table);
     
     // ':'   
-    tokenNode* n = nextNode(table);
+    n = nextNode(table);
     checkCharValueNodeExpected(n, SYMBOL, ':', "parseTernaryExpression", "missing colon in ternary expression");
     insertNewNode2Parent("symbol", n->t, ternary);
     
@@ -184,7 +196,7 @@ void parseLogicalOrExpression(treeNode* parent, tokenTable* table){
     parseLogicalAndExpression(logicalOr, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==OPERATOR && !strcmp(peeknext->t->str_val, "||")){
+    while(peeknext && peeknext->t->type==OPERATOR && !strcmp(peeknext->t->data.str_val, "||")){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, logicalOr);
         
@@ -200,7 +212,7 @@ void parseLogicalAndExpression(treeNode* parent, tokenTable* table){
     parseBitwiseOrExpression(logicalAnd, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==OPERATOR && !strcmp(peeknext->t->str_val, "&&")){
+    while(peeknext && peeknext->t->type==OPERATOR && !strcmp(peeknext->t->data.str_val, "&&")){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, logicalAnd);
         
@@ -216,7 +228,7 @@ void parseBitwiseOrExpression(treeNode* parent, tokenTable* table){
     parseBitwiseXorExpression(bitwiseOr, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='|'){
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='|'){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, bitwiseOr);
         
@@ -231,7 +243,7 @@ void parseBitwiseXorExpression(treeNode* parent, tokenTable* table){
     parseBitwiseAndExpression(bitwiseXor, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='^'){
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='^'){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, bitwiseXor);
         
@@ -246,9 +258,9 @@ void parseBitwiseAndExpression(treeNode* parent, tokenTable* table){
     parseEqualityExpression(bitwiseAnd, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='&'){
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='&'){
         tokenNode* n = nextNode(table);
-        insertNewNode2Parent("symbol", n->t, bitwiseXor);
+        insertNewNode2Parent("symbol", n->t, bitwiseAnd);
         
         parseEqualityExpression(bitwiseAnd, table);
         
@@ -262,7 +274,7 @@ void parseEqualityExpression(treeNode* parent, tokenTable* table){
     parseRelationalExpression(equality, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->str_val, "==") || !strcmp(peeknext->t->str_val, "!=")) ){
+    while(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->data.str_val, "==") || !strcmp(peeknext->t->data.str_val, "!=")) ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, equality);
         
@@ -278,7 +290,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
     parseShiftExpression(relational, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->str_val, "<=") || !strcmp(peeknext->t->str_val, ">=")) ){
+    if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->data.str_val, "<=") || !strcmp(peeknext->t->data.str_val, ">=")) ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, relational);
         
@@ -286,7 +298,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
 
         return;
     }
-    else if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->char_val=='>' || peeknext->t->char_val=='<') ){
+    else if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='>' || peeknext->t->data.char_val=='<') ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, relational);
         
@@ -294,7 +306,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
 
         return;
     }
-    else if(peeknext && peeknext->t->type==KEYWORD && peeknext->t->key_val==INSTANCEOF){
+    else if(peeknext && peeknext->t->type==KEYWORD && peeknext->t->data.key_val==INSTANCEOF){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("keyword", n->t, relational);
         
@@ -310,7 +322,7 @@ void parseShiftExpression(treeNode* parent, tokenTable* table){
     parseAdditiveExpression(shift, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->str_val, "<<") || !strcmp(peeknext->t->str_val, ">>")) ){
+    while(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->data.str_val, "<<") || !strcmp(peeknext->t->data.str_val, ">>")) ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, shift);
         
@@ -326,7 +338,7 @@ void parseAdditiveExpression(treeNode* parent, tokenTable* table){
     parseMultiplicativeExpression(additive, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->char_val=='+' || peeknext->t->char_val=='-') ){
+    while(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='+' || peeknext->t->data.char_val=='-') ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, additive);
         
@@ -342,7 +354,7 @@ void parseMultiplicativeExpression(treeNode* parent, tokenTable* table){
     parseUnaryExpression(multiplicative, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->char_val=='*' || peeknext->t->char_val=='/' || peeknext->t->char_val=='%') ){
+    while(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='*' || peeknext->t->data.char_val=='/' || peeknext->t->data.char_val=='%') ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, multiplicative);
         
@@ -356,7 +368,7 @@ void parseUnaryExpression(treeNode* parent, tokenTable* table){
     treeNode* unary = insertNewNode2Parent("unaryExpression", NULL, parent);
     
     tokenNode* peeknext = peekNextNode(table);
-    if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->char_val=='!' || peeknext->t->char_val=='-' || peeknext->t->char_val=='~') ){
+    if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='!' || peeknext->t->data.char_val=='-' || peeknext->t->data.char_val=='~') ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, unary);
         
@@ -364,7 +376,7 @@ void parseUnaryExpression(treeNode* parent, tokenTable* table){
 
         return;
     }
-    else if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->str_val, "++") || !strcmp(peeknext->t->str_val, "--")) ){
+    else if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->data.str_val, "++") || !strcmp(peeknext->t->data.str_val, "--")) ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, unary);
         
@@ -384,7 +396,7 @@ void parsePostfixExpression(treeNode* parent, tokenTable* table){
     
     tokenNode* peeknext = peekNextNode(table);
     
-    if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->str_val, "++") || !strcmp(peeknext->t->str_val, "--")) ){
+    if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->data.str_val, "++") || !strcmp(peeknext->t->data.str_val, "--")) ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, postfix);
     }
@@ -394,7 +406,7 @@ void parseType(treeNode* parent, tokenTable* table){
     treeNode* type = insertNewNode2Parent("type", NULL, parent);
     
     tokenNode* peeknext = peekNextNode(table);
-    if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->key_val==CHAR || peeknext->t->key_val==INT || peeknext->t->key_val==LONG || peeknext->t->key_val==DOUBLE || peeknext->t->key_val==BOOLEAN)){
+    if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->data.key_val==CHAR || peeknext->t->data.key_val==INT || peeknext->t->data.key_val==LONG || peeknext->t->data.key_val==DOUBLE || peeknext->t->data.key_val==BOOLEAN)){
         
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("keyword", n->t, type);
@@ -414,7 +426,7 @@ void parseReferenceType(treeNode* parent, tokenTable* table){
     insertNewNode2Parent("identifier", n->t, reference);
     
     tokenNode* peeknext = peekNextNode(table);
-    if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='<'){
+    if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='<'){
     
         // '<'
         n = nextNode(table);
@@ -436,9 +448,9 @@ void parseGenerics(treeNode* parent, tokenTable* table){
     parseTypeArgument(generics, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val==','){
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val==','){
         // ','
-        n = nextNode(table);
+        tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, generics);    
         
         parseTypeArgument(generics, table);
@@ -451,13 +463,13 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
     treeNode* typeArgument = insertNewNode2Parent("typeArgument", NULL, parent);
     
     tokenNode* peeknext = peekNextNode(table);
-    if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='?'){
+    if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='?'){
         // '?'
-        n = nextNode(table);
+        tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, typeArgument); 
         
         peeknext = peekNextNode(table);
-        if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->key_val==EXTENDS || peeknext->t->key_val==SUPER) ){
+        if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->data.key_val==EXTENDS || peeknext->t->data.key_val==SUPER) ){
             // extends or super
             n = nextNode(table);
             insertNewNode2Parent("keyword", n->t, typeArgument);

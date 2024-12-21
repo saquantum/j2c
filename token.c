@@ -54,6 +54,47 @@ void printTokenTable(tokenTable* table){
     }
 }
 
+void printCurrentToken(tokenTable* table){
+    if(!table){
+        printf("Empty or null token table detected.\n");
+        return;
+    }
+    tokenNode* n = table->current;
+    if(!n){
+        printf("Currently has reached end of the table.");
+        return;
+    }
+    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
+
+    printf("Current token: ");
+        switch(n->t->type){
+            case KEYWORD:
+                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d\n", keywords[n->t->data.key_val], n->t->lineNumber);
+                break;
+            case NUMBER:
+                printf("TokenType = Number, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
+                break;
+            case IDENTIFIER:
+                printf("TokenType = Identifier, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
+                break;
+            case OPERATOR:
+                printf("TokenType = Operator, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
+                break;
+            case STRING:
+                printf("TokenType = String, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
+                break;
+            case SYMBOL:
+                printf("TokenType = Symbol, TokenValue = %c, lineNumber = %d\n", n->t->data.char_val, n->t->lineNumber);
+                break;
+            case BRACKET:
+                printf("TokenType = Bracket, TokenValue = %c, lineNumber = %d\n", n->t->data.char_val, n->t->lineNumber);
+                break;
+            case SEMICOLON:
+                printf("TokenType = Semicolon, TokenValue = %c, lineNumber = %d\n", n->t->data.char_val, n->t->lineNumber);
+                break;
+        }
+}
+
 bool writeToken(token* t, tokenTable* table){
     if(!t || !table){
         return false;
@@ -110,7 +151,7 @@ tokenNode* peekNextNode(tokenTable* table){
     if (!table || !table->current || !table->start){
         return NULL;
     }
-    return table->current->next;
+    return table->current;
 }
 
 tokenNode* prevNode(tokenTable* table){

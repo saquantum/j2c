@@ -52,13 +52,7 @@ bool isExpressionStart(token* t);
 
 /* operators */
 
-bool isBinaryOp(token* t);
-bool isLogicalOp(token* t);
-bool isLogicalBindOp(token* t);
-bool isRelationalOp(token* t);
-bool isShiftOp(token* t);
-bool isAssignmentOp(token* t);
-bool isSelfOp(token* t);
+
 
 /* tree and nodes */
 

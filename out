@@ -1,168 +1,107 @@
-TokenType = Keyword, TokenValue = public, lineNumber = 4
-TokenType = Keyword, TokenValue = class, lineNumber = 4
-TokenType = Identifier, TokenValue = student, lineNumber = 4
-TokenType = Bracket, TokenValue = {, lineNumber = 4
-TokenType = Keyword, TokenValue = private, lineNumber = 5
-TokenType = Identifier, TokenValue = String, lineNumber = 5
-TokenType = Identifier, TokenValue = name, lineNumber = 5
-TokenType = Semicolon, TokenValue = ;, lineNumber = 5
-TokenType = Keyword, TokenValue = private, lineNumber = 6
-TokenType = Keyword, TokenValue = boolean, lineNumber = 6
-TokenType = Identifier, TokenValue = gender, lineNumber = 6
-TokenType = Semicolon, TokenValue = ;, lineNumber = 6
-TokenType = Keyword, TokenValue = private, lineNumber = 7
-TokenType = Keyword, TokenValue = int, lineNumber = 7
-TokenType = Identifier, TokenValue = age, lineNumber = 7
-TokenType = Semicolon, TokenValue = ;, lineNumber = 7
-TokenType = Keyword, TokenValue = private, lineNumber = 8
-TokenType = Identifier, TokenValue = String, lineNumber = 8
-TokenType = Identifier, TokenValue = id, lineNumber = 8
-TokenType = Semicolon, TokenValue = ;, lineNumber = 8
-TokenType = Keyword, TokenValue = public, lineNumber = 11
-TokenType = Identifier, TokenValue = student, lineNumber = 11
-TokenType = Bracket, TokenValue = (, lineNumber = 11
-TokenType = Bracket, TokenValue = ), lineNumber = 11
-TokenType = Bracket, TokenValue = {, lineNumber = 11
-TokenType = Bracket, TokenValue = }, lineNumber = 12
-TokenType = Keyword, TokenValue = public, lineNumber = 14
-TokenType = Identifier, TokenValue = student, lineNumber = 14
-TokenType = Bracket, TokenValue = (, lineNumber = 14
-TokenType = Identifier, TokenValue = String, lineNumber = 14
-TokenType = Identifier, TokenValue = name, lineNumber = 14
-TokenType = Symbol, TokenValue = ,, lineNumber = 14
-TokenType = Keyword, TokenValue = boolean, lineNumber = 14
-TokenType = Identifier, TokenValue = gender, lineNumber = 14
-TokenType = Symbol, TokenValue = ,, lineNumber = 14
-TokenType = Keyword, TokenValue = int, lineNumber = 14
-TokenType = Identifier, TokenValue = age, lineNumber = 14
-TokenType = Symbol, TokenValue = ,, lineNumber = 14
-TokenType = Identifier, TokenValue = String, lineNumber = 14
-TokenType = Identifier, TokenValue = id, lineNumber = 14
-TokenType = Bracket, TokenValue = ), lineNumber = 14
-TokenType = Bracket, TokenValue = {, lineNumber = 14
-TokenType = Keyword, TokenValue = this, lineNumber = 15
-TokenType = Symbol, TokenValue = ., lineNumber = 15
-TokenType = Identifier, TokenValue = name, lineNumber = 15
-TokenType = Symbol, TokenValue = =, lineNumber = 15
-TokenType = Identifier, TokenValue = name, lineNumber = 15
-TokenType = Semicolon, TokenValue = ;, lineNumber = 15
-TokenType = Keyword, TokenValue = this, lineNumber = 16
-TokenType = Symbol, TokenValue = ., lineNumber = 16
-TokenType = Identifier, TokenValue = gender, lineNumber = 16
-TokenType = Symbol, TokenValue = =, lineNumber = 16
-TokenType = Identifier, TokenValue = gender, lineNumber = 16
-TokenType = Semicolon, TokenValue = ;, lineNumber = 16
-TokenType = Keyword, TokenValue = this, lineNumber = 17
-TokenType = Symbol, TokenValue = ., lineNumber = 17
-TokenType = Identifier, TokenValue = age, lineNumber = 17
-TokenType = Symbol, TokenValue = =, lineNumber = 17
-TokenType = Identifier, TokenValue = age, lineNumber = 17
-TokenType = Semicolon, TokenValue = ;, lineNumber = 17
-TokenType = Keyword, TokenValue = this, lineNumber = 18
-TokenType = Symbol, TokenValue = ., lineNumber = 18
-TokenType = Identifier, TokenValue = id, lineNumber = 18
-TokenType = Symbol, TokenValue = =, lineNumber = 18
-TokenType = Identifier, TokenValue = id, lineNumber = 18
-TokenType = Semicolon, TokenValue = ;, lineNumber = 18
-TokenType = Bracket, TokenValue = }, lineNumber = 19
-TokenType = Keyword, TokenValue = public, lineNumber = 21
-TokenType = Identifier, TokenValue = String, lineNumber = 21
-TokenType = Identifier, TokenValue = getName, lineNumber = 21
-TokenType = Bracket, TokenValue = (, lineNumber = 21
-TokenType = Bracket, TokenValue = ), lineNumber = 21
-TokenType = Bracket, TokenValue = {, lineNumber = 21
-TokenType = Keyword, TokenValue = return, lineNumber = 22
-TokenType = Identifier, TokenValue = name, lineNumber = 22
-TokenType = Semicolon, TokenValue = ;, lineNumber = 22
-TokenType = Bracket, TokenValue = }, lineNumber = 23
-TokenType = Keyword, TokenValue = public, lineNumber = 24
-TokenType = Identifier, TokenValue = void, lineNumber = 24
-TokenType = Identifier, TokenValue = setName, lineNumber = 24
-TokenType = Bracket, TokenValue = (, lineNumber = 24
-TokenType = Bracket, TokenValue = ), lineNumber = 24
-TokenType = Bracket, TokenValue = {, lineNumber = 24
-TokenType = Keyword, TokenValue = this, lineNumber = 25
-TokenType = Symbol, TokenValue = ., lineNumber = 25
-TokenType = Identifier, TokenValue = name, lineNumber = 25
-TokenType = Symbol, TokenValue = =, lineNumber = 25
-TokenType = Identifier, TokenValue = name, lineNumber = 25
-TokenType = Semicolon, TokenValue = ;, lineNumber = 25
-TokenType = Bracket, TokenValue = }, lineNumber = 26
-TokenType = Keyword, TokenValue = public, lineNumber = 28
-TokenType = Keyword, TokenValue = boolean, lineNumber = 28
-TokenType = Identifier, TokenValue = getGender, lineNumber = 28
-TokenType = Bracket, TokenValue = (, lineNumber = 28
-TokenType = Bracket, TokenValue = ), lineNumber = 28
-TokenType = Bracket, TokenValue = {, lineNumber = 28
-TokenType = Keyword, TokenValue = return, lineNumber = 29
-TokenType = Identifier, TokenValue = gender, lineNumber = 29
-TokenType = Semicolon, TokenValue = ;, lineNumber = 29
-TokenType = Bracket, TokenValue = }, lineNumber = 30
-TokenType = Keyword, TokenValue = public, lineNumber = 31
-TokenType = Identifier, TokenValue = void, lineNumber = 31
-TokenType = Identifier, TokenValue = setGender, lineNumber = 31
-TokenType = Bracket, TokenValue = (, lineNumber = 31
-TokenType = Bracket, TokenValue = ), lineNumber = 31
-TokenType = Bracket, TokenValue = {, lineNumber = 31
-TokenType = Keyword, TokenValue = this, lineNumber = 32
-TokenType = Symbol, TokenValue = ., lineNumber = 32
-TokenType = Identifier, TokenValue = gender, lineNumber = 32
-TokenType = Symbol, TokenValue = =, lineNumber = 32
-TokenType = Identifier, TokenValue = gender, lineNumber = 32
-TokenType = Semicolon, TokenValue = ;, lineNumber = 32
-TokenType = Bracket, TokenValue = }, lineNumber = 33
-TokenType = Keyword, TokenValue = public, lineNumber = 35
-TokenType = Keyword, TokenValue = int, lineNumber = 35
-TokenType = Identifier, TokenValue = getAge, lineNumber = 35
-TokenType = Bracket, TokenValue = (, lineNumber = 35
-TokenType = Bracket, TokenValue = ), lineNumber = 35
-TokenType = Bracket, TokenValue = {, lineNumber = 35
-TokenType = Keyword, TokenValue = return, lineNumber = 36
-TokenType = Identifier, TokenValue = age, lineNumber = 36
-TokenType = Semicolon, TokenValue = ;, lineNumber = 36
-TokenType = Bracket, TokenValue = }, lineNumber = 37
-TokenType = Keyword, TokenValue = public, lineNumber = 38
-TokenType = Identifier, TokenValue = void, lineNumber = 38
-TokenType = Identifier, TokenValue = setAge, lineNumber = 38
-TokenType = Bracket, TokenValue = (, lineNumber = 38
-TokenType = Bracket, TokenValue = ), lineNumber = 38
-TokenType = Bracket, TokenValue = {, lineNumber = 38
-TokenType = Keyword, TokenValue = if, lineNumber = 39
-TokenType = Bracket, TokenValue = (, lineNumber = 39
-TokenType = Identifier, TokenValue = age, lineNumber = 39
-TokenType = Operator, TokenValue = >=, lineNumber = 39
-TokenType = Number, TokenValue = 0, lineNumber = 39
-TokenType = Bracket, TokenValue = ), lineNumber = 39
-TokenType = Bracket, TokenValue = {, lineNumber = 39
-TokenType = Keyword, TokenValue = this, lineNumber = 40
-TokenType = Symbol, TokenValue = ., lineNumber = 40
-TokenType = Identifier, TokenValue = age, lineNumber = 40
-TokenType = Symbol, TokenValue = =, lineNumber = 40
-TokenType = Identifier, TokenValue = age, lineNumber = 40
-TokenType = Semicolon, TokenValue = ;, lineNumber = 40
-TokenType = Bracket, TokenValue = }, lineNumber = 41
-TokenType = Bracket, TokenValue = }, lineNumber = 42
-TokenType = Keyword, TokenValue = public, lineNumber = 44
-TokenType = Identifier, TokenValue = String, lineNumber = 44
-TokenType = Identifier, TokenValue = getId, lineNumber = 44
-TokenType = Bracket, TokenValue = (, lineNumber = 44
-TokenType = Bracket, TokenValue = ), lineNumber = 44
-TokenType = Bracket, TokenValue = {, lineNumber = 44
-TokenType = Keyword, TokenValue = return, lineNumber = 45
-TokenType = Identifier, TokenValue = id, lineNumber = 45
-TokenType = Semicolon, TokenValue = ;, lineNumber = 45
-TokenType = Bracket, TokenValue = }, lineNumber = 46
-TokenType = Keyword, TokenValue = public, lineNumber = 47
-TokenType = Identifier, TokenValue = void, lineNumber = 47
-TokenType = Identifier, TokenValue = setId, lineNumber = 47
-TokenType = Bracket, TokenValue = (, lineNumber = 47
-TokenType = Bracket, TokenValue = ), lineNumber = 47
-TokenType = Bracket, TokenValue = {, lineNumber = 47
-TokenType = Keyword, TokenValue = this, lineNumber = 48
-TokenType = Symbol, TokenValue = ., lineNumber = 48
-TokenType = Identifier, TokenValue = id, lineNumber = 48
-TokenType = Symbol, TokenValue = =, lineNumber = 48
-TokenType = Identifier, TokenValue = id, lineNumber = 48
-TokenType = Semicolon, TokenValue = ;, lineNumber = 48
-TokenType = Bracket, TokenValue = }, lineNumber = 49
-TokenType = Bracket, TokenValue = }, lineNumber = 50
+Debug: in expressions only mode.
+Rule = testfolder/expressions.java, ChildRules: expression, .
+Rule = expression, ParentRule = testfolder/expressions.java, ChildRules: ternaryExpression, .
+Rule = ternaryExpression, ParentRule = expression, ChildRules: logicalOrExpression, .
+Rule = logicalOrExpression, ParentRule = ternaryExpression, ChildRules: logicalAndExpression, .
+Rule = logicalAndExpression, ParentRule = logicalOrExpression, ChildRules: bitwiseOrExpression, .
+Rule = bitwiseOrExpression, ParentRule = logicalAndExpression, ChildRules: bitwiseXorExpression, .
+Rule = bitwiseXorExpression, ParentRule = bitwiseOrExpression, ChildRules: bitwiseAndExpression, .
+Rule = bitwiseAndExpression, ParentRule = bitwiseXorExpression, ChildRules: equalityExpression, .
+Rule = equalityExpression, ParentRule = bitwiseAndExpression, ChildRules: relationalExpression, .
+Rule = relationalExpression, ParentRule = equalityExpression, ChildRules: shiftExpression, .
+Rule = shiftExpression, ParentRule = relationalExpression, ChildRules: additiveExpression, .
+Rule = additiveExpression, ParentRule = shiftExpression, ChildRules: multiplicativeExpression, .
+Rule = multiplicativeExpression, ParentRule = additiveExpression, ChildRules: unaryExpression, .
+Rule = unaryExpression, ParentRule = multiplicativeExpression, ChildRules: postfixExpression, .
+Rule = postfixExpression, ParentRule = unaryExpression, ChildRules: term, .
+Rule = term, ParentRule = postfixExpression, ChildRules: identifier, fieldAccess, fieldAccess, subroutineCall, fieldAccess, arrayAccess, fieldAccess, subroutineCall, .
+TokenType = Identifier, TokenValue = obj, lineNumber = 1, ParentRule = term.
+Rule = fieldAccess, ParentRule = term, ChildRules: symbol, identifier, .
+TokenType = Symbol, TokenValue = ., lineNumber = 1, ParentRule = fieldAccess.
+TokenType = Identifier, TokenValue = field1, lineNumber = 1, ParentRule = fieldAccess.
+Rule = fieldAccess, ParentRule = term, ChildRules: symbol, identifier, .
+TokenType = Symbol, TokenValue = ., lineNumber = 1, ParentRule = fieldAccess.
+TokenType = Identifier, TokenValue = method1, lineNumber = 1, ParentRule = fieldAccess.
+Rule = subroutineCall, ParentRule = term, ChildRules: bracket, expressionList, bracket, .
+TokenType = Bracket, TokenValue = (, lineNumber = 1, ParentRule = subroutineCall.
+Rule = expressionList, ParentRule = subroutineCall.
+TokenType = Bracket, TokenValue = ), lineNumber = 1, ParentRule = subroutineCall.
+Rule = fieldAccess, ParentRule = term, ChildRules: symbol, identifier, .
+TokenType = Symbol, TokenValue = ., lineNumber = 1, ParentRule = fieldAccess.
+TokenType = Identifier, TokenValue = field2, lineNumber = 1, ParentRule = fieldAccess.
+Rule = arrayAccess, ParentRule = term, ChildRules: bracket, expression, bracket, .
+TokenType = Bracket, TokenValue = [, lineNumber = 1, ParentRule = arrayAccess.
+Rule = expression, ParentRule = arrayAccess, ChildRules: ternaryExpression, .
+Rule = ternaryExpression, ParentRule = expression, ChildRules: logicalOrExpression, .
+Rule = logicalOrExpression, ParentRule = ternaryExpression, ChildRules: logicalAndExpression, .
+Rule = logicalAndExpression, ParentRule = logicalOrExpression, ChildRules: bitwiseOrExpression, .
+Rule = bitwiseOrExpression, ParentRule = logicalAndExpression, ChildRules: bitwiseXorExpression, .
+Rule = bitwiseXorExpression, ParentRule = bitwiseOrExpression, ChildRules: bitwiseAndExpression, .
+Rule = bitwiseAndExpression, ParentRule = bitwiseXorExpression, ChildRules: equalityExpression, .
+Rule = equalityExpression, ParentRule = bitwiseAndExpression, ChildRules: relationalExpression, .
+Rule = relationalExpression, ParentRule = equalityExpression, ChildRules: shiftExpression, .
+Rule = shiftExpression, ParentRule = relationalExpression, ChildRules: additiveExpression, .
+Rule = additiveExpression, ParentRule = shiftExpression, ChildRules: multiplicativeExpression, .
+Rule = multiplicativeExpression, ParentRule = additiveExpression, ChildRules: unaryExpression, .
+Rule = unaryExpression, ParentRule = multiplicativeExpression, ChildRules: postfixExpression, .
+Rule = postfixExpression, ParentRule = unaryExpression, ChildRules: term, .
+Rule = term, ParentRule = postfixExpression, ChildRules: number, .
+TokenType = Number, TokenValue = 3, lineNumber = 1, ParentRule = term.
+TokenType = Bracket, TokenValue = ], lineNumber = 1, ParentRule = arrayAccess.
+Rule = fieldAccess, ParentRule = term, ChildRules: symbol, identifier, .
+TokenType = Symbol, TokenValue = ., lineNumber = 1, ParentRule = fieldAccess.
+TokenType = Identifier, TokenValue = method2, lineNumber = 1, ParentRule = fieldAccess.
+Rule = subroutineCall, ParentRule = term, ChildRules: bracket, expressionList, bracket, .
+TokenType = Bracket, TokenValue = (, lineNumber = 1, ParentRule = subroutineCall.
+Rule = expressionList, ParentRule = subroutineCall, ChildRules: expression, symbol, expression, symbol, expression, .
+Rule = expression, ParentRule = expressionList, ChildRules: ternaryExpression, .
+Rule = ternaryExpression, ParentRule = expression, ChildRules: logicalOrExpression, .
+Rule = logicalOrExpression, ParentRule = ternaryExpression, ChildRules: logicalAndExpression, .
+Rule = logicalAndExpression, ParentRule = logicalOrExpression, ChildRules: bitwiseOrExpression, .
+Rule = bitwiseOrExpression, ParentRule = logicalAndExpression, ChildRules: bitwiseXorExpression, .
+Rule = bitwiseXorExpression, ParentRule = bitwiseOrExpression, ChildRules: bitwiseAndExpression, .
+Rule = bitwiseAndExpression, ParentRule = bitwiseXorExpression, ChildRules: equalityExpression, .
+Rule = equalityExpression, ParentRule = bitwiseAndExpression, ChildRules: relationalExpression, .
+Rule = relationalExpression, ParentRule = equalityExpression, ChildRules: shiftExpression, .
+Rule = shiftExpression, ParentRule = relationalExpression, ChildRules: additiveExpression, .
+Rule = additiveExpression, ParentRule = shiftExpression, ChildRules: multiplicativeExpression, .
+Rule = multiplicativeExpression, ParentRule = additiveExpression, ChildRules: unaryExpression, .
+Rule = unaryExpression, ParentRule = multiplicativeExpression, ChildRules: postfixExpression, .
+Rule = postfixExpression, ParentRule = unaryExpression, ChildRules: term, .
+Rule = term, ParentRule = postfixExpression, ChildRules: identifier, .
+TokenType = Identifier, TokenValue = a, lineNumber = 1, ParentRule = term.
+TokenType = Symbol, TokenValue = ,, lineNumber = 1, ParentRule = expressionList.
+Rule = expression, ParentRule = expressionList, ChildRules: ternaryExpression, .
+Rule = ternaryExpression, ParentRule = expression, ChildRules: logicalOrExpression, .
+Rule = logicalOrExpression, ParentRule = ternaryExpression, ChildRules: logicalAndExpression, .
+Rule = logicalAndExpression, ParentRule = logicalOrExpression, ChildRules: bitwiseOrExpression, .
+Rule = bitwiseOrExpression, ParentRule = logicalAndExpression, ChildRules: bitwiseXorExpression, .
+Rule = bitwiseXorExpression, ParentRule = bitwiseOrExpression, ChildRules: bitwiseAndExpression, .
+Rule = bitwiseAndExpression, ParentRule = bitwiseXorExpression, ChildRules: equalityExpression, .
+Rule = equalityExpression, ParentRule = bitwiseAndExpression, ChildRules: relationalExpression, .
+Rule = relationalExpression, ParentRule = equalityExpression, ChildRules: shiftExpression, .
+Rule = shiftExpression, ParentRule = relationalExpression, ChildRules: additiveExpression, .
+Rule = additiveExpression, ParentRule = shiftExpression, ChildRules: multiplicativeExpression, .
+Rule = multiplicativeExpression, ParentRule = additiveExpression, ChildRules: unaryExpression, .
+Rule = unaryExpression, ParentRule = multiplicativeExpression, ChildRules: postfixExpression, .
+Rule = postfixExpression, ParentRule = unaryExpression, ChildRules: term, .
+Rule = term, ParentRule = postfixExpression, ChildRules: number, .
+TokenType = Number, TokenValue = 10, lineNumber = 1, ParentRule = term.
+TokenType = Symbol, TokenValue = ,, lineNumber = 1, ParentRule = expressionList.
+Rule = expression, ParentRule = expressionList, ChildRules: ternaryExpression, .
+Rule = ternaryExpression, ParentRule = expression, ChildRules: logicalOrExpression, .
+Rule = logicalOrExpression, ParentRule = ternaryExpression, ChildRules: logicalAndExpression, .
+Rule = logicalAndExpression, ParentRule = logicalOrExpression, ChildRules: bitwiseOrExpression, .
+Rule = bitwiseOrExpression, ParentRule = logicalAndExpression, ChildRules: bitwiseXorExpression, .
+Rule = bitwiseXorExpression, ParentRule = bitwiseOrExpression, ChildRules: bitwiseAndExpression, .
+Rule = bitwiseAndExpression, ParentRule = bitwiseXorExpression, ChildRules: equalityExpression, .
+Rule = equalityExpression, ParentRule = bitwiseAndExpression, ChildRules: relationalExpression, .
+Rule = relationalExpression, ParentRule = equalityExpression, ChildRules: shiftExpression, .
+Rule = shiftExpression, ParentRule = relationalExpression, ChildRules: additiveExpression, .
+Rule = additiveExpression, ParentRule = shiftExpression, ChildRules: multiplicativeExpression, .
+Rule = multiplicativeExpression, ParentRule = additiveExpression, ChildRules: unaryExpression, .
+Rule = unaryExpression, ParentRule = multiplicativeExpression, ChildRules: postfixExpression, .
+Rule = postfixExpression, ParentRule = unaryExpression, ChildRules: term, .
+Rule = term, ParentRule = postfixExpression, ChildRules: string, .
+TokenType = String, TokenValue = "abc", lineNumber = 1, ParentRule = term.
+TokenType = Bracket, TokenValue = ), lineNumber = 1, ParentRule = subroutineCall.

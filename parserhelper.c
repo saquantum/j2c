@@ -16,66 +16,7 @@ bool isExpressionStart(token* t){
             (t->type==BRACKET && t->data.char_val=='(');
 }
 
-bool isBinaryOp(token* t){
-    if(!t){
-        return false;
-    }
-    if(t->type==SYMBOL){
-        return t->data.char_val=='+' || t->data.char_val=='-' || t->data.char_val=='*' || t->data.char_val=='/' || t->data.char_val=='%' || t->data.char_val=='^' || t->data.char_val=='&' || t->data.char_val=='|';
-    }
-    if(t->type==OPERATOR){
-        return isShiftOp(t);
-    }
-    return false;
-}
 
-bool isLogicalOp(token* t){
-    if(!t){
-        return false;
-    }
-    if(t->type==SYMBOL){
-        return t->data.char_val=='<' || t->data.char_val=='>';
-    }
-    if(t->type==OPERATOR){
-        return isLogicalBindOp(t) || isRelationalOp(t);
-    }
-    return false;
-}
-
-bool isLogicalBindOp(token* t){
-    if(!t || t->type!=OPERATOR || strlen(t->data.str_val)!=3){
-        return false;
-    }
-    return !strcmp(t->data.str_val, "&&") || !strcmp(t->data.str_val, "||");
-}
-
-bool isRelationalOp(token* t){
-    if(!t || t->type!=OPERATOR || strlen(t->data.str_val)!=3){
-        return false;
-    }
-    return !strcmp(t->data.str_val, "==") || !strcmp(t->data.str_val, "!=") || !strcmp(t->data.str_val, ">=") || !strcmp(t->data.str_val, "<=");
-}
-
-bool isShiftOp(token* t){
-    if(!t || t->type!=OPERATOR || strlen(t->data.str_val)!=3){
-        return false;
-    }
-    return !strcmp(t->data.str_val, ">>") || !strcmp(t->data.str_val, "<<");
-}
-
-bool isAssignmentOp(token* t){
-    if(!t || t->type!=OPERATOR || strlen(t->data.str_val)!=3){
-        return false;
-    }
-    return !strcmp(t->data.str_val, "+=") || !strcmp(t->data.str_val, "-=") || !strcmp(t->data.str_val, "*=") || !strcmp(t->data.str_val, "/=");
-}
-
-bool isSelfOp(token* t){
-    if(!t || t->type!=OPERATOR || strlen(t->data.str_val)!=3){
-        return false;
-    }
-    return !strcmp(t->data.str_val, "++") || !strcmp(t->data.str_val, "--");
-}
 
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
     if(!n || n->t->type != expectedType || n->t->data.key_val != expectedValue){
@@ -222,15 +163,18 @@ void printTreeNode(treeNode* n, char** keywords){
     if(n->parent){
         printf(", ParentRule = %s", n->parent->ruleType);
     }
-    if(childCount){
+    if(n->childCount){
         printf(", ChildRules: ");
-        for(int i=0; i<childCount; i++){
+        for(int i=0; i<n->childCount; i++){
             printf("%s, ", n->children[i]->ruleType);
         }
     }
     printf(".\n");
-    if(childCount){
-        printTreeNode(n->children[i], keywords); 
+    if(n->childCount){
+        for(int i=0; i<n->childCount; i++){
+            printTreeNode(n->children[i], keywords); 
+        }
+        
     }
 }
 
@@ -239,6 +183,7 @@ void freeCST(CST** cst){
         return;
     }
     freeTreeNode((*cst)->root);
+    free(*cst);
     *cst = NULL;
 }
 
