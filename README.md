@@ -104,8 +104,8 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 <equalityExpression> ::= <relationalExpression> { ('==' | '!=') <relationalExpression> }
 
-<relationalExpression> ::= <additiveExpression> 
-                         { ('<' | '<=' | '>' | '>=' | 'instanceof' <referenceType>) <additiveExpression> }
+<relationalExpression> ::= <additiveExpression> ( ('<' | '<=' | '>' | '>=') <additiveExpression> )
+                         | <additiveExpression> 'instanceof' <referenceType>
 
 <additiveExpression> ::= <multiplicativeExpression> { ('+' | '-') <multiplicativeExpression> }
 
