@@ -122,7 +122,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 | Precedence  | Operators                          | Grammar Rule                 | Associativity |
 | ----------- | ---------------------------------- | ---------------------------- | ------------- |
 | 1 (Lowest)  | `? :`                              | `<ternaryExpression>`        | Right-to-left |
-| 2           |  ||                                | `<logicalOrExpression>`      | Left-to-right |
+| 2           |  \|\|                              | `<logicalOrExpression>`      | Left-to-right |
 | 3           | `&&`                               | `<logicalAndExpression>`     | Left-to-right |
 | 4           | `==`, `!=`                         | `<equalityExpression>`       | Left-to-right |
 | 5           | `<`, `<=`, `>`, `>=`, `instanceof` | `<relationalExpression>`     | Left-to-right |
