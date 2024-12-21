@@ -15,6 +15,21 @@ typedef struct CST{
     treeNode* root;
 }CST;
 
+/* parsers */
+
+CST* parseTokenTable(char* filename, tokenTable* table);
+
+void parseTerm(treeNode* parent, tokenTable* table);
+void parseBaseTerm(treeNode* parent, tokenTable* table);
+void parseFieldAccess(treeNode* parent, tokenTable* table);
+void parseArrayAccess(treeNode* parent, tokenTable* table);
+void parseSubroutineCall(treeNode* parent, tokenTable* table);
+void parseExpressionList(treeNode* parent, tokenTable* table);
+
+void parseExpression(treeNode* parent, tokenTable* table);
+
+/* operators */
+
 bool isBinaryOp(token* t);
 
 bool isLogicalOp(token* t);
@@ -29,6 +44,15 @@ bool isAssignmentOp(token* t);
 
 bool isSelfOp(token* t);
 
+/* tree and nodes */
+
+void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage);
+
+void checkCharValueNodeExpected(tokenNode* n, tokenType expectedType, char expectedValue, char* functionName, char* errorMessage);
+
+void checkStringValueNodeExpected(tokenNode* n, tokenType expectedType, char* expectedValue, char* functionName, char* errorMessage);
+
+// create a child node with rule and token, and insert it to parent.
 treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent);
 
 // this function never returns null pointer, it only crashes.

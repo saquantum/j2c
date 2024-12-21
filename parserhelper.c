@@ -61,6 +61,43 @@ bool isSelfOp(token* t){
     return !strcmp(t->data.str_val, "++") || !strcmp(t->data.str_val, "--");
 }
 
+void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
+    if(!n || n->t->type != expectedType || n->t->data.key_val != expectedValue){
+        fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+        exit(1);
+    }
+}
+
+void checkCharValueNodeExpected(tokenNode* n, tokenType expectedType, char expectedValue, char* functionName, char* errorMessage){
+    if(expectedValue == -1){
+        if(!n || n->t->type != expectedType){
+            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            exit(1);
+        }
+    }
+    else{
+        if(!n || n->t->type != expectedType || n->t->data.char_val != expectedValue){
+            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            exit(1);
+        }
+    }
+}
+
+void checkStringValueNodeExpected(tokenNode* n, tokenType expectedType, char* expectedValue, char* functionName, char* errorMessage){
+    if(expectedValue == NULL){
+        if(!n || n->t->type != expectedType){
+            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            exit(1);
+        }
+    }
+    else{
+        if(!n || n->t->type != expectedType || strcmp(n->t->data.str_val, expectedValue)){
+            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            exit(1);
+        }
+    }
+}
+
 treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent){
     treeNode* child = createTreeNode(rule, t);
     child->parent = parent;
