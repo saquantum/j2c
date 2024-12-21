@@ -85,7 +85,7 @@ if no access modifier, default is public. we implement a simpler version: only p
 <assignmentOperator> ::= '=' | '+=' | '-=' | '*=' | '/='
 ```
 
-#### expression
+#### expression and term
 
 expression refers to a snippet of code that has a value. this could be a boolean value, other primitive type value or reference type value.
 
@@ -94,21 +94,60 @@ we don't check if an expression is boolean or not until semantics analysis.
 `<number>` , `<identifier>`and `<string>` are dealt with during lexing.
 
 ```
-<expression> ::= <term> {(<binaryOperator> | <logicalOperator>) <term>} | | <term> 'instanceof' <type>
+<expression> ::= <ternaryExpression>
 
+<ternaryExpression> ::= <logicalOrExpression> [ '?' <expression> ':' <expression> ]
+
+<logicalOrExpression> ::= <logicalAndExpression> { '||' <logicalAndExpression> }
+
+<logicalAndExpression> ::= <equalityExpression> { '&&' <equalityExpression> }
+
+<equalityExpression> ::= <relationalExpression> { ('==' | '!=') <relationalExpression> }
+
+<relationalExpression> ::= <additiveExpression> 
+                         { ('<' | '<=' | '>' | '>=' | 'instanceof' <referenceType>) <additiveExpression> }
+
+<additiveExpression> ::= <multiplicativeExpression> { ('+' | '-') <multiplicativeExpression> }
+
+<multiplicativeExpression> ::= <unaryExpression> { ('*' | '/' | '%') <unaryExpression> }
+
+<unaryExpression> ::= <unaryOperator> <unaryExpression>
+                    | <selfOperator> <term>   // Prefix: ++x, --y
+                    | <term> <selfOperator>   // Postfix: x++, y--
+                    | <term>
+```
+
+
+
+| Precedence  | Operators                          | Grammar Rule                 | Associativity |
+| ----------- | ---------------------------------- | ---------------------------- | ------------- |
+| 1 (Lowest)  | `? :`                              | `<ternaryExpression>`        | Right-to-left |
+| 2           | `||`                               | `<logicalOrExpression>`      | Left-to-right |
+| 3           | `&&`                               | `<logicalAndExpression>`     | Left-to-right |
+| 4           | `==`, `!=`                         | `<equalityExpression>`       | Left-to-right |
+| 5           | `<`, `<=`, `>`, `>=`, `instanceof` | `<relationalExpression>`     | Left-to-right |
+| 6           | `+`, `-`                           | `<additiveExpression>`       | Left-to-right |
+| 7           | `*`, `/`, `%`                      | `<multiplicativeExpression>` | Left-to-right |
+| 8           | `!`,` ~`,` -`                      | `<unaryExpression>`          | Right-to-left |
+| 9 (Highest) | `.`, `()`, `[]`                    | `<term>`                     | Left-to-right |
+
+
+
+```
 <term> ::= 'true' | 'false' | 'null' | 'this'
 		 | <number>
 		 | <string>
-		 | <identifier> [ '[' <expression> ']' ] // can be either a variable or array entry
+		 | <identifier>
 		 | '(' <expression> ')'
-		 | <unaryOperator> <term>
-		 | <selfOperator> <identifier>
-		 | <identifier> <selfOperator>
-		 | <expression> '?' <expression> ':' <expression>
 		 | <subroutineCall>
+		 | <fieldAccess>
+		 | <arrayAccess>
 		 
+<arrayAccess> ::= <term> '[' <expression> ']' 
+<fieldAccess> ::= <term> '.' <identifier>
 		 
-<subroutineCall> ::= <identifier> {'.' <identifier> '(' <expressionList> ')'} '(' <expressionList> ')'
+<subroutineCall> ::= <term> '.' <identifier> '(' <expressionList> ')'
+				   | <identifier> '(' <expressionList> ')'
 
 <expressionList> ::= [<expression> {',' <expression> } ]
 
