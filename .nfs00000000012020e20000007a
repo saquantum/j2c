@@ -113,10 +113,8 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 <unaryExpression> ::= <unaryOperator> <unaryExpression>
                     | <selfOperator> <term>   // Prefix: ++x, --y
-                    | <postfixExpression>
-                    
-<postfixExpression> ::= <term> <selfOperator>   // Postfix: x++, y--
-                      | <term>
+                    | <term> <selfOperator>   // Postfix: x++, y--
+                    | <term>
 ```
 
 

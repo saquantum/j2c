@@ -113,10 +113,8 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 <unaryExpression> ::= <unaryOperator> <unaryExpression>
                     | <selfOperator> <term>   // Prefix: ++x, --y
-                    | <postfixExpression>
-                    
-<postfixExpression> ::= <term> <selfOperator>   // Postfix: x++, y--
-                      | <term>
+                    | <term> <selfOperator>   // Postfix: x++, y--
+                    | <term>
 ```
 
 
@@ -160,8 +158,6 @@ we don't check if an expression is boolean or not until semantics analysis.
 subroutine call is merely calling a function. 
 
 #### method declaration and body
-
-method declaration should include a `native` modifier for methods that are realized using lower level programming and tell the code generator to look for its source code.
 
 ```
 <subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} ( <type> | 'void' ) <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'

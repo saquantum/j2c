@@ -27,21 +27,30 @@ void parseSubroutineCall(treeNode* parent, tokenTable* table);
 void parseExpressionList(treeNode* parent, tokenTable* table);
 
 void parseExpression(treeNode* parent, tokenTable* table);
+void parseTernaryExpression(treeNode* parent, tokenTable* table);
+void parseLogicalOrExpression(treeNode* parent, tokenTable* table);
+void parseLogicalAndExpression(treeNode* parent, tokenTable* table);
+void parseEqualityExpression(treeNode* parent, tokenTable* table);
+void parseRelationalExpression(treeNode* parent, tokenTable* table);
+void parseAdditiveExpression(treeNode* parent, tokenTable* table);
+void parseMultiplicativeExpression(treeNode* parent, tokenTable* table);
+void parseUnaryExpression(treeNode* parent, tokenTable* table);
+void parsePostfixExpression(treeNode* parent, tokenTable* table);
+
+void parseReferenceType(treeNode* parent, tokenTable* table);
+
+/* parser helpers */
+
+bool isExpressionStart(token* t);
 
 /* operators */
 
 bool isBinaryOp(token* t);
-
 bool isLogicalOp(token* t);
-
 bool isLogicalBindOp(token* t);
-
 bool isRelationalOp(token* t);
-
 bool isShiftOp(token* t);
-
 bool isAssignmentOp(token* t);
-
 bool isSelfOp(token* t);
 
 /* tree and nodes */

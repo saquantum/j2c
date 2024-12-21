@@ -1,5 +1,21 @@
 #include "parser.h"
 
+bool isExpressionStart(token* t){
+    if(!t){
+        return false;
+    }
+    return t->type==NUMBER || t->type==STRING || t->type==IDENTIFIER ||
+            (t->type==KEYWORD && (
+            t->data.key_val==BOOL_TRUE || t->data.key_val==BOOL_FALSE ||
+            t->data.key_val==NULLER || t->data.key_val==THIS
+            ) ) ||
+            (t->type==SYMBOL && (
+            t->data.char_val=='!' || t->data.char_val=='-' ||
+            t->data.char_val=='~'
+            ) ) ||
+            (t->type==BRACKET && t->data.char_val=='(');
+}
+
 bool isBinaryOp(token* t){
     if(!t){
         return false;
