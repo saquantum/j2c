@@ -119,17 +119,17 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 
 
-| Precedence  | Operators                          | Grammar Rule                 | Associativity |
-| ----------- | ---------------------------------- | ---------------------------- | ------------- |
-| 1 (Lowest)  | `? :`                              | `<ternaryExpression>`        | Right-to-left |
-| 2           |  `\|\|`                            | `<logicalOrExpression>`      | Left-to-right |
-| 3           | `&&`                               | `<logicalAndExpression>`     | Left-to-right |
-| 4           | `==`, `!=`                         | `<equalityExpression>`       | Left-to-right |
-| 5           | `<`, `<=`, `>`, `>=`, `instanceof` | `<relationalExpression>`     | Left-to-right |
-| 6           | `+`, `-`                           | `<additiveExpression>`       | Left-to-right |
-| 7           | `*`, `/`, `%`                      | `<multiplicativeExpression>` | Left-to-right |
-| 8           | `!`,` ~`,` -`                      | `<unaryExpression>`          | Right-to-left |
-| 9 (Highest) | `.`, `()`, `[]`                    | `<term>`                     | Left-to-right |
+| Precedence  | Operators                                  | Grammar Rule                 | Associativity |
+| ----------- | ------------------------------------------ | ---------------------------- | ------------- |
+| 1 (Lowest)  | `? :`                                      | `<ternaryExpression>`        | Right-to-left |
+| 2           |  `\|\|`                                    | `<logicalOrExpression>`      | Left-to-right |
+| 3           | `&&`                                       | `<logicalAndExpression>`     | Left-to-right |
+| 4           | `==`, `!=`                                 | `<equalityExpression>`       | Left-to-right |
+| 5           | `<`, `<=`, `>`, `>=`, `instanceof`         | `<relationalExpression>`     | Left-to-right |
+| 6           | `+`, `-`                                   | `<additiveExpression>`       | Left-to-right |
+| 7           | `*`, `/`, `%`                              | `<multiplicativeExpression>` | Left-to-right |
+| 8           | `!`,` ~`,` -` (unary) `++`, `--` (prefix)  | `<unaryExpression>`          | Right-to-left |
+| 9 (Highest) | `.`, `()`, `[]`, `++`, `--` (postfix)      | `<term>`                     | Left-to-right |
 
 
 
