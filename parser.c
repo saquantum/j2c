@@ -12,7 +12,7 @@ CST* parseTokenTable(char* filename, tokenTable* table){
     }
     cst->root = createTreeNode(filename, NULL);
     
-    printf("Debug: in expression only mode.\n")
+    printf("Debug: in expression only mode.\n");
     while(hasNext(table)){
         parseExpression(cst->root, table);
     }
@@ -197,14 +197,60 @@ void parseLogicalOrExpression(treeNode* parent, tokenTable* table){
 void parseLogicalAndExpression(treeNode* parent, tokenTable* table){
     treeNode* logicalAnd = insertNewNode2Parent("logicalAndExpression", NULL, parent);
     
-    parseEqualityExpression(logicalAnd, table);
+    parseBitwiseOrExpression(logicalAnd, table);
     
     tokenNode* peeknext = peekNextNode(table);
     while(peeknext && peeknext->t->type==OPERATOR && !strcmp(peeknext->t->str_val, "&&")){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, logicalAnd);
         
-        parseEqualityExpression(logicalAnd, table);
+        parseBitwiseOrExpression(logicalAnd, table);
+        
+        peeknext = peekNextNode(table);
+    }
+}
+
+void parseBitwiseOrExpression(treeNode* parent, tokenTable* table){
+    treeNode* bitwiseOr = insertNewNode2Parent("bitwiseOrExpression", NULL, parent);
+    
+    parseBitwiseXorExpression(bitwiseOr, table);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='|'){
+        tokenNode* n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, bitwiseOr);
+        
+        parseBitwiseXorExpression(bitwiseOr, table);
+        
+        peeknext = peekNextNode(table);
+    }
+}
+void parseBitwiseXorExpression(treeNode* parent, tokenTable* table){
+    treeNode* bitwiseXor = insertNewNode2Parent("bitwiseXorExpression", NULL, parent);
+    
+    parseBitwiseAndExpression(bitwiseXor, table);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='^'){
+        tokenNode* n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, bitwiseXor);
+        
+        parseBitwiseAndExpression(bitwiseXor, table);
+        
+        peeknext = peekNextNode(table);
+    }
+}
+void parseBitwiseAndExpression(treeNode* parent, tokenTable* table){
+    treeNode* bitwiseAnd = insertNewNode2Parent("bitwiseAndExpression", NULL, parent);
+    
+    parseEqualityExpression(bitwiseAnd, table);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='&'){
+        tokenNode* n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, bitwiseXor);
+        
+        parseEqualityExpression(bitwiseAnd, table);
         
         peeknext = peekNextNode(table);
     }
@@ -229,14 +275,14 @@ void parseEqualityExpression(treeNode* parent, tokenTable* table){
 void parseRelationalExpression(treeNode* parent, tokenTable* table){
     treeNode* relational = insertNewNode2Parent("relationalExpression", NULL, parent);
     
-    parseAdditiveExpression(relational, table);
+    parseShiftExpression(relational, table);
     
     tokenNode* peeknext = peekNextNode(table);
     if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->str_val, "<=") || !strcmp(peeknext->t->str_val, ">=")) ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, relational);
         
-        parseAdditiveExpression(relational, table);
+        parseShiftExpression(relational, table);
 
         return;
     }
@@ -244,7 +290,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, relational);
         
-        parseAdditiveExpression(relational, table);
+        parseShiftExpression(relational, table);
 
         return;
     }
@@ -255,6 +301,22 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
         parseReferenceType(relational, table);
 
         return;
+    }
+}
+
+void parseShiftExpression(treeNode* parent, tokenTable* table){
+    treeNode* shift = insertNewNode2Parent("shiftExpression", NULL, parent);
+    
+    parseAdditiveExpression(shift, table);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    while(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->str_val, "<<") || !strcmp(peeknext->t->str_val, ">>")) ){
+        tokenNode* n = nextNode(table);
+        insertNewNode2Parent("operator", n->t, shift);
+        
+        parseAdditiveExpression(shift, table);
+        
+        peeknext = peekNextNode(table);
     }
 }
 
@@ -289,6 +351,7 @@ void parseMultiplicativeExpression(treeNode* parent, tokenTable* table){
         peeknext = peekNextNode(table);
     }
 }
+
 void parseUnaryExpression(treeNode* parent, tokenTable* table){
     treeNode* unary = insertNewNode2Parent("unaryExpression", NULL, parent);
     
@@ -327,6 +390,87 @@ void parsePostfixExpression(treeNode* parent, tokenTable* table){
     }
 }
 
-void parseReferenceType(treeNode* parent, tokenTable* table){
+void parseType(treeNode* parent, tokenTable* table){
+    treeNode* type = insertNewNode2Parent("type", NULL, parent);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->key_val==CHAR || peeknext->t->key_val==INT || peeknext->t->key_val==LONG || peeknext->t->key_val==DOUBLE || peeknext->t->key_val==BOOLEAN)){
+        
+        tokenNode* n = nextNode(table);
+        insertNewNode2Parent("keyword", n->t, type);
+        
+        return;
+    }
+    
+    parseReferenceType(type, table);
     
 }
+
+void parseReferenceType(treeNode* parent, tokenTable* table){
+    treeNode* reference = insertNewNode2Parent("referenceType", NULL, parent);
+    
+    tokenNode* n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseReferenceType", "missing identifier for reference type");
+    insertNewNode2Parent("identifier", n->t, reference);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='<'){
+    
+        // '<'
+        n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, reference);
+        
+        // generics
+        parseGenerics(reference, table);
+        
+        // '>'
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, SYMBOL, '>', "parseReferenceType", "missing right angle to conclude generics");
+        insertNewNode2Parent("symbol", n->t, reference);
+    }
+}
+
+void parseGenerics(treeNode* parent, tokenTable* table){
+    treeNode* generics = insertNewNode2Parent("generics", NULL, parent);
+    
+    parseTypeArgument(generics, table);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val==','){
+        // ','
+        n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, generics);    
+        
+        parseTypeArgument(generics, table);
+        
+        peeknext = peekNextNode(table);
+    }
+}
+
+void parseTypeArgument(treeNode* parent, tokenTable* table){
+    treeNode* typeArgument = insertNewNode2Parent("typeArgument", NULL, parent);
+    
+    tokenNode* peeknext = peekNextNode(table);
+    if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->char_val=='?'){
+        // '?'
+        n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, typeArgument); 
+        
+        peeknext = peekNextNode(table);
+        if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->key_val==EXTENDS || peeknext->t->key_val==SUPER) ){
+            // extends or super
+            n = nextNode(table);
+            insertNewNode2Parent("keyword", n->t, typeArgument);
+            
+            parseReferenceType(typeArgument, table);
+        }
+    }
+    else{
+        parseReferenceType(typeArgument, table);
+    }
+}
+
+
+
+
+

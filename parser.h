@@ -30,14 +30,21 @@ void parseExpression(treeNode* parent, tokenTable* table);
 void parseTernaryExpression(treeNode* parent, tokenTable* table);
 void parseLogicalOrExpression(treeNode* parent, tokenTable* table);
 void parseLogicalAndExpression(treeNode* parent, tokenTable* table);
+void parseBitwiseOrExpression(treeNode* parent, tokenTable* table);
+void parseBitwiseXorExpression(treeNode* parent, tokenTable* table);
+void parseBitwiseAndExpression(treeNode* parent, tokenTable* table);
 void parseEqualityExpression(treeNode* parent, tokenTable* table);
 void parseRelationalExpression(treeNode* parent, tokenTable* table);
+void parseShiftExpression(treeNode* parent, tokenTable* table);
 void parseAdditiveExpression(treeNode* parent, tokenTable* table);
 void parseMultiplicativeExpression(treeNode* parent, tokenTable* table);
 void parseUnaryExpression(treeNode* parent, tokenTable* table);
 void parsePostfixExpression(treeNode* parent, tokenTable* table);
 
+void parseType(treeNode* parent, tokenTable* table);
 void parseReferenceType(treeNode* parent, tokenTable* table);
+void parseGenerics(treeNode* parent, tokenTable* table);
+void parseTypeArgument(treeNode* parent, tokenTable* table);
 
 /* parser helpers */
 
@@ -56,9 +63,7 @@ bool isSelfOp(token* t);
 /* tree and nodes */
 
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage);
-
 void checkCharValueNodeExpected(tokenNode* n, tokenType expectedType, char expectedValue, char* functionName, char* errorMessage);
-
 void checkStringValueNodeExpected(tokenNode* n, tokenType expectedType, char* expectedValue, char* functionName, char* errorMessage);
 
 // create a child node with rule and token, and insert it to parent.
@@ -70,6 +75,8 @@ treeNode* createTreeNode(char* rule, token* t);
 
 void insertChildNode(treeNode* n, treeNode* child);
 
-void freeCST(CST** cst);
+void printCST(CST* cst);
+void printTreeNode(treeNode* n, char** keywords);
 
+void freeCST(CST** cst);
 void freeTreeNode(treeNode* n);

@@ -176,6 +176,64 @@ void insertChildNode(treeNode* n, treeNode* child){
     child->parent = n;
 }
 
+void printCST(CST* cst){
+    if(!cst){
+        return;
+    }
+    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
+    printTreeNode(cst->root, keywords);
+}
+
+void printTreeNode(treeNode* n, char** keywords){
+    if(!n){
+        return;
+    }
+    if(!n->assoToken){
+        printf("Rule = %s", n->ruleType);
+    }
+    else{
+        switch(n->assoToken->type){
+            case KEYWORD:
+                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d", keywords[n->assoToken->data.key_val], n->assoToken->lineNumber);
+                break;
+            case NUMBER:
+                printf("TokenType = Number, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
+                break;
+            case IDENTIFIER:
+                printf("TokenType = Identifier, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
+                break;
+            case OPERATOR:
+                printf("TokenType = Operator, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
+                break;
+            case STRING:
+                printf("TokenType = String, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
+                break;
+            case SYMBOL:
+                printf("TokenType = Symbol, TokenValue = %c, lineNumber = %d", n->assoToken->data.char_val, n->assoToken->lineNumber);
+                break;
+            case BRACKET:
+                printf("TokenType = Bracket, TokenValue = %c, lineNumber = %d", n->assoToken->data.char_val, n->assoToken->lineNumber);
+                break;
+            case SEMICOLON:
+                printf("TokenType = Semicolon, TokenValue = %c, lineNumber = %d", n->assoToken->data.char_val, n->assoToken->lineNumber);
+                break;
+        }
+    }
+    if(n->parent){
+        printf(", ParentRule = %s", n->parent->ruleType);
+    }
+    if(childCount){
+        printf(", ChildRules: ");
+        for(int i=0; i<childCount; i++){
+            printf("%s, ", n->children[i]->ruleType);
+        }
+    }
+    printf(".\n");
+    if(childCount){
+        printTreeNode(n->children[i], keywords); 
+    }
+}
+
 void freeCST(CST** cst){
     if(!cst || !(*cst)){
         return;
