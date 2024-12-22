@@ -63,9 +63,9 @@ if no access modifier, default is public. we implement a simpler version: only p
 ```
 <type> ::= <referenceType> | <primitiveType>
 
-<referenceType> ::= <identifier> [ '<' <generics> '>' ]
+<referenceType> ::= <identifier> [ <generics> ]
 
-<generics> ::= <typeArgument> { ',' <typeArgument> }
+<generics> ::= '<' <typeArgument> { ',' <typeArgument> } '>'
 
 <typeArgument> ::= <referenceType> 
 				 | '?'

@@ -290,7 +290,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
     parseShiftExpression(relational, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    tokenNode* peeknextnext = peeknext->next;
+    tokenNode* peeknextnext = peeknext ? peeknext->next : NULL;
     
     if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='>' || peeknext->t->data.char_val=='<') ){
         if(peeknextnext && peeknextnext->t->type==SYMBOL && peeknextnext->t->data.char_val=='='){
@@ -341,7 +341,7 @@ void parseShiftExpression(treeNode* parent, tokenTable* table){
     parseAdditiveExpression(shift, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    tokenNode* peeknextnext = peeknext->next;
+    tokenNode* peeknextnext = peeknext ? peeknext->next : NULL;
     
     while(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='>' || peeknext->t->data.char_val=='<') && peeknextnext && peeknextnext->t->type==SYMBOL && peeknextnext->t->data.char_val==peeknext->t->data.char_val ){
         // modify the token table, combine the two nodes into one
@@ -367,6 +367,9 @@ void parseShiftExpression(treeNode* parent, tokenTable* table){
         insertNewNode2Parent("operator", n->t, shift);
         
         parseAdditiveExpression(shift, table);
+        
+        peeknext = peekNextNode(table);
+        peeknextnext = peeknext ? peeknext->next : NULL;
     } 
 }
 
@@ -460,47 +463,74 @@ void parseReferenceType(treeNode* parent, tokenTable* table){
     treeNode* reference = insertNewNode2Parent("referenceType", NULL, parent);
     
     tokenNode* n = nextNode(table);
+    if(!n){
+        fprintf(stderr, "Error parseReferenceType: unexpected end of tokens\n");
+        exit(1);
+    }
     checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseReferenceType", "missing identifier for reference type");
     insertNewNode2Parent("identifier", n->t, reference);
     
     tokenNode* peeknext = peekNextNode(table);
     if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='<'){
-    
-        // '<'
-        n = nextNode(table);
-        insertNewNode2Parent("symbol", n->t, reference);
-        
-        // generics
         parseGenerics(reference, table);
-        
-        // '>'
-        n = nextNode(table);
-        checkCharValueNodeExpected(n, SYMBOL, '>', "parseReferenceType", "missing right angle to conclude generics");
-        insertNewNode2Parent("symbol", n->t, reference);
     }
 }
 
 void parseGenerics(treeNode* parent, tokenTable* table){
     treeNode* generics = insertNewNode2Parent("generics", NULL, parent);
     
-    parseTypeArgument(generics, table);
+    // use depth to mimic stack
+    int depth = 0;
     
-    tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val==','){
-        // ','
-        tokenNode* n = nextNode(table);
-        insertNewNode2Parent("symbol", n->t, generics);    
+    // '<'
+    tokenNode* n = nextNode(table);
+    checkCharValueNodeExpected(n, SYMBOL, '<', "parseGenerics", "missing '<' to start generics");
+    insertNewNode2Parent("symbol", n->t, generics);
+    depth++;
+    
+    while(depth > 0){
+        tokenNode* peeknext = peekNextNode(table);
+        if(!peeknext){
+            fprintf(stderr, "Error parseGenerics: unexpected end of tokens inside generics\n");
+            exit(1);
+        }
         
-        parseTypeArgument(generics, table);
+        if(peeknext->t->type==SYMBOL && peeknext->t->data.char_val!='?'){
+            if(peeknext->t->data.char_val=='<'){
+                n = nextNode(table);
+                insertNewNode2Parent("symbol", n->t, generics);
+                depth++;
+            }else if(peeknext->t->data.char_val=='>'){
+                n = nextNode(table);
+                insertNewNode2Parent("symbol", n->t, generics);
+                depth--;
+            }else if(peeknext->t->data.char_val==','){
+                n = nextNode(table);
+                insertNewNode2Parent("symbol", n->t, generics);
+            }else{
+                fprintf(stderr, "Error parseGenerics: unexpected symbol %c in generics\n", peeknext->t->data.char_val);
+                exit(1);
+            }
+        }else if(peeknext->t->type==IDENTIFIER || (peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='?') ){
+            parseTypeArgument(generics, table);
+        }else {
+            fprintf(stderr, "Error parseGenerics: unexpected token type %d in generics\n", peeknext->t->type);
+            exit(1);
+        }
         
-        peeknext = peekNextNode(table);
     }
+    
 }
 
 void parseTypeArgument(treeNode* parent, tokenTable* table){
     treeNode* typeArgument = insertNewNode2Parent("typeArgument", NULL, parent);
     
     tokenNode* peeknext = peekNextNode(table);
+    if(!peeknext){
+        fprintf(stderr, "Error parseTypeArgument: unexpected end of tokens\n");
+        exit(1);
+    }
+    
     if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='?'){
         // '?'
         tokenNode* n = nextNode(table);
