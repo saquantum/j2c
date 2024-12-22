@@ -335,6 +335,88 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
     }
 }
 
+void parseRelationalExpression(treeNode* parent, tokenTable* table) {
+    treeNode* relational = insertNewNode2Parent("relationalExpression", NULL, parent);
+
+    parseShiftExpression(relational, table);
+
+    tokenNode* peeknext = peekNextNode(table);
+
+    // Check for '<', '>', '<=', '>=', or 'instanceof'
+    if (peeknext && peeknext->t->type == SYMBOL && 
+        (peeknext->t->data.char_val == '<' || peeknext->t->data.char_val == '>')) {
+        
+        // Tentatively treat '<' or '>' as part of generics
+        int depth = 0;
+        tokenNode* current = peeknext;
+
+        while (current) {
+            if (current->t->type == SYMBOL) {
+                if (current->t->data.char_val == '<') {
+                    depth++;
+                } else if (current->t->data.char_val == '>') {
+                    depth--;
+                    if (depth == 0) {
+                        // Valid generics detected
+                        parseReferenceType(relational, table);
+                        return;
+                    }
+                } else if (current->t->data.char_val != ',' && current->t->data.char_val != '?') {
+                    // Invalid token for generics
+                    break;
+                }
+            } else if (current->t->type == IDENTIFIER || 
+                       (current->t->type == SYMBOL && current->t->data.char_val == '?')) {
+                // Valid part of generics
+                current = current->next;
+                continue;
+            } else {
+                // Invalid token for generics
+                break;
+            }
+            current = current->next;
+        }
+
+        // If we reach here, it's not generics; process as relational operator
+        tokenNode* n = nextNode(table);
+        if (n->t->type == SYMBOL && 
+            (n->t->data.char_val == '<' || n->t->data.char_val == '>')) {
+            tokenNode* peeknextnext = peekNextNode(table);
+            if (peeknextnext && peeknextnext->t->type == SYMBOL && peeknextnext->t->data.char_val == '=') {
+                // Combine '<=' or '>='
+                char combined[3] = {n->t->data.char_val, peeknextnext->t->data.char_val, 0};
+                n->t->type = OPERATOR;
+                n->t->data.str_val = calloc(3, sizeof(char));
+                if (!n->t->data.str_val) {
+                    fprintf(stderr, "Error parseRelationalExpression: memory allocation failed\n");
+                    exit(1);
+                }
+                strcpy(n->t->data.str_val, combined);
+
+                // Remove the second token
+                tokenNode* tmp = peeknextnext;
+                n->next = tmp->next;
+                if (tmp->next) {
+                    tmp->next->prev = n;
+                } else {
+                    table->end = n;
+                }
+                freeToken(tmp->t);
+                free(tmp);
+            }
+            insertNewNode2Parent("operator", n->t, relational);
+        }
+        parseShiftExpression(relational, table);
+
+    } else if (peeknext && peeknext->t->type == KEYWORD && peeknext->t->data.key_val == INSTANCEOF) {
+        // Handle instanceof keyword
+        tokenNode* n = nextNode(table);
+        insertNewNode2Parent("keyword", n->t, relational);
+        parseReferenceType(relational, table);
+    }
+}
+
+
 void parseShiftExpression(treeNode* parent, tokenTable* table){
     treeNode* shift = insertNewNode2Parent("shiftExpression", NULL, parent);
     
