@@ -531,7 +531,7 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
         exit(1);
     }
     
-    if(peeknext && peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='?'){
+    if(peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='?'){
         // '?'
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, typeArgument); 
@@ -545,8 +545,11 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
             parseReferenceType(typeArgument, table);
         }
     }
-    else{
+    else if(peeknext->t->type==IDENTIFIER){
         parseReferenceType(typeArgument, table);
+    }else{
+        fprintf(stderr, "Error parseTypeArgument: invalid token in type arguments\n");
+        exit(1);
     }
 }
 
