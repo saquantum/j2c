@@ -86,6 +86,10 @@ tokenNode* peekNextNode(tokenTable* table);
 tokenNode* prevNode(tokenTable* table);
 
 // sweep the token table to combine symbols into two-symbol operators
+// NOTICE: this preprocessing combiner ignores '<' and '>' ,
+// since we must use grammar and context to determine
+// whether they represent generics or operators
+// we will defer this until parsing.
 void combineSymbols(tokenTable* table);
 
 void freeTokenTable(tokenTable** table);

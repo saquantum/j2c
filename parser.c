@@ -290,17 +290,36 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table){
     parseShiftExpression(relational, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    if(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->data.str_val, "<=") || !strcmp(peeknext->t->data.str_val, ">=")) ){
-        tokenNode* n = nextNode(table);
-        insertNewNode2Parent("operator", n->t, relational);
+    tokenNode* peeknextnext = peeknext->next;
+    
+    if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='>' || peeknext->t->data.char_val=='<') ){
+        if(peeknextnext && peeknextnext->t->type==SYMBOL && peeknextnext->t->data.char_val=='='){
         
-        parseShiftExpression(relational, table);
-
-        return;
-    }
-    else if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='>' || peeknext->t->data.char_val=='<') ){
-        tokenNode* n = nextNode(table);
-        insertNewNode2Parent("symbol", n->t, relational);
+            // modify the token table, combine the two nodes into one
+            char combined[3] = {peeknext->t->data.char_val, peeknextnext->t->data.char_val, 0};
+            peeknext->t->type = OPERATOR;
+            peeknext->t->data.str_val = calloc(3,sizeof(char));
+            if(!peeknext->t->data.str_val){
+                fprintf(stderr, "Error parseRelationalExpression: not enough memory, cannot create a string value for the node\n");
+                exit(1);
+                }
+            strcpy(peeknext->t->data.str_val, combined);
+            peeknext->next = peeknextnext->next;
+            if(peeknextnext->next){
+                peeknextnext->next->prev = peeknext;
+            }else{
+                table->end = peeknext;
+            }
+            freeToken(peeknextnext->t);
+            free(peeknextnext);
+            
+            // now we can add this node to the tree.
+            tokenNode* n = nextNode(table);
+            insertNewNode2Parent("operator", n->t, relational);
+        } else{
+            tokenNode* n = nextNode(table);
+            insertNewNode2Parent("symbol", n->t, relational);
+        }
         
         parseShiftExpression(relational, table);
 
@@ -322,14 +341,33 @@ void parseShiftExpression(treeNode* parent, tokenTable* table){
     parseAdditiveExpression(shift, table);
     
     tokenNode* peeknext = peekNextNode(table);
-    while(peeknext && peeknext->t->type==OPERATOR && (!strcmp(peeknext->t->data.str_val, "<<") || !strcmp(peeknext->t->data.str_val, ">>")) ){
+    tokenNode* peeknextnext = peeknext->next;
+    
+    while(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='>' || peeknext->t->data.char_val=='<') && peeknextnext && peeknextnext->t->type==SYMBOL && peeknextnext->t->data.char_val==peeknext->t->data.char_val ){
+        // modify the token table, combine the two nodes into one
+        char combined[3] = {peeknext->t->data.char_val, peeknextnext->t->data.char_val, 0};
+        peeknext->t->type = OPERATOR;
+        peeknext->t->data.str_val = calloc(3,sizeof(char));
+        if(!peeknext->t->data.str_val){
+            fprintf(stderr, "Error parseShiftExpression: not enough memory, cannot create a string value for the node\n");
+            exit(1);
+        }
+        strcpy(peeknext->t->data.str_val, combined);
+        peeknext->next = peeknextnext->next;
+        if(peeknextnext->next){
+            peeknextnext->next->prev = peeknext;
+        }else{
+            table->end = peeknext;
+        }
+        freeToken(peeknextnext->t);
+        free(peeknextnext);
+            
+        // now we can add this node to the tree.
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("operator", n->t, shift);
         
         parseAdditiveExpression(shift, table);
-        
-        peeknext = peekNextNode(table);
-    }
+    } 
 }
 
 void parseAdditiveExpression(treeNode* parent, tokenTable* table){
