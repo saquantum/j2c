@@ -284,57 +284,6 @@ void parseEqualityExpression(treeNode* parent, tokenTable* table){
     }
 }
 
-void parseRelationalExpression(treeNode* parent, tokenTable* table){
-    treeNode* relational = insertNewNode2Parent("relationalExpression", NULL, parent);
-    
-    parseShiftExpression(relational, table);
-    
-    tokenNode* peeknext = peekNextNode(table);
-    tokenNode* peeknextnext = peeknext ? peeknext->next : NULL;
-    
-    if(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='>' || peeknext->t->data.char_val=='<') ){
-        if(peeknextnext && peeknextnext->t->type==SYMBOL && peeknextnext->t->data.char_val=='='){
-        
-            // modify the token table, combine the two nodes into one
-            char combined[3] = {peeknext->t->data.char_val, peeknextnext->t->data.char_val, 0};
-            peeknext->t->type = OPERATOR;
-            peeknext->t->data.str_val = calloc(3,sizeof(char));
-            if(!peeknext->t->data.str_val){
-                fprintf(stderr, "Error parseRelationalExpression: not enough memory, cannot create a string value for the node\n");
-                exit(1);
-                }
-            strcpy(peeknext->t->data.str_val, combined);
-            peeknext->next = peeknextnext->next;
-            if(peeknextnext->next){
-                peeknextnext->next->prev = peeknext;
-            }else{
-                table->end = peeknext;
-            }
-            freeToken(peeknextnext->t);
-            free(peeknextnext);
-            
-            // now we can add this node to the tree.
-            tokenNode* n = nextNode(table);
-            insertNewNode2Parent("operator", n->t, relational);
-        } else{
-            tokenNode* n = nextNode(table);
-            insertNewNode2Parent("symbol", n->t, relational);
-        }
-        
-        parseShiftExpression(relational, table);
-
-        return;
-    }
-    else if(peeknext && peeknext->t->type==KEYWORD && peeknext->t->data.key_val==INSTANCEOF){
-        tokenNode* n = nextNode(table);
-        insertNewNode2Parent("keyword", n->t, relational);
-        
-        parseReferenceType(relational, table);
-
-        return;
-    }
-}
-
 void parseRelationalExpression(treeNode* parent, tokenTable* table) {
     treeNode* relational = insertNewNode2Parent("relationalExpression", NULL, parent);
 
@@ -347,35 +296,71 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
         (peeknext->t->data.char_val == '<' || peeknext->t->data.char_val == '>')) {
         
         // Tentatively treat '<' or '>' as part of generics
+        // List<>
+        // List<String>
+        // Map<List<?>, List<>>
+        // Map<?, List<>>
+        // Map<List<String>, List<String>>
+        // Map<Map<List<? extends Iterable>, List<>>, Map<List<>, List<>>>
         int depth = 0;
         tokenNode* current = peeknext;
 
         while (current) {
             if (current->t->type == SYMBOL) {
                 if (current->t->data.char_val == '<') {
-                    depth++;
-                } else if (current->t->data.char_val == '>') {
-                    depth--;
+                    depth++; // push into stack
+                    if(!( current->next->t->type==IDENTIFIER || (current->next->t->type==SYMBOL && (current->next->t->data.char_val=='?' || current->next->t->data.char_val=='>') ) )){
+                        break; // only identifier, '?' and '>' follows a '<'
+                    }
+                    current = current->next;
+                    continue;
+                } 
+                else if (current->t->data.char_val == '>') {
+                    depth--; // pop from stack
+                    if( depth > 0){
+                        if(!(current->next->t->type==SYMBOL && (current->next->t->data.char_val==',' || current->next->t->data.char_val=='>') )){
+                            break; // only ',' and '>' can follow a '>' within nested generics
+                        }
+                    }
                     if (depth == 0) {
                         // Valid generics detected
-                        parseReferenceType(relational, table);
+                        parseGenerics(relational, table);
                         return;
                     }
-                } else if (current->t->data.char_val != ',' && current->t->data.char_val != '?') {
-                    // Invalid token for generics
-                    break;
+                    current = current->next;
+                    continue;
+                } 
+                else if (current->t->data.char_val != ',') {
+                    if(!( current->next->t->type==IDENTIFIER || (current->next->t->type==SYMBOL && current->next->t->data.char_val=='?' ) )){
+                        break; // only identifier and '?' can follow a ','
+                    }
+                    current = current->next;
+                    continue;
+                } 
+                else if (current->t->data.char_val != '?') {
+                    if(current->next->t->type==KEYWORD && (current->t->data.key_val==EXTENDS || current->t->data.key_val==SUPER) ){
+                        current = current->next->next; // skip the extends or super keyword to simplify code
+                        continue;
+                    }
+                    if(!(current->next->t->type==SYMBOL && (current->next->t->data.char_val=='>' || current->next->t->data.char_val==',') )){
+                        break; // else than extends and super, only ',' and '>' can follow a '?'
+                    }
+                    current = current->next;
+                    continue;
                 }
-            } else if (current->t->type == IDENTIFIER || 
-                       (current->t->type == SYMBOL && current->t->data.char_val == '?')) {
-                // Valid part of generics
+            } else if (current->t->type == IDENTIFIER) {
+                if(!(current->next->t->type==SYMBOL && (current->next->t->data.char_val=='<' || current->next->t->data.char_val=='>' || current->next->t->data.char_val==',') )){
+                    break; // only '<' '>' and ',' can follow an identifier
+                }
                 current = current->next;
                 continue;
             } else {
                 // Invalid token for generics
                 break;
-            }
-            current = current->next;
+            }  
         }
+        
+        printf("Debug: that was not a valid generics definition.\n");
 
         // If we reach here, it's not generics; process as relational operator
         tokenNode* n = nextNode(table);
@@ -388,7 +373,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
                 n->t->type = OPERATOR;
                 n->t->data.str_val = calloc(3, sizeof(char));
                 if (!n->t->data.str_val) {
-                    fprintf(stderr, "Error parseRelationalExpression: memory allocation failed\n");
+                    fprintf(stderr, "Error parseRelationalExpression: not enough memory, cannot create a string value for the node\n");
                     exit(1);
                 }
                 strcpy(n->t->data.str_val, combined);

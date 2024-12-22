@@ -1,1 +1,5 @@
 Debug: in expressions only mode.
+TokenType = Identifier, TokenValue = ArrayList, lineNumber = 5
+TokenType = Symbol, TokenValue = <, lineNumber = 5
+TokenType = Identifier, TokenValue = String, lineNumber = 5
+TokenType = Symbol, TokenValue = >, lineNumber = 5
