@@ -290,81 +290,22 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
     parseShiftExpression(relational, table);
 
     tokenNode* peeknext = peekNextNode(table);
-
+    
     // Check for '<', '>', '<=', '>=', or 'instanceof'
     if (peeknext && peeknext->t->type == SYMBOL && 
         (peeknext->t->data.char_val == '<' || peeknext->t->data.char_val == '>')) {
-        
-        // Tentatively treat '<' or '>' as part of generics
-        // List<>
-        // List<String>
-        // Map<List<?>, List<>>
-        // Map<?, List<>>
-        // Map<List<String>, List<String>>
-        // Map<Map<List<? extends Iterable>, List<>>, Map<List<>, List<>>>
-        int depth = 0;
-        tokenNode* current = peeknext;
-
-        while (current) {
-            if (current->t->type == SYMBOL) {
-                if (current->t->data.char_val == '<') {
-                    depth++; // push into stack
-                    if(!( current->next->t->type==IDENTIFIER || (current->next->t->type==SYMBOL && (current->next->t->data.char_val=='?' || current->next->t->data.char_val=='>') ) )){
-                        break; // only identifier, '?' and '>' follows a '<'
-                    }
-                    current = current->next;
-                    continue;
-                } 
-                else if (current->t->data.char_val == '>') {
-                    depth--; // pop from stack
-                    if( depth > 0){
-                        if(!(current->next->t->type==SYMBOL && (current->next->t->data.char_val==',' || current->next->t->data.char_val=='>') )){
-                            break; // only ',' and '>' can follow a '>' within nested generics
-                        }
-                    }
-                    if (depth == 0) {
-                        // Valid generics detected
-                        parseGenerics(relational, table);
-                        return;
-                    }
-                    current = current->next;
-                    continue;
-                } 
-                else if (current->t->data.char_val != ',') {
-                    if(!( current->next->t->type==IDENTIFIER || (current->next->t->type==SYMBOL && current->next->t->data.char_val=='?' ) )){
-                        break; // only identifier and '?' can follow a ','
-                    }
-                    current = current->next;
-                    continue;
-                } 
-                else if (current->t->data.char_val != '?') {
-                    if(current->next->t->type==KEYWORD && (current->t->data.key_val==EXTENDS || current->t->data.key_val==SUPER) ){
-                        current = current->next->next; // skip the extends or super keyword to simplify code
-                        continue;
-                    }
-                    if(!(current->next->t->type==SYMBOL && (current->next->t->data.char_val=='>' || current->next->t->data.char_val==',') )){
-                        break; // else than extends and super, only ',' and '>' can follow a '?'
-                    }
-                    current = current->next;
-                    continue;
-                }
-            } else if (current->t->type == IDENTIFIER) {
-                if(!(current->next->t->type==SYMBOL && (current->next->t->data.char_val=='<' || current->next->t->data.char_val=='>' || current->next->t->data.char_val==',') )){
-                    break; // only '<' '>' and ',' can follow an identifier
-                }
-                current = current->next;
-                continue;
-            } else {
-                // Invalid token for generics
-                break;
-            }  
+        printf("Debug: verify generics.\n");
+        if(isPotentialGenerics(peeknext)){
+            printf("Debug: valid generics detected.\n");
+            parseGenerics(relational, table);
+            return;
         }
-        
-        printf("Debug: that was not a valid generics definition.\n");
+     }   
+        printf("Debug: invalid generics\n");
 
         // If we reach here, it's not generics; process as relational operator
         tokenNode* n = nextNode(table);
-        if (n->t->type == SYMBOL && 
+        if (n && n->t->type == SYMBOL && 
             (n->t->data.char_val == '<' || n->t->data.char_val == '>')) {
             tokenNode* peeknextnext = peekNextNode(table);
             if (peeknextnext && peeknextnext->t->type == SYMBOL && peeknextnext->t->data.char_val == '=') {
@@ -389,11 +330,11 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
                 freeToken(tmp->t);
                 free(tmp);
             }
+            printf("Debug: finished combining symbols\n");
             insertNewNode2Parent("operator", n->t, relational);
-        }
-        parseShiftExpression(relational, table);
-
-    } else if (peeknext && peeknext->t->type == KEYWORD && peeknext->t->data.key_val == INSTANCEOF) {
+            parseShiftExpression(relational, table);
+        }        
+        else if (peeknext && peeknext->t->type == KEYWORD && peeknext->t->data.key_val == INSTANCEOF) {
         // Handle instanceof keyword
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("keyword", n->t, relational);
@@ -546,6 +487,8 @@ void parseReferenceType(treeNode* parent, tokenTable* table){
 void parseGenerics(treeNode* parent, tokenTable* table){
     treeNode* generics = insertNewNode2Parent("generics", NULL, parent);
     
+    printf("Debug: begin parsing generics\n");
+    
     // use depth to mimic stack
     int depth = 0;
     
@@ -586,6 +529,8 @@ void parseGenerics(treeNode* parent, tokenTable* table){
         }
         
     }
+    printf("Debug: end parsing generics\n");
+    printTokenTable(table);
     
 }
 

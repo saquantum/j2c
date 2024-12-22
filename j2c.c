@@ -8,11 +8,13 @@ int main(int argc, char** argv){
     tokenTable* ttable = lexFile(input);
     combineSymbols(ttable);
     
+    printTokenTable(ttable);
+printf("--------------\n");
 
     CST* cst = parseTokenTable(argv[1], ttable);
     
-    printTokenTable(ttable);
-    //printCST(cst);
+    
+    printCST(cst);
     
     
     fclose(input);

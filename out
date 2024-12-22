@@ -1,5 +1,97 @@
+[kj24716@it106319 j2c]$ make
+gcc j2c.c parser.c parserhelper.c lexer.c token.c -Wall -Wextra -Wpedantic -std=c99 -Wvla -Wfloat-equal -fsanitize=address -fsanitize=undefined -Werror -o t -lm
+[kj24716@it106319 j2c]$ ./t testfolder/generics.java out 
+TokenType = Identifier, TokenValue = a, lineNumber = 2
+TokenType = Symbol, TokenValue = <, lineNumber = 2
+TokenType = Symbol, TokenValue = <, lineNumber = 2
+TokenType = Identifier, TokenValue = b, lineNumber = 2
+TokenType = Symbol, TokenValue = <, lineNumber = 2
+TokenType = Symbol, TokenValue = =, lineNumber = 2
+TokenType = Identifier, TokenValue = c, lineNumber = 2
+--------------
 Debug: in expressions only mode.
-TokenType = Identifier, TokenValue = ArrayList, lineNumber = 5
-TokenType = Symbol, TokenValue = <, lineNumber = 5
-TokenType = Identifier, TokenValue = String, lineNumber = 5
-TokenType = Symbol, TokenValue = >, lineNumber = 5
+Debug: verify generics.
+Current token: TokenType = Symbol, TokenValue = <, lineNumber = 2
+Debug: invalid '<' detected. Its previous and next nodes are:
+Current token: TokenType = Identifier, TokenValue = b, lineNumber = 2
+Current token: TokenType = Symbol, TokenValue = =, lineNumber = 2
+Debug: invalid generics
+Debug: finished combining symbols
+=================================================================
+==3838022==ERROR: AddressSanitizer: heap-use-after-free on address 0x603000000280 at pc 0x0000004068e9 bp 0x7fff5b9a2e30 sp 0x7fff5b9a2e20
+READ of size 8 at 0x603000000280 thread T0
+    #0 0x4068e8 in parseUnaryExpression (/home/kj24716/j2c/t+0x4068e8)
+    #1 0x40651d in parseMultiplicativeExpression (/home/kj24716/j2c/t+0x40651d)
+    #2 0x406240 in parseAdditiveExpression (/home/kj24716/j2c/t+0x406240)
+    #3 0x4052cc in parseShiftExpression (/home/kj24716/j2c/t+0x4052cc)
+    #4 0x404f99 in parseRelationalExpression (/home/kj24716/j2c/t+0x404f99)
+    #5 0x403cdf in parseEqualityExpression (/home/kj24716/j2c/t+0x403cdf)
+    #6 0x403aa4 in parseBitwiseAndExpression (/home/kj24716/j2c/t+0x403aa4)
+    #7 0x403869 in parseBitwiseXorExpression (/home/kj24716/j2c/t+0x403869)
+    #8 0x40362e in parseBitwiseOrExpression (/home/kj24716/j2c/t+0x40362e)
+    #9 0x4033e5 in parseLogicalAndExpression (/home/kj24716/j2c/t+0x4033e5)
+    #10 0x40319c in parseLogicalOrExpression (/home/kj24716/j2c/t+0x40319c)
+    #11 0x402ed4 in parseTernaryExpression (/home/kj24716/j2c/t+0x402ed4)
+    #12 0x402e93 in parseExpression (/home/kj24716/j2c/t+0x402e93)
+    #13 0x40193c in parseTokenTable (/home/kj24716/j2c/t+0x40193c)
+    #14 0x401656 in main (/home/kj24716/j2c/t+0x401656)
+    #15 0x7f3ce4f4e7e4 in __libc_start_main (/lib64/libc.so.6+0x3a7e4)
+    #16 0x40129d in _start (/home/kj24716/j2c/t+0x40129d)
+
+0x603000000280 is located 0 bytes inside of 24-byte region [0x603000000280,0x603000000298)
+freed by thread T0 here:
+    #0 0x7f3ce647d7f0 in __interceptor_free (/lib64/libasan.so.5+0xef7f0)
+    #1 0x404ef9 in parseRelationalExpression (/home/kj24716/j2c/t+0x404ef9)
+    #2 0x403cdf in parseEqualityExpression (/home/kj24716/j2c/t+0x403cdf)
+    #3 0x403aa4 in parseBitwiseAndExpression (/home/kj24716/j2c/t+0x403aa4)
+    #4 0x403869 in parseBitwiseXorExpression (/home/kj24716/j2c/t+0x403869)
+    #5 0x40362e in parseBitwiseOrExpression (/home/kj24716/j2c/t+0x40362e)
+    #6 0x4033e5 in parseLogicalAndExpression (/home/kj24716/j2c/t+0x4033e5)
+    #7 0x40319c in parseLogicalOrExpression (/home/kj24716/j2c/t+0x40319c)
+    #8 0x402ed4 in parseTernaryExpression (/home/kj24716/j2c/t+0x402ed4)
+    #9 0x402e93 in parseExpression (/home/kj24716/j2c/t+0x402e93)
+    #10 0x40193c in parseTokenTable (/home/kj24716/j2c/t+0x40193c)
+    #11 0x401656 in main (/home/kj24716/j2c/t+0x401656)
+    #12 0x7f3ce4f4e7e4 in __libc_start_main (/lib64/libc.so.6+0x3a7e4)
+
+previously allocated by thread T0 here:
+    #0 0x7f3ce647ddc0 in calloc (/lib64/libasan.so.5+0xefdc0)
+    #1 0x413975 in writeToken (/home/kj24716/j2c/t+0x413975)
+    #2 0x40ed92 in lexFile (/home/kj24716/j2c/t+0x40ed92)
+    #3 0x401548 in main (/home/kj24716/j2c/t+0x401548)
+    #4 0x7f3ce4f4e7e4 in __libc_start_main (/lib64/libc.so.6+0x3a7e4)
+
+SUMMARY: AddressSanitizer: heap-use-after-free (/home/kj24716/j2c/t+0x4068e8) in parseUnaryExpression
+Shadow bytes around the buggy address:
+  0x0c067fff8000: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+  0x0c067fff8010: 00 fa fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa
+  0x0c067fff8020: 00 00 00 fa fa fa fd fd fd fa fa fa fd fd fd fa
+  0x0c067fff8030: fa fa 00 00 00 fa fa fa 00 00 00 fa fa fa 00 00
+  0x0c067fff8040: 00 fa fa fa 00 00 00 fa fa fa fd fd fd fa fa fa
+=>0x0c067fff8050:[fd]fd fd fa fa fa 00 00 00 fa fa fa 00 00 00 fa
+  0x0c067fff8060: fa fa 00 00 00 01 fa fa 00 00 02 fa fa fa 00 00
+  0x0c067fff8070: 04 fa fa fa 00 00 05 fa fa fa 00 00 04 fa fa fa
+  0x0c067fff8080: 00 00 05 fa fa fa 00 00 05 fa fa fa 00 00 03 fa
+  0x0c067fff8090: fa fa 00 00 05 fa fa fa 00 00 03 fa fa fa 00 00
+  0x0c067fff80a0: 00 01 fa fa 00 00 02 fa fa fa 00 00 03 fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==3838022==ABORTING
+

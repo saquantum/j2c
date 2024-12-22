@@ -16,7 +16,107 @@ bool isExpressionStart(token* t){
             (t->type==BRACKET && t->data.char_val=='(');
 }
 
+bool isKey(keyword Key, tokenNode* n){
+    return n && n->t->type==KEYWORD && n->t->data.key_val==Key;
+}
+bool isSymbol(char c, tokenNode* n){
+    return n && n->t->type==SYMBOL && n->t->data.char_val==c;
+}
+bool isIdentifier(tokenNode* n){
+    return n && n->t->type==IDENTIFIER;
+}
 
+bool isPotentialGenerics(tokenNode* current){
+    // Tentatively treat '<' or '>' as part of generics
+    // List<>
+    // List<String>
+    // Map<List<?>, List<>>
+    // Map<?, List<>>
+    // Map<List<String>, List<String>>
+    // Map<Map<List<? extends Iterable>, List<>>, Map<List<>, List<>>>
+    
+    // cracking rules (version YZH):
+    // <: identifier, '<', (identifier | '?' | '>') 
+    // >: (identifier | '?' | '<' | '>'), '>', (',' | '>')  (depth>0)
+    // ,: ('>' | '?' | identifier), ',', (identifier | '?')
+    // ?: (',' | '<'), '?', (extends | super | ',' | '>')
+    // identifier: (extends | super | ',' | '<'), identifier, ('<' | '>' | ',')
+    
+    int depth = 0;
+    while (current) {
+        printCurrentToken(current);
+        if(isSymbol('<', current)){
+            depth++;
+            if(isIdentifier(current->prev) && (isIdentifier(current->next) || isSymbol('?', current->next) || isSymbol('>', current->next)) ){
+                current = current->next;
+                continue;
+            }else{
+                printf("Debug: invalid '<' detected. Its previous and next nodes are:\n");
+                printCurrentToken(current->prev);
+                printCurrentToken(current->next);
+                return false;
+            }
+        }
+        if(isSymbol('>', current)){
+            depth--;
+            if(depth==0){
+                return true;
+            }
+            // depth > 0
+            if( (isIdentifier(current->prev) || isSymbol('?', current->prev) || isSymbol('<', current->prev) || isSymbol('>', current->prev)) && (isSymbol(',', current->next) || isSymbol('>', current->next)) ){
+                current = current->next;
+                continue;
+            }else{
+                printf("Debug: invalid '>' detected. Its previous and next nodes are:\n");
+                printCurrentToken(current->prev);
+                printCurrentToken(current->next);
+                return false;
+            }
+        }
+        if(isSymbol(',', current)){
+            if( (isIdentifier(current->prev) || isSymbol('?', current->prev) || isSymbol('>', current->prev)) && (isSymbol('?', current->next) || isIdentifier(current->next)) ){
+                current = current->next;
+                continue;
+            }else{
+                printf("Debug: invalid ',' detected. Its previous and next nodes are:\n");
+                printCurrentToken(current->prev);
+                printCurrentToken(current->next);
+                return false;
+            }
+        }
+        if(isSymbol('?', current)){
+            if( (isSymbol('<', current->prev) || isSymbol(',', current->prev)) ){
+                if(isSymbol('?', current->next) || isSymbol('>', current->next)){
+                    current = current->next;
+                    continue;
+                }
+                if(isKey(EXTENDS, current->next) || isKey(SUPER, current->next)){
+                    current = current->next->next;
+                    continue;
+                }
+            }
+            printf("Debug: invalid '?' detected. Its previous and next nodes are:\n");
+                printCurrentToken(current->prev);
+                printCurrentToken(current->next);
+            return false;
+        }
+        if(isIdentifier(current)){
+            if( (isKey(EXTENDS, current->prev) || isKey(SUPER, current->prev) || isSymbol(',', current->prev) || isSymbol('<', current->prev)) && (isSymbol(',', current->next) || isSymbol('<', current->next) || isSymbol('>', current->next)) ){
+                current = current->next;
+                continue;
+            }else{
+                printf("Debug: invalid identifier detected. Its previous and next nodes are:\n");
+                printCurrentToken(current->prev);
+                printCurrentToken(current->next);
+                return false;
+            }
+        }
+        printf("Debug: invalid unknown token detected.\n");
+        break; // invalid token
+    }
+    
+    return false;
+}
 
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
     if(!n || n->t->type != expectedType || n->t->data.key_val != expectedValue){
@@ -121,11 +221,10 @@ void printCST(CST* cst){
     if(!cst){
         return;
     }
-    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
-    printTreeNode(cst->root, keywords);
+    printTreeNode(cst->root);
 }
 
-void printTreeNode(treeNode* n, char** keywords){
+void printTreeNode(treeNode* n){
     if(!n){
         return;
     }
@@ -135,7 +234,7 @@ void printTreeNode(treeNode* n, char** keywords){
     else{
         switch(n->assoToken->type){
             case KEYWORD:
-                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d", keywords[n->assoToken->data.key_val], n->assoToken->lineNumber);
+                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d", getKeyword(n->assoToken->data.key_val), n->assoToken->lineNumber);
                 break;
             case NUMBER:
                 printf("TokenType = Number, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
@@ -172,7 +271,7 @@ void printTreeNode(treeNode* n, char** keywords){
     printf(".\n");
     if(n->childCount){
         for(int i=0; i<n->childCount; i++){
-            printTreeNode(n->children[i], keywords); 
+            printTreeNode(n->children[i]); 
         }
         
     }

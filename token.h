@@ -56,6 +56,9 @@ typedef struct tokenTable{
 } tokenTable;
 
 
+char* getKeyword(keyword KEY);
+
+int isKeyword(char* str);
 
 token* createToken();
 
@@ -65,7 +68,7 @@ tokenTable* createTokenTable();
 
 void printTokenTable(tokenTable* table);
 
-void printCurrentToken(tokenTable* table);
+void printCurrentToken(tokenNode* n);
 
 // store token in token table
 bool writeToken(token* t, tokenTable* table);

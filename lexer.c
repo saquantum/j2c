@@ -235,14 +235,13 @@ token* lexToken(char* str, int lineNumber){
         }
     }
     
-    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
-    for(int i=0;i<(int)(sizeof(keywords)/sizeof(keywords[0]));i++){
-        if(!strcmp(str, keywords[i])){
+    int KEY = isKeyword(str);
+    if(KEY>=0){
             t->type = KEYWORD;
-            t->data.key_val = i;
+            t->data.key_val = KEY;
             return t;
-        }
     }
+    
     
     if((len>=1 && isdigit(str[0])) || (len>1 && (str[0]=='-' || str[0]=='.'))){
         // this might be a number, need further verification:

@@ -50,9 +50,10 @@ void parseTypeArgument(treeNode* parent, tokenTable* table);
 
 bool isExpressionStart(token* t);
 
-/* operators */
-
-
+bool isKey(keyword Key, tokenNode* n);
+bool isSymbol(char c, tokenNode* n);
+bool isIdentifier(tokenNode* n);
+bool isPotentialGenerics(tokenNode* current);
 
 /* tree and nodes */
 
@@ -70,7 +71,7 @@ treeNode* createTreeNode(char* rule, token* t);
 void insertChildNode(treeNode* n, treeNode* child);
 
 void printCST(CST* cst);
-void printTreeNode(treeNode* n, char** keywords);
+void printTreeNode(treeNode* n);
 
 void freeCST(CST** cst);
 void freeTreeNode(treeNode* n);

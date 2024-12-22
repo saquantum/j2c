@@ -1,5 +1,48 @@
 #include "token.h"
 
+char* getKeyword(keyword KEY){
+    static char* keywords[] = {
+        "char", "int", "long", "boolean", "double",
+        "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", 
+        "public", "private", 
+        "static", "final", 
+        "true", "false", 
+        "null", 
+        "import", 
+        "try", "catch", "finally", "throw", "throws", 
+        "class", "abstract", "interface", 
+        "extends", "implements", 
+        "this", "super", 
+        "new", 
+        "instanceof", 
+        "native"};
+    return keywords[KEY];
+}
+
+int isKeyword(char* str){
+    static char* keywords[] = {
+        "char", "int", "long", "boolean", "double",
+        "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", 
+        "public", "private", 
+        "static", "final", 
+        "true", "false", 
+        "null", 
+        "import", 
+        "try", "catch", "finally", "throw", "throws", 
+        "class", "abstract", "interface", 
+        "extends", "implements", 
+        "this", "super", 
+        "new", 
+        "instanceof", 
+        "native"};
+    for(int i=0;i<(int)(sizeof(keywords)/sizeof(keywords[0]));i++){
+        if(!strcmp(str, keywords[i])){
+            return i;
+        }
+    }
+    return -1;
+}
+
 token* createToken(){
     return (token*)calloc(1,sizeof(token));
 }
@@ -20,12 +63,12 @@ void printTokenTable(tokenTable* table){
         printf("Empty or null token table detected.\n");
         return;
     }
-    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
+    
     tokenNode* n = table->start;
     while(n){
         switch(n->t->type){
             case KEYWORD:
-                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d\n", keywords[n->t->data.key_val], n->t->lineNumber);
+                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d\n", getKeyword(n->t->data.key_val), n->t->lineNumber);
                 break;
             case NUMBER:
                 printf("TokenType = Number, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
@@ -54,22 +97,15 @@ void printTokenTable(tokenTable* table){
     }
 }
 
-void printCurrentToken(tokenTable* table){
-    if(!table){
-        printf("Empty or null token table detected.\n");
-        return;
-    }
-    tokenNode* n = table->current;
+void printCurrentToken(tokenNode* n){
     if(!n){
         printf("Currently has reached end of the table.");
         return;
     }
-    char* keywords[] = {"char", "int", "long", "boolean", "double", "for", "while", "do", "if", "else", "switch", "case", "default", "continue", "break", "return", "public", "private", "static", "final", "true", "false", "null", "import", "try", "catch", "finally", "throw", "throws", "class", "abstract", "interface", "extends", "implements", "this", "that", "new", "instanceof", "native"};
-
     printf("Current token: ");
         switch(n->t->type){
             case KEYWORD:
-                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d\n", keywords[n->t->data.key_val], n->t->lineNumber);
+                printf("TokenType = Keyword, TokenValue = %s, lineNumber = %d\n", getKeyword(n->t->data.key_val), n->t->lineNumber);
                 break;
             case NUMBER:
                 printf("TokenType = Number, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
