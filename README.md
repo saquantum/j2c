@@ -111,6 +111,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 <equalityExpression> ::= <relationalExpression> { ('==' | '!=') <relationalExpression> }
 
 <relationalExpression> ::= <shiftExpression> [ ('<' | '<=' | '>' | '>=') <shiftExpression> ]
+                         | <shiftExpression> <generics> // this is to simply parser
                          | <shiftExpression> 'instanceof' <shiftExpression>
 
 <shiftExpression> ::= <additiveExpression> { ('<<' | '>>') <additiveExpression> }

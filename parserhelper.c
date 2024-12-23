@@ -44,16 +44,16 @@ bool isPotentialGenerics(tokenNode* current){
     
     int depth = 0;
     while (current) {
-        printCurrentToken(current);
+        //printCurrentToken(current);
         if(isSymbol('<', current)){
             depth++;
             if(isIdentifier(current->prev) && (isIdentifier(current->next) || isSymbol('?', current->next) || isSymbol('>', current->next)) ){
                 current = current->next;
                 continue;
             }else{
-                printf("Debug: invalid '<' detected. Its previous and next nodes are:\n");
-                printCurrentToken(current->prev);
-                printCurrentToken(current->next);
+                //printf("Debug: invalid '<' detected. Its previous and next nodes are:\n");
+                //printCurrentToken(current->prev);
+                //printCurrentToken(current->next);
                 return false;
             }
         }
@@ -67,9 +67,9 @@ bool isPotentialGenerics(tokenNode* current){
                 current = current->next;
                 continue;
             }else{
-                printf("Debug: invalid '>' detected. Its previous and next nodes are:\n");
-                printCurrentToken(current->prev);
-                printCurrentToken(current->next);
+                //printf("Debug: invalid '>' detected. Its previous and next nodes are:\n");
+                //printCurrentToken(current->prev);
+                //printCurrentToken(current->next);
                 return false;
             }
         }
@@ -78,9 +78,9 @@ bool isPotentialGenerics(tokenNode* current){
                 current = current->next;
                 continue;
             }else{
-                printf("Debug: invalid ',' detected. Its previous and next nodes are:\n");
-                printCurrentToken(current->prev);
-                printCurrentToken(current->next);
+                //printf("Debug: invalid ',' detected. Its previous and next nodes are:\n");
+                //printCurrentToken(current->prev);
+                //printCurrentToken(current->next);
                 return false;
             }
         }
@@ -95,9 +95,9 @@ bool isPotentialGenerics(tokenNode* current){
                     continue;
                 }
             }
-            printf("Debug: invalid '?' detected. Its previous and next nodes are:\n");
-                printCurrentToken(current->prev);
-                printCurrentToken(current->next);
+            //printf("Debug: invalid '?' detected. Its previous and next nodes are:\n");
+            //printCurrentToken(current->prev);
+            //printCurrentToken(current->next);
             return false;
         }
         if(isIdentifier(current)){
@@ -105,13 +105,13 @@ bool isPotentialGenerics(tokenNode* current){
                 current = current->next;
                 continue;
             }else{
-                printf("Debug: invalid identifier detected. Its previous and next nodes are:\n");
-                printCurrentToken(current->prev);
-                printCurrentToken(current->next);
+                //printf("Debug: invalid identifier detected. Its previous and next nodes are:\n");
+                //printCurrentToken(current->prev);
+                //printCurrentToken(current->next);
                 return false;
             }
         }
-        printf("Debug: invalid unknown token detected.\n");
+        //printf("Debug: invalid unknown token detected.\n");
         break; // invalid token
     }
     

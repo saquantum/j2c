@@ -294,51 +294,57 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
     // Check for '<', '>', '<=', '>=', or 'instanceof'
     if (peeknext && peeknext->t->type == SYMBOL && 
         (peeknext->t->data.char_val == '<' || peeknext->t->data.char_val == '>')) {
-        printf("Debug: verify generics.\n");
+        //printf("Debug: verify generics.\n");
         if(isPotentialGenerics(peeknext)){
-            printf("Debug: valid generics detected.\n");
+            //printf("Debug: valid generics detected.\n");
             parseGenerics(relational, table);
             return;
         }
-     }   
-        printf("Debug: invalid generics\n");
+    }   
+    //printf("Debug: invalid generics\n");
 
-        // If we reach here, it's not generics; process as relational operator
-        tokenNode* n = nextNode(table);
-        if (n && n->t->type == SYMBOL && 
-            (n->t->data.char_val == '<' || n->t->data.char_val == '>')) {
-            tokenNode* peeknextnext = peekNextNode(table);
-            if (peeknextnext && peeknextnext->t->type == SYMBOL && peeknextnext->t->data.char_val == '=') {
-                // Combine '<=' or '>='
-                char combined[3] = {n->t->data.char_val, peeknextnext->t->data.char_val, 0};
-                n->t->type = OPERATOR;
-                n->t->data.str_val = calloc(3, sizeof(char));
-                if (!n->t->data.str_val) {
-                    fprintf(stderr, "Error parseRelationalExpression: not enough memory, cannot create a string value for the node\n");
-                    exit(1);
-                }
-                strcpy(n->t->data.str_val, combined);
-
-                // Remove the second token
-                tokenNode* tmp = peeknextnext;
-                n->next = tmp->next;
-                if (tmp->next) {
-                    tmp->next->prev = n;
-                } else {
-                    table->end = n;
-                }
-                freeToken(tmp->t);
-                free(tmp);
+    // If we reach here, it's not generics; process as relational operator
+    peeknext = peekNextNode(table);
+    if (peeknext && peeknext->t->type == SYMBOL && 
+        (peeknext->t->data.char_val == '<' || peeknext->t->data.char_val == '>')) {
+        tokenNode* peeknextnext = peeknext->next;
+        if (peeknextnext && peeknextnext->t->type == SYMBOL && peeknextnext->t->data.char_val == '=') {
+            // Combine '<=' or '>='
+            char combined[3] = {peeknext->t->data.char_val, peeknextnext->t->data.char_val, 0};
+            peeknext->t->type = OPERATOR;
+            peeknext->t->data.str_val = calloc(3, sizeof(char));
+            if (!peeknext->t->data.str_val) {
+                fprintf(stderr, "Error parseRelationalExpression: not enough memory, cannot create a string value for the node\n");
+                exit(1);
             }
-            printf("Debug: finished combining symbols\n");
-            insertNewNode2Parent("operator", n->t, relational);
-            parseShiftExpression(relational, table);
-        }        
-        else if (peeknext && peeknext->t->type == KEYWORD && peeknext->t->data.key_val == INSTANCEOF) {
-        // Handle instanceof keyword
+            strcpy(peeknext->t->data.str_val, combined);
+
+            // Remove the second token
+            tokenNode* tmp = peeknextnext;
+            peeknext->next = tmp->next;
+            if (tmp->next) {
+                tmp->next->prev = peeknext;
+            } else {
+                table->end = peeknext;
+            }
+            freeToken(tmp->t);
+            free(tmp);
+        }
+        //printf("Debug: finished combining symbols\n");
         tokenNode* n = nextNode(table);
-        insertNewNode2Parent("keyword", n->t, relational);
-        parseReferenceType(relational, table);
+        insertNewNode2Parent("operator", n->t, relational);
+        //printf("Debug: inserted combined operator\n");
+        //printf("--------------\n");
+        //printTokenTable(table);
+        //printf("--------------\n");
+        //printCurrentToken(peekNextNode(table));
+        parseShiftExpression(relational, table);
+    }        
+    else if (peeknext && peeknext->t->type == KEYWORD && peeknext->t->data.key_val == INSTANCEOF) {
+    // Handle instanceof keyword
+    tokenNode* n = nextNode(table);
+    insertNewNode2Parent("keyword", n->t, relational);
+    parseReferenceType(relational, table);
     }
 }
 
@@ -487,7 +493,7 @@ void parseReferenceType(treeNode* parent, tokenTable* table){
 void parseGenerics(treeNode* parent, tokenTable* table){
     treeNode* generics = insertNewNode2Parent("generics", NULL, parent);
     
-    printf("Debug: begin parsing generics\n");
+    //printf("Debug: begin parsing generics\n");
     
     // use depth to mimic stack
     int depth = 0;
@@ -529,8 +535,8 @@ void parseGenerics(treeNode* parent, tokenTable* table){
         }
         
     }
-    printf("Debug: end parsing generics\n");
-    printTokenTable(table);
+    //printf("Debug: end parsing generics\n");
+    //printTokenTable(table);
     
 }
 

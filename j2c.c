@@ -9,12 +9,16 @@ int main(int argc, char** argv){
     combineSymbols(ttable);
     
     printTokenTable(ttable);
-printf("--------------\n");
+    printf("--------------\n");
 
     CST* cst = parseTokenTable(argv[1], ttable);
     
     
     printCST(cst);
+    printf("--------------\n");
+    
+    printTokenTable(ttable);
+    printf("--------------\n");
     
     
     fclose(input);
