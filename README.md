@@ -31,7 +31,6 @@ string literals.
 semicolon.
 
 
-
 ## parsing
 
 #### variable declaration
@@ -78,9 +77,7 @@ if no access modifier, default is public. we implement a simpler version: only p
 #### assignment
 
 ```
-<assignment> ::= <identifier> [ '[' <expression> ']' ] <assignmentOperator> ['new'] ( <expression> | <type> '[' <expression> ']' ) 
-			   | <selfOperator> <identifier> 
-			   | <identifier> <selfOperator>
+<assignment> ::= <identifier> [ '[' <expression> ']' ] <assignmentOperator> <expression>
 
 <assignmentOperator> ::= '=' | '+=' | '-=' | '*=' | '/='
 ```
@@ -192,7 +189,7 @@ we will wait until semantics analysis to check if the expression are boolean or 
 for simplicity we don't allow compound statements without braces.
 
 ```
-<statement> ::= { <assignment> ';' | <subroutineCall> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> }
+<statement> ::= { <assignment> ';' | <subroutineCall> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | ';'}
 
 <ifStatement> ::= 'if' '(' <expression> ')' '{' <statement> '}' { 'else' 'if' '(' <expression> ')' '{' <statement> '}' } [ 'else' '{' <statement> '}' ]
 

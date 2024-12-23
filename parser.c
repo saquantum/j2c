@@ -464,7 +464,7 @@ void parseType(treeNode* parent, tokenTable* table){
     if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->data.key_val==CHAR || peeknext->t->data.key_val==INT || peeknext->t->data.key_val==LONG || peeknext->t->data.key_val==DOUBLE || peeknext->t->data.key_val==BOOLEAN)){
         
         tokenNode* n = nextNode(table);
-        insertNewNode2Parent("keyword", n->t, type);
+        insertNewNode2Parent("primitiveType", n->t, type);
         
         return;
     }
@@ -501,7 +501,7 @@ void parseGenerics(treeNode* parent, tokenTable* table){
     // '<'
     tokenNode* n = nextNode(table);
     checkCharValueNodeExpected(n, SYMBOL, '<', "parseGenerics", "missing '<' to start generics");
-    insertNewNode2Parent("symbol", n->t, generics);
+    insertNewNode2Parent("langle", n->t, generics);
     depth++;
     
     while(depth > 0){
@@ -514,15 +514,15 @@ void parseGenerics(treeNode* parent, tokenTable* table){
         if(peeknext->t->type==SYMBOL && peeknext->t->data.char_val!='?'){
             if(peeknext->t->data.char_val=='<'){
                 n = nextNode(table);
-                insertNewNode2Parent("symbol", n->t, generics);
+                insertNewNode2Parent("langle", n->t, generics);
                 depth++;
             }else if(peeknext->t->data.char_val=='>'){
                 n = nextNode(table);
-                insertNewNode2Parent("symbol", n->t, generics);
+                insertNewNode2Parent("rangle", n->t, generics);
                 depth--;
             }else if(peeknext->t->data.char_val==','){
                 n = nextNode(table);
-                insertNewNode2Parent("symbol", n->t, generics);
+                insertNewNode2Parent("delimiter", n->t, generics);
             }else{
                 fprintf(stderr, "Error parseGenerics: unexpected symbol %c in generics\n", peeknext->t->data.char_val);
                 exit(1);
@@ -552,7 +552,7 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
     if(peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='?'){
         // '?'
         tokenNode* n = nextNode(table);
-        insertNewNode2Parent("symbol", n->t, typeArgument); 
+        insertNewNode2Parent("wildcard", n->t, typeArgument); 
         
         peeknext = peekNextNode(table);
         if(peeknext && peeknext->t->type==KEYWORD && (peeknext->t->data.key_val==EXTENDS || peeknext->t->data.key_val==SUPER) ){
@@ -571,7 +571,43 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
     }
 }
 
+void parseAssignment(treeNode* parent, tokenTable* table){
+    treeNode* assignment = insertNewNode2Parent("assignment", NULL, parent);
+    
+    // a mandatory identifier for the variable
+    tokenNode* n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseAssignment", "missing starting identifier for an assignment");
+    insertNewNode2Parent("identifier", n->t, assignment); 
+    
+    // an optional array access
+    tokenNode* peeknext = peekNextNode(table);
+    if(isBracket('[', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("bracket", n->t, assignment); 
+        
+        parseExpression(assignment, table);
+        
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, BRACKET, ']', "parseAssignment", "missing right square bracket to conclude array access");
+        insertNewNode2Parent("bracket", n->t, assignment); 
+    }
+    
+    // a mandatory assignment operator
+    n = nextNode(table);
+    if!((isSymbol('=', n) || isOperator("+=", n) || isOperator("-=", n) || isOperator("*=", n) || isOperator("/=", n))){
+        fprintf("Error parseAssignment line %d: missing assignment operator\n", n->t->lineNumber);
+        exit(1);
+    }
+    insertNewNode2Parent("assignmentOperator", n->t, assignment); 
+    
+    // an expression
+    
+    parseExpression(assignment, table);
+}
 
-
+void parseVariableDeclaration(treeNode* parent, tokenTable* table);
+void parseSubroutineDeclaration(treeNode* parent, tokenTable* table);
+void parseParameterList(treeNode* parent, tokenTable* table);
+void parseSubroutineBody(treeNode* parent, tokenTable* table);
 
 

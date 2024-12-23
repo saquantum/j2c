@@ -46,6 +46,12 @@ void parseReferenceType(treeNode* parent, tokenTable* table);
 void parseGenerics(treeNode* parent, tokenTable* table);
 void parseTypeArgument(treeNode* parent, tokenTable* table);
 
+void parseAssignment(treeNode* parent, tokenTable* table);
+void parseVariableDeclaration(treeNode* parent, tokenTable* table);
+void parseSubroutineDeclaration(treeNode* parent, tokenTable* table);
+void parseParameterList(treeNode* parent, tokenTable* table);
+void parseSubroutineBody(treeNode* parent, tokenTable* table);
+
 /* parser helpers */
 
 bool isExpressionStart(token* t);
@@ -53,6 +59,11 @@ bool isExpressionStart(token* t);
 bool isKey(keyword Key, tokenNode* n);
 bool isSymbol(char c, tokenNode* n);
 bool isIdentifier(tokenNode* n);
+bool isOperator(char* o, tokenNode* n);
+bool isBracket(char c, tokenNode* n);
+bool isNumber(tokenNode* n);
+bool isString(tokenNode* n);
+bool isSemicolon(tokenNode* n);
 bool isPotentialGenerics(tokenNode* current);
 
 /* tree and nodes */

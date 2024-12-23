@@ -25,6 +25,21 @@ bool isSymbol(char c, tokenNode* n){
 bool isIdentifier(tokenNode* n){
     return n && n->t->type==IDENTIFIER;
 }
+bool isOperator(char* o, tokenNode* n){
+    return n && n->t->type==OPERATOR && !strcmp(o, n->t->data.str_val);
+}
+bool isBracket(char c, tokenNode* n){
+    return n && n->t->type==BRACKET && n->t->data.char_val==c;
+}
+bool isNumber(tokenNode* n){
+    return n && n->t->type==NUMBER;
+}
+bool isString(tokenNode* n){
+    return n && n->t->type==STRING;
+}
+bool isSemicolon(tokenNode* n){
+    return n && n->t->type==SEMICOLON;
+}
 
 bool isPotentialGenerics(tokenNode* current){
     // Tentatively treat '<' or '>' as part of generics
@@ -42,7 +57,7 @@ bool isPotentialGenerics(tokenNode* current){
     // ?: (',' | '<'), '?', (extends | super | ',' | '>')
     // identifier: (extends | super | ',' | '<'), identifier, ('<' | '>' | ',')
     
-    int depth = 0;
+    int depth = 0; // mimics stack
     while (current) {
         //printCurrentToken(current);
         if(isSymbol('<', current)){
