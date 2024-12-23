@@ -12,7 +12,7 @@ keywords:
 
 `public, private`, `try, catch, finally, throw`, 
 
-`static, final`, `true, false, null`, 
+`static, final`, `true, false, null`, `void`, 
 
 `import`,
 
