@@ -133,6 +133,44 @@ bool isPotentialGenerics(tokenNode* current){
     return false;
 }
 
+bool isPotentialAssignment(tokenNode* current){
+    // <assignment> ::= <identifier> [ '[' <expression> ']' ] <assignmentOperator> <expression>
+
+    if(isIdentifier(current)){
+        current = current->next;
+    }else{
+        return false;
+    }
+    
+    if(isBracket('[', current)){
+        current = current->next;
+        int depth = 1;
+        while(depth>0){
+            if(isBracket('[', current)){
+                depth++;
+            }else if(isBracket(']', current)){
+                depth--;
+            }else if(isSemicolon(current)){
+                return false;
+            }
+            current = current->next;
+        }
+    }
+    
+    if((isSymbol('=', n) || isOperator("+=", n) || isOperator("-=", n) || isOperator("*=", n) || isOperator("/=", n))){
+        return true;
+    }
+    return false;
+}
+
+bool isPotentialVariableDeclaration(tokenNode* current){
+    
+}
+
+bool isPotentialStatement(tokenNode* current){
+
+}
+
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
     if(!n || n->t->type != expectedType || n->t->data.key_val != expectedValue){
         fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);

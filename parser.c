@@ -573,14 +573,16 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
 
 void parseAssignment(treeNode* parent, tokenTable* table){
     treeNode* assignment = insertNewNode2Parent("assignment", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
     
     // a mandatory identifier for the variable
-    tokenNode* n = nextNode(table);
+    n = nextNode(table);
     checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseAssignment", "missing starting identifier for an assignment");
     insertNewNode2Parent("identifier", n->t, assignment); 
     
     // an optional array access
-    tokenNode* peeknext = peekNextNode(table);
+    peeknext = peekNextNode(table);
     if(isBracket('[', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("bracket", n->t, assignment); 
@@ -594,7 +596,7 @@ void parseAssignment(treeNode* parent, tokenTable* table){
     
     // a mandatory assignment operator
     n = nextNode(table);
-    if!((isSymbol('=', n) || isOperator("+=", n) || isOperator("-=", n) || isOperator("*=", n) || isOperator("/=", n))){
+    if(!(isSymbol('=', n) || isOperator("+=", n) || isOperator("-=", n) || isOperator("*=", n) || isOperator("/=", n))){
         fprintf("Error parseAssignment line %d: missing assignment operator\n", n->t->lineNumber);
         exit(1);
     }
@@ -605,9 +607,189 @@ void parseAssignment(treeNode* parent, tokenTable* table){
     parseExpression(assignment, table);
 }
 
-void parseVariableDeclaration(treeNode* parent, tokenTable* table);
-void parseSubroutineDeclaration(treeNode* parent, tokenTable* table);
-void parseParameterList(treeNode* parent, tokenTable* table);
-void parseSubroutineBody(treeNode* parent, tokenTable* table);
+void parseVariableDeclaration(treeNode* parent, tokenTable* table){
+    treeNode* variableDeclaration = insertNewNode2Parent("variableDeclaration", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // an optional access modifier
+    peeknext = peekNextNode(table);
+    if(isKey(PUBLIC, peeknext) || isKey(PRIVATE, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("accessModifier", n->t, variableDeclaration); 
+    }
+    
+    // zero or more non-access modifier
+    peeknext = peekNextNode(table);
+    while(isKey(STATIC, peeknext) || isKey(FINAL, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("nonAccessModifier", n->t, variableDeclaration);
+    }
+    
+    // a mandatory type
+    parseType(variableDeclaration, table);
+    
+    // an optional array definition
+    peeknext = peekNextNode(table);
+    if(isBracket('[', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("bracket", n->t, variableDeclaration);
+        
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, BRACKET, ']', "parseVariableDeclaration", "missing right square bracket to conclude array definition");
+        insertNewNode2Parent("bracket", n->t, variableDeclaration);
+    }
+    
+    // an identifier, or an assignment
+    peeknext = peekNextNode(table);
+    if(isPotentialAssignment(peeknext)){
+        parseAssignment(variableDeclaration, table);
+    }else{
+        n = nextNode(table);
+        checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseVariableDeclaration", "missing identifier for the variable");
+        insertNewNode2Parent("identifier", n->t, variableDeclaration);
+    }
+    
+    // zero or more definitions in the same line separated by comma
+    peeknext = peekNextNode(table);
+    while(isSymbol(',', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, variableDeclaration);
+        peeknext = peekNextNode(table);
+        if(isPotentialAssignment(peeknext)){
+            parseAssignment(variableDeclaration, table);
+        }else{
+            n = nextNode(table);
+            checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseVariableDeclaration", "missing identifier for the variable");
+            insertNewNode2Parent("identifier", n->t, variableDeclaration);
+        }
+        peeknext = peekNextNode(table);
+    }
+}
+
+void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
+    treeNode* subroutineDeclaration = insertNewNode2Parent("subroutineDeclaration", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // an optional access modifier
+    peeknext = peekNextNode(table);
+    if(isKey(PUBLIC, peeknext) || isKey(PRIVATE, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("accessModifier", n->t, subroutineDeclaration); 
+    }
+    
+    // zero or more non-access modifier
+    peeknext = peekNextNode(table);
+    while(isKey(STATIC, peeknext) || isKey(FINAL, peeknext) || isKey(ABSTRACT, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("nonAccessModifier", n->t, subroutineDeclaration);
+    }
+    
+    // a mandatory type or void
+    peeknext = peekNextNode(table);
+    if(isKey(VOID, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("type", n->t, subroutineDeclaration);
+    }else{
+        parseType(subroutineDeclaration, table);
+    }
+    
+    // an identifier
+    n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseSubroutineDeclaration", "missing identifier for the method");
+    insertNewNode2Parent("identifier", n->t, subroutineDeclaration);
+    
+    // a mandatory left parenthesis
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '(', "parseSubroutineDeclaration", "missing left parenthesis to start the argument list");
+    insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
+    
+    // parameter list
+    parseParameterList(subroutineDeclaration, table);
+    
+    // a mandatory right parenthesis
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, ')', "parseSubroutineDeclaration", "missing right parenthesis to conclude the argument list");
+    insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
+    
+    // a mandatory left brace
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseSubroutineDeclaration", "missing left brace to start the method body");
+    insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
+    
+    // subroutine body
+    parseSubroutineBody(subroutineDeclaration, table);
+    
+    // a mandatory right brace
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseSubroutineDeclaration", "missing right brace to conclude the method body");
+    insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
+    
+}
+
+void parseParameterList(treeNode* parent, tokenTable* table){
+    treeNode* parameterList = insertNewNode2Parent("parameterList", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // if the argument list is empty, next node must be ')'.
+    peeknext = peekNextNode(table);
+    if(isBracket(')', peeknext)){
+        return;
+    }
+    
+    // else, it has at least one argument.
+    // a mandatory type
+    parseType(parameterList, table);
+    
+    // an identifier
+    n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseParameterList", "missing identifier for the argument");
+    insertNewNode2Parent("identifier", n->t, parameterList);
+    
+    // zero or more argument
+    peeknext = peekNextNode(table);
+    while(isSymbol(',', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, parameterList);
+        
+        parseType(parameterList, table);
+        
+        n = nextNode(table);
+        checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseParameterList", "missing identifier for the argument");
+        insertNewNode2Parent("identifier", n->t, parameterList);
+        
+        peeknext = peekNextNode(table);
+    }
+    
+}
+void parseSubroutineBody(treeNode* parent, tokenTable* table){
+    treeNode* subroutineBody = insertNewNode2Parent("subroutineBody", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    peeknext = peekNextNode(table);
+    while(!isBracket('}', peeknext)){
+        if(isPotentialVariableDeclaration(peeknext)){
+            parseVariableDeclaration(subroutineBody, table);
+            // a semicolon
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, SEMICOLON, ';', "parseSubroutineBody", "missing semicolon to conclude a variable declaration");
+        insertNewNode2Parent("identifier", n->t, parameterList);
+        }else if(isPotentialStatement(peeknext)){
+            parseStatement(subroutineBody, table);
+        }else{
+            fprintf(stderr, "Error parseSubroutineBody line %d: unknow contents inside method body\n", peeknext->t->lineNumber);
+            exit(1);
+        }
+    }
+}
+
+
+
+
+
+
 
 

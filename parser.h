@@ -52,6 +52,14 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table);
 void parseParameterList(treeNode* parent, tokenTable* table);
 void parseSubroutineBody(treeNode* parent, tokenTable* table);
 
+void parseStatement(treeNode* parent, tokenTable* table);
+void parseIfStatement(treeNode* parent, tokenTable* table);
+void parseSwitchStatement(treeNode* parent, tokenTable* table);
+void parseForStatement(treeNode* parent, tokenTable* table);
+void parseWhileStatement(treeNode* parent, tokenTable* table);
+void parseDoWhileStatement(treeNode* parent, tokenTable* table);
+void parseReturnStatement(treeNode* parent, tokenTable* table);
+
 /* parser helpers */
 
 bool isExpressionStart(token* t);
@@ -64,7 +72,11 @@ bool isBracket(char c, tokenNode* n);
 bool isNumber(tokenNode* n);
 bool isString(tokenNode* n);
 bool isSemicolon(tokenNode* n);
+
 bool isPotentialGenerics(tokenNode* current);
+bool isPotentialAssignment(tokenNode* current);
+bool isPotentialVariableDeclaration(tokenNode* current);
+bool isPotentialStatement(tokenNode* current);
 
 /* tree and nodes */
 
