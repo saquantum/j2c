@@ -41,8 +41,7 @@ if no access modifier, default is public. we implement a simpler version: only p
 
 ```
 <variableDeclaration> ::=  
-  [<accessModifier>] {<nonAccessModifier>} <type> ( <identifier> | <assignment>) {',' ( <identifier> | <assignment>)} 
-| [<accessModifier>] {<nonAccessModifier>} <type> '[' ']' (<identifier> | <assignment>) {',' (<identifier> | <assignment>)}
+[<accessModifier>] {<nonAccessModifier>} <type> [ '[' ']' ] ( <identifier> | <assignment>) {',' ( <identifier> | <assignment>)} 
 ```
 
 #### access modifier
