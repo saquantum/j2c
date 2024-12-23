@@ -10,7 +10,7 @@ keywords:
 
 `class, abstract, interface, extends, implements, this, super, new, instanceof`,
 
-`public, private`, `try, catch, finally, throw`, 
+`public, private`, `try, catch, finally, throw, throws`, 
 
 `static, final`, `true, false, null`, `void`, 
 
