@@ -114,7 +114,9 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 <additiveExpression> ::= <multiplicativeExpression> { ('+' | '-') <multiplicativeExpression> }
 
-<multiplicativeExpression> ::= <unaryExpression> { ('*' | '/' | '%') <unaryExpression> }
+<multiplicativeExpression> ::= <castExpression> { ('*' | '/' | '%') <castExpression> }
+
+<castExpression> ::= '(' <type> ')' <castExpression> | <unaryExpression>
 
 <unaryExpression> ::= <unaryOperator> <unaryExpression>
                     | <selfOperator> <term>   // Prefix: ++x, --y
@@ -129,7 +131,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 | 1 (Lowest)   | `? :`                                      | `<ternaryExpression>`        | Right-to-left |
 | 2            |  `\|\|`                                    | `<logicalOrExpression>`      | Left-to-right |
 | 3            | `&&`                                       | `<logicalAndExpression>`     | Left-to-right |
-| 4            | `\|`                                        | `<bitwiseOrExpression>`      | Left-to-right |
+| 4            | `\|`                                       | `<bitwiseOrExpression>`      | Left-to-right |
 | 5            | `^`                                        | `<bitwiseXorExpression>`     | Left-to-right |
 | 6            | `&`                                        | `<bitwiseAndExpression>`     | Left-to-right |
 | 7            | `==`, `!=`                                 | `<equalityExpression>`       | Left-to-right |
@@ -137,12 +139,9 @@ we don't check if an expression is boolean or not until semantics analysis.
 | 9            | `<<`, `>>`                                 | `<shiftExpression>`          | Left-to-right |
 | 10           | `+`, `-`                                   | `<additiveExpression>`       | Left-to-right |
 | 11           | `*`, `/`, `%`                              | `<multiplicativeExpression>` | Left-to-right |
-| 12           | `!`, `~`, `-` (unary) `++`, `--` (prefix)  | `<unaryExpression>`          | Right-to-left |
-| 13 (Highest) | `.`, `()`, `[]`, `++`, `--` (postfix)      | `<term>`                     | Left-to-right |
-
-
-
-
+| 12           | casting                                    | `<castExpression>`           | Left-to-right |
+| 13           | `!`, `~`, `-` (unary) `++`, `--` (prefix)  | `<unaryExpression>`          | Right-to-left |
+| 14 (Highest) | `.`, `()`, `[]`, `++`, `--` (postfix)      | `<term>`                     | Left-to-right |
 
 
 ```
@@ -154,10 +153,13 @@ we don't check if an expression is boolean or not until semantics analysis.
 		 | <subroutineCall>
 		 | <fieldAccess>
 		 | <arrayAccess>
+		 | <newObject>
 		 
 <arrayAccess> ::= <term> '[' <expression> ']' 
 <fieldAccess> ::= <term> '.' <identifier>
 <subroutineCall> ::= (<fieldAccess> | <identifier>) '(' <expressionList> ')'
+<newObject> ::= 'new' <type> [ <generics> ] '(' [<expressionList>] ')' // constructor call
+              | 'new' <type> [ <generics> ] { '[' <expression> ']' } { '[' ']'}// array
 
 <expressionList> ::= [<expression> {',' <expression> } ]
 
@@ -174,7 +176,7 @@ subroutine call is merely calling a function.
 method declaration should include a `native` modifier for methods that are realized using lower level programming and tell the code generator to look for its source code.
 
 ```
-<subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} ( <type> | 'void' ) <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
+<subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] ( <type> | 'void' ) <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
 
 <parameterList> ::= [ <type> <identifier> { ',' <type> <identifier> }]
 
@@ -188,7 +190,7 @@ we will wait until semantics analysis to check if the expression are boolean or 
 for simplicity we don't allow compound statements without braces.
 
 ```
-<statement> ::= { <assignment> ';' | <subroutineCall> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | ';'}
+<statement> ::= { <assignment> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | ';'}
 
 <ifStatement> ::= 'if' '(' <expression> ')' '{' <statement> '}' { 'else' 'if' '(' <expression> ')' '{' <statement> '}' } [ 'else' '{' <statement> '}' ]
 
@@ -233,4 +235,13 @@ no package.
 #### advanced techniques
 
 method reference, lambda expressions, inner classes and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
+
+#### reminders
+
+after parsing and before semantics:
+
+we need to create symbol tables at proper tree nodes.
+
+we need a second sweep of the cst to combine field access with subroutine call to make sure chained accesses are handled.
+
 

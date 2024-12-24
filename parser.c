@@ -21,37 +21,54 @@ CST* parseTokenTable(char* filename, tokenTable* table){
 
 void parseTerm(treeNode* parent, tokenTable* table){
     treeNode* term = insertNewNode2Parent("term", NULL, parent);
+    tokenNode* peeknext;
     
     parseBaseTerm(term, table);
-    //printCurrentToken(table);
     
-    tokenNode* peeknext = peekNextNode(table);
-    /*
-    if(peeknext){
-        printf("Debug: next node is %d\n", peeknext->t->type);
-    }else{
-        printf("Debug: reached EOF\n");
-    }
-    */
+    peeknext = peekNextNode(table);
+
     // use while loop to accomplish chaining accessing: obj.method1().field1.field2[2].method2()
     while(peeknext){
-        if(peeknext->t->type==SYMBOL && peeknext->t->data.char_val=='.'){
-            //printf("Debug: parse field access\n");
+        if(isSymbol('.', peeknext)){
             parseFieldAccess(term, table);
         }
-        else if(peeknext->t->type==BRACKET && peeknext->t->data.char_val=='['){
-            //printf("Debug: parse array access\n");
+        else if(isBracket('[', peeknext)){
             parseArrayAccess(term, table);
         }
-        else if(peeknext->t->type==BRACKET && peeknext->t->data.char_val=='('){
-            //printf("Debug: parse subroutine call\n");
+        else if(isBracket('(', peeknext)){
             parseSubroutineCall(term, table);
+        }else if(isKey(NEW, peeknext)){
+            parseNewObject(term, table);
         }else{
             break; // there is no more chained access
         }
         peeknext = peekNextNode(table);
     }
 
+}
+
+void parseNewObject(treeNode* parent, tokenTable* table){
+    treeNode* newObject = insertNewNode2Parent("newObject", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // 'new' keyword
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, NEW, "parseNewObject", "missng 'new' keyword to create a new object");
+    insertNewNode2Parent("new", n->t, parent);
+    
+    // type
+    parseType(newObject, table);
+    
+    // optional generics
+    peeknext = peekNextNode(table);
+    if(isBracket('<', peeknext)){
+        parseGenerics(newObject, table);
+    }
+    
+    // branch: constructor or array
+    
+    
 }
 
 void parseBaseTerm(treeNode* parent, tokenTable* table){
@@ -61,23 +78,23 @@ void parseBaseTerm(treeNode* parent, tokenTable* table){
         exit(1);
     }
     // four terminal cases: true, false, null, this
-    if(n->t->type==KEYWORD && (n->t->data.key_val==BOOL_TRUE || n->t->data.key_val==BOOL_FALSE || n->t->data.key_val==NULLER || n->t->data.key_val==THIS)){
+    if(isKey(BOOL_TRUE, n) || isKey(BOOL_FALSE, n) || isKey(NULLER, n) || isKey(THIS, n)){
         insertNewNode2Parent("keyword", n->t, parent);
     }
     // token is a number
-    else if(n->t->type==NUMBER){
+    else if(isNumber(n)){
         insertNewNode2Parent("number", n->t, parent);
     }
     // token is a string
-    else if(n->t->type==STRING){
+    else if(isString(n)){
         insertNewNode2Parent("string", n->t, parent);
     }
     // token is a variable 
-    else if(n->t->type==IDENTIFIER){
+    else if(isIdentifier(n)){
         insertNewNode2Parent("identifier", n->t, parent);
     }
     // term is an expression within a round bracket
-    else if(n->t->type==BRACKET && n->t->data.char_val=='('){
+    else if(isBracket('(', n)){
         treeNode* parenthesized = insertNewNode2Parent("parenthesizedExpression", NULL, parent);
         insertNewNode2Parent("bracket", n->t, parenthesized);
         
@@ -142,7 +159,7 @@ void parseExpressionList(treeNode* parent, tokenTable* table){
     treeNode* list = insertNewNode2Parent("expressionList", NULL, parent);
     
     tokenNode* peeknext = peekNextNode(table);
-    if(!peeknext || !isExpressionStart(peeknext->t)){
+    if(!peeknext || !isExpressionStart(peeknext)){
         return; // empty argument list.
     }
     
@@ -406,16 +423,36 @@ void parseAdditiveExpression(treeNode* parent, tokenTable* table){
 void parseMultiplicativeExpression(treeNode* parent, tokenTable* table){
     treeNode* multiplicative = insertNewNode2Parent("multiplicativeExpression", NULL, parent);
     
-    parseUnaryExpression(multiplicative, table);
+    parseCastExpression(multiplicative, table);
     
     tokenNode* peeknext = peekNextNode(table);
     while(peeknext && peeknext->t->type==SYMBOL && (peeknext->t->data.char_val=='*' || peeknext->t->data.char_val=='/' || peeknext->t->data.char_val=='%') ){
         tokenNode* n = nextNode(table);
         insertNewNode2Parent("symbol", n->t, multiplicative);
         
-        parseUnaryExpression(multiplicative, table);
+        parseCastExpression(multiplicative, table);
         
         peeknext = peekNextNode(table);
+    }
+}
+
+void parseCastExpression(treeNode* parent, tokenTable* table){
+    treeNode* cast = insertNewNode2Parent("castExpression", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    peeknext = peekNextNode(table);
+    if(isBracket('(', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("bracket", n->t, cast);
+        
+        parseType(cast, table);
+        
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, BRACKET, ')', "parseCastExpression", "missing right parenthesis to conclude casting");
+        insertNewNode2Parent("bracket", n->t, cast);
+    }else{
+        parseUnaryExpression(cast, table);
     }
 }
 
@@ -597,7 +634,7 @@ void parseAssignment(treeNode* parent, tokenTable* table){
     // a mandatory assignment operator
     n = nextNode(table);
     if(!(isSymbol('=', n) || isOperator("+=", n) || isOperator("-=", n) || isOperator("*=", n) || isOperator("/=", n))){
-        fprintf("Error parseAssignment line %d: missing assignment operator\n", n->t->lineNumber);
+        fprintf(stderr, "Error parseAssignment line %d: missing assignment operator\n", n->t->lineNumber);
         exit(1);
     }
     insertNewNode2Parent("assignmentOperator", n->t, assignment); 
@@ -686,6 +723,13 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
         insertNewNode2Parent("nonAccessModifier", n->t, subroutineDeclaration);
     }
     
+    // an optional native
+    peeknext = peekNextNode(table);
+    if(isKey(NATIVE, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("native", n->t, subroutineDeclaration); 
+    }
+    
     // a mandatory type or void
     peeknext = peekNextNode(table);
     if(isKey(VOID, peeknext)){
@@ -764,6 +808,7 @@ void parseParameterList(treeNode* parent, tokenTable* table){
     }
     
 }
+
 void parseSubroutineBody(treeNode* parent, tokenTable* table){
     treeNode* subroutineBody = insertNewNode2Parent("subroutineBody", NULL, parent);
     tokenNode* n;
@@ -771,13 +816,13 @@ void parseSubroutineBody(treeNode* parent, tokenTable* table){
     
     peeknext = peekNextNode(table);
     while(!isBracket('}', peeknext)){
-        if(isPotentialVariableDeclaration(peeknext)){
+        if(isVariableDeclarationStart(peeknext)){
             parseVariableDeclaration(subroutineBody, table);
             // a semicolon
             n = nextNode(table);
             checkCharValueNodeExpected(n, SEMICOLON, ';', "parseSubroutineBody", "missing semicolon to conclude a variable declaration");
-        insertNewNode2Parent("identifier", n->t, parameterList);
-        }else if(isPotentialStatement(peeknext)){
+        insertNewNode2Parent("identifier", n->t, subroutineBody);
+        }else if(isStatementStart(peeknext)){
             parseStatement(subroutineBody, table);
         }else{
             fprintf(stderr, "Error parseSubroutineBody line %d: unknow contents inside method body\n", peeknext->t->lineNumber);
@@ -786,6 +831,13 @@ void parseSubroutineBody(treeNode* parent, tokenTable* table){
     }
 }
 
+void parseStatement(treeNode* parent, tokenTable* table){}
+void parseIfStatement(treeNode* parent, tokenTable* table){}
+void parseSwitchStatement(treeNode* parent, tokenTable* table){}
+void parseForStatement(treeNode* parent, tokenTable* table){}
+void parseWhileStatement(treeNode* parent, tokenTable* table){}
+void parseDoWhileStatement(treeNode* parent, tokenTable* table){}
+void parseReturnStatement(treeNode* parent, tokenTable* table){}
 
 
 

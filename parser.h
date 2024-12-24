@@ -20,6 +20,7 @@ typedef struct CST{
 CST* parseTokenTable(char* filename, tokenTable* table);
 
 void parseTerm(treeNode* parent, tokenTable* table);
+void parseNewObject(treeNode* parent, tokenTable* table);
 void parseBaseTerm(treeNode* parent, tokenTable* table);
 void parseFieldAccess(treeNode* parent, tokenTable* table);
 void parseArrayAccess(treeNode* parent, tokenTable* table);
@@ -38,6 +39,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table);
 void parseShiftExpression(treeNode* parent, tokenTable* table);
 void parseAdditiveExpression(treeNode* parent, tokenTable* table);
 void parseMultiplicativeExpression(treeNode* parent, tokenTable* table);
+void parseCastExpression(treeNode* parent, tokenTable* table);
 void parseUnaryExpression(treeNode* parent, tokenTable* table);
 void parsePostfixExpression(treeNode* parent, tokenTable* table);
 
@@ -62,8 +64,6 @@ void parseReturnStatement(treeNode* parent, tokenTable* table);
 
 /* parser helpers */
 
-bool isExpressionStart(token* t);
-
 bool isKey(keyword Key, tokenNode* n);
 bool isSymbol(char c, tokenNode* n);
 bool isIdentifier(tokenNode* n);
@@ -73,10 +73,12 @@ bool isNumber(tokenNode* n);
 bool isString(tokenNode* n);
 bool isSemicolon(tokenNode* n);
 
+bool isExpressionStart(tokenNode* current);
 bool isPotentialGenerics(tokenNode* current);
 bool isPotentialAssignment(tokenNode* current);
-bool isPotentialVariableDeclaration(tokenNode* current);
-bool isPotentialStatement(tokenNode* current);
+bool isVariableDeclarationStart(tokenNode* current);
+bool isPotentialSubroutineCall(tokenNode* current);
+bool isStatementStart(tokenNode* current);
 
 /* tree and nodes */
 

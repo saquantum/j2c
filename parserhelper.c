@@ -1,21 +1,5 @@
 #include "parser.h"
 
-bool isExpressionStart(token* t){
-    if(!t){
-        return false;
-    }
-    return t->type==NUMBER || t->type==STRING || t->type==IDENTIFIER ||
-            (t->type==KEYWORD && (
-            t->data.key_val==BOOL_TRUE || t->data.key_val==BOOL_FALSE ||
-            t->data.key_val==NULLER || t->data.key_val==THIS
-            ) ) ||
-            (t->type==SYMBOL && (
-            t->data.char_val=='!' || t->data.char_val=='-' ||
-            t->data.char_val=='~'
-            ) ) ||
-            (t->type==BRACKET && t->data.char_val=='(');
-}
-
 bool isKey(keyword Key, tokenNode* n){
     return n && n->t->type==KEYWORD && n->t->data.key_val==Key;
 }
@@ -39,6 +23,22 @@ bool isString(tokenNode* n){
 }
 bool isSemicolon(tokenNode* n){
     return n && n->t->type==SEMICOLON;
+}
+
+bool isExpressionStart(tokenNode* current){
+    if(!current->t){
+        return false;
+    }
+    return current->t->type==NUMBER || current->t->type==STRING || current->t->type==IDENTIFIER ||
+            (current->t->type==KEYWORD && (
+            current->t->data.key_val==BOOL_TRUE || current->t->data.key_val==BOOL_FALSE ||
+            current->t->data.key_val==NULLER || current->t->data.key_val==THIS
+            ) ) ||
+            (current->t->type==SYMBOL && (
+            current->t->data.char_val=='!' || current->t->data.char_val=='-' ||
+            current->t->data.char_val=='~'
+            ) ) ||
+            (current->t->type==BRACKET && current->t->data.char_val=='(');
 }
 
 bool isPotentialGenerics(tokenNode* current){
@@ -152,23 +152,156 @@ bool isPotentialAssignment(tokenNode* current){
                 depth--;
             }else if(isSemicolon(current)){
                 return false;
+            }else if(!current){
+                return false;
             }
             current = current->next;
         }
     }
     
-    if((isSymbol('=', n) || isOperator("+=", n) || isOperator("-=", n) || isOperator("*=", n) || isOperator("/=", n))){
+    if((isSymbol('=', current) || isOperator("+=", current) || isOperator("-=", current) || isOperator("*=", current) || isOperator("/=", current))){
         return true;
     }
     return false;
 }
 
-bool isPotentialVariableDeclaration(tokenNode* current){
+bool isVariableDeclarationStart(tokenNode* current){
+    // <variableDeclaration> ::=  [<accessModifier>] {<nonAccessModifier>} <type> [ '[' ']' ] ( <identifier> | <assignment>) {',' ( <identifier> | <assignment>)} 
     
+    if(isKey(PUBLIC, current) || isKey(PRIVATE, current)){
+        current = current->next;
+    }
+    
+    while(isKey(STATIC, current) || isKey(FINAL, current)){
+        current = current->next;
+    }
+    
+    if(isKey(CHAR, current) || isKey(INT, current) || isKey(LONG, current) || isKey(DOUBLE, current) || isKey(BOOLEAN, current)){
+        current = current->next;
+    }else if(isIdentifier(current)){
+        current = current->next;
+        
+        if(isBracket('<', current)){
+            current = current->next;
+            int depth = 1;
+            while(depth>0){
+                if(isBracket('<', current)){
+                    depth++;
+                }else if(isBracket('>', current)){
+                    depth--;
+                }else if(isSemicolon(current)){
+                    return false;
+                }else if(!current){
+                    return false;
+                }
+                current = current->next;
+            }
+        }
+        
+    }else{
+        return false;
+    }
+    
+    if(isBracket('[', current)){
+        current = current->next;
+        if(isBracket(']', current)){
+            current = current->next;
+        }else{
+            return false;
+        }
+    }
+    
+    if(isIdentifier(current)){
+        return true;
+    }
+    return false;
 }
 
-bool isPotentialStatement(tokenNode* current){
+bool isPotentialSubroutineCall(tokenNode* current){
+    // a subroutine call must be like:
+    // <id> [ { '.' <id> [ '(' <expressionList> ')' ] } '.' <id> ] '(' <expressionList> ')'
+    // key: an identifier is followed either by a '(' or a '.'.
+    // once the above condition is not satisfied, probe the last token and 
+    // return last token == ')'.
+    
+    // the subroutine call must start with an identifier representing the object.
+    
+    if(isIdentifier(current)){
+        current = current->next;
+    }else{
+        return false;
+    }
+    
+    // if a '.' follows, its a field access or method call. if a '(' follows, we should conclude the subroutine call soon.
+    if(isBracket('(', current)){
+        current = current->next;
+        int depth = 1;
+        while(depth>0){
+            if(isBracket('(', current)){
+                depth++;
+            }else if(isBracket(')', current)){
+                depth--;
+            }else if(isSemicolon(current)){
+                return false;
+            }else if(!current){
+                return false;
+            }
+            if(depth>0){
+                current = current->next;
+            }
+        }
+        return true;
+    }else if(isSymbol('.', current)){
+        // skip, we leave the dot to be handled in the loop
+    }else{
+        return false;
+    }
+    
+    while(isSymbol('.', current)){
+        current = current->next;
+        // it must be an identifier after '.'
+        if(isIdentifier(current)){
+            current = current->next;
+        }else{
+            return false;
+        }
+        // after the identifier it's an optional parenthesis
+        if(isBracket('(', current)){
+            current = current->next;
+            int depth = 1;
+            while(depth>0){
+                if(isBracket('(', current)){
+                    depth++;
+                }else if(isBracket(')', current)){
+                    depth--;
+                }else if(isSemicolon(current)){
+                    return false;
+                }else if(!current){
+                    return false;
+                }
+                current = current->next;
+            }
+        }
+    }
+    
+    // final step: query current->prev
+    return isBracket(')', current->prev);
+} 
 
+bool isStatementStart(tokenNode* current){
+    if(isSemicolon(current)){
+        return true;
+    }
+    if(isKey(IF, current) || isKey(SWITCH, current) || isKey(FOR, current) || isKey(WHILE, current) || isKey(DO, current) || isKey(RETURN, current)){
+        return true;
+    }
+    if(isExpressionStart(current)){
+        return true;
+    }
+    if(isPotentialAssignment(current)){
+        return true;
+    }
+    return false;
 }
 
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
