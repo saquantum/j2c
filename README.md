@@ -42,17 +42,8 @@ if no access modifier, default is public. we implement a simpler version: only p
 ```
 <variableDeclaration> ::=  
 [<accessModifier>] {<nonAccessModifier>} <type> [ '[' ']' ] ( <identifier> | <assignment>) {',' ( <identifier> | <assignment>)} 
-```
 
-#### access modifier
-
-```
 <accessModifier> ::= 'public' | 'private'
-```
-
-#### nonaccess modifier
-
-```
 <nonAccessModifier> ::= 'static' | 'final' | 'abstract'
 ```
 
@@ -154,14 +145,16 @@ we don't check if an expression is boolean or not until semantics analysis.
 		 | <fieldAccess>
 		 | <arrayAccess>
 		 | <newObject>
+		 | <arrayInitialization>
 		 
 <arrayAccess> ::= <term> '[' <expression> ']' 
 <fieldAccess> ::= <term> '.' <identifier>
 <subroutineCall> ::= (<fieldAccess> | <identifier>) '(' <expressionList> ')'
-<newObject> ::= 'new' <type> [ <generics> ] '(' [<expressionList>] ')' // constructor call
-              | 'new' <type> [ <generics> ] { '[' <expression> ']' } { '[' ']'} // array
+<newObject> ::= 'new' <type> [ <generics> ] '(' <expressionList> ')' // constructor call
+              | 'new' <type> [ <generics> ] { '[' <expression> ']' } { '[' ']'} [ <arrayInitialization> ] // array
+<arrayInitialization> ::= '{' [ <term> {',' <term>} ] '}' | '{' [ <arrayInitialization> {',' <arrayInitialization>} ] '}'
 
-<expressionList> ::= [<expression> {',' <expression> } ]
+<expressionList> ::= [ <expression> {',' <expression> } ]
 
 <binaryOperator> ::= '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '<<' | '>>'
 <unaryOperator> ::= '!' | '-' | '~'
@@ -173,7 +166,7 @@ subroutine call is merely calling a function.
 
 #### method declaration and body
 
-method declaration should include a `native` modifier for methods that are realized using lower level programming and tell the code generator to look for its source code.
+method declaration should include a `native` modifier for methods that are realized using lower level programming and tell the code generator to look for its source C code.
 
 ```
 <subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] ( <type> | 'void' ) <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
@@ -190,13 +183,13 @@ we will wait until semantics analysis to check if the expression are boolean or 
 for simplicity we don't allow compound statements without braces.
 
 ```
-<statement> ::= { <assignment> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | ';'}
+<statement> ::= { <assignment> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | <breakStatement> | <continueStatement> | ';'}
 
 <ifStatement> ::= 'if' '(' <expression> ')' '{' <statement> '}' { 'else' 'if' '(' <expression> ')' '{' <statement> '}' } [ 'else' '{' <statement> '}' ]
 
-<switchStatement> ::= 'switch' '(' <identifier> ')' '{' ( <defaultBranch> {<caseBranch>} | {<caseBranch>} <defaultBranch> {<caseBranch>} | {<caseBranch>} <defaultBranch> ) '}'
-<caseBranch> ::= 'case' <expression> ':' [<statement>] ['break']
-<defaultBranch> ::= 'default' ':' <statement> ['break']
+<switchStatement> ::= 'switch' '(' <identifier> ')' '{' ( [<defaultBranch>] {<caseBranch>} | {<caseBranch>} [<defaultBranch>] {<caseBranch>} | {<caseBranch>} [<defaultBranch>] ) '}'
+<caseBranch> ::= 'case' <expression> ':' [<statement>] [<breakStatement>]
+<defaultBranch> ::= 'default' ':' <statement> [<breakStatement>]
 
 <forStatement> ::= 'for' '(' <assignment> ';' <expression> ';' <assignment> ')' ( '{' [<statement>] '}' | ';' )
 
@@ -205,6 +198,10 @@ for simplicity we don't allow compound statements without braces.
 <doWhileStatement> ::= 'do' '{' <statement> '}' 'while' '(' <expression> ')' ';'
 
 <returnStatement> ::= 'return' [<expression>] ';'
+
+<breakStatement> ::= 'break' ';'
+
+<continueStatement>::= 'continue' ';'
 ```
 
 #### class declaration and polymorphism
@@ -237,6 +234,8 @@ no package.
 method reference, lambda expressions, inner classes and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
 
 #### reminders
+
+new expression needs modification.
 
 after parsing and before semantics:
 

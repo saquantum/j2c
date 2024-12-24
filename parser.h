@@ -21,6 +21,7 @@ CST* parseTokenTable(char* filename, tokenTable* table);
 
 void parseTerm(treeNode* parent, tokenTable* table);
 void parseNewObject(treeNode* parent, tokenTable* table);
+void parseArrayInitialization(treeNode* parent, tokenTable* table);
 void parseBaseTerm(treeNode* parent, tokenTable* table);
 void parseFieldAccess(treeNode* parent, tokenTable* table);
 void parseArrayAccess(treeNode* parent, tokenTable* table);
@@ -61,6 +62,8 @@ void parseForStatement(treeNode* parent, tokenTable* table);
 void parseWhileStatement(treeNode* parent, tokenTable* table);
 void parseDoWhileStatement(treeNode* parent, tokenTable* table);
 void parseReturnStatement(treeNode* parent, tokenTable* table);
+void parseContinueStatement(treeNode* parent, tokenTable* table);
+void parseBreakStatement(treeNode* parent, tokenTable* table);
 
 /* parser helpers */
 

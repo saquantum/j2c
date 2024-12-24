@@ -292,7 +292,7 @@ bool isStatementStart(tokenNode* current){
     if(isSemicolon(current)){
         return true;
     }
-    if(isKey(IF, current) || isKey(SWITCH, current) || isKey(FOR, current) || isKey(WHILE, current) || isKey(DO, current) || isKey(RETURN, current)){
+    if(isKey(IF, current) || isKey(SWITCH, current) || isKey(FOR, current) || isKey(WHILE, current) || isKey(DO, current) || isKey(RETURN, current) || isKey(BREAK, current) || isKey(CONTINUE, current)){
         return true;
     }
     if(isExpressionStart(current)){
