@@ -159,7 +159,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 <fieldAccess> ::= <term> '.' <identifier>
 <subroutineCall> ::= (<fieldAccess> | <identifier>) '(' <expressionList> ')'
 <newObject> ::= 'new' <type> [ <generics> ] '(' [<expressionList>] ')' // constructor call
-              | 'new' <type> [ <generics> ] { '[' <expression> ']' } { '[' ']'}// array
+              | 'new' <type> [ <generics> ] { '[' <expression> ']' } { '[' ']'} // array
 
 <expressionList> ::= [<expression> {',' <expression> } ]
 
