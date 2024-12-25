@@ -67,6 +67,13 @@ void parseBreakStatement(treeNode* parent, tokenTable* table);
 void parseStaticStatement(treeNode* parent, tokenTable* table);
 void parseCodeBlock(treeNode* parent, tokenTable* table);
 
+void parseClassDeclaration(treeNode* parent, tokenTable* table);
+void parseInterfaceDeclaration(treeNode* parent, tokenTable* table);
+void parseClassBody(treeNode* parent, tokenTable* table);
+void parseInterfaceBody(treeNode* parent, tokenTable* table);
+void parseFile(treeNode* parent, tokenTable* table);
+void parseImportStatement(treeNode* parent, tokenTable* table);
+
 /* parser helpers */
 
 bool isKey(keyword Key, tokenNode* n);
@@ -84,6 +91,10 @@ bool isPotentialAssignment(tokenNode* current);
 bool isVariableDeclarationStart(tokenNode* current);
 bool isPotentialSubroutineCall(tokenNode* current);
 bool isStatementStart(tokenNode* current);
+bool isClassStart(tokenNode* current);
+bool isInterfaceStart(tokenNode* current);
+bool isPotentialType(tokenNode* current);
+bool isSubroutineDeclarationStart(tokenNode* current);
 
 /* tree and nodes */
 

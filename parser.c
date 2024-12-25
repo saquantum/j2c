@@ -71,7 +71,7 @@ void parseNewObject(treeNode* parent, tokenTable* table){
         parseGenerics(newObject, table);
     }
     
-    // branch: constructor or array
+    // branch: constructor, array or anonymous class
     peeknext = peekNextNode(table);
     if(isBracket('(', peeknext)){
         // constructor call
@@ -105,6 +105,21 @@ void parseNewObject(treeNode* parent, tokenTable* table){
         if(isBracket('{', peeknext)){
             parseArrayInitialization(newObject, table);
         }
+    }
+    else if(isBracket('{', peeknext)){
+        // anonymous class
+        // '{'
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, BRACKET, '{', "parseNewObject", "missng left brace to start anonymous class");
+        insertNewNode2Parent("bracket", n->t, newObject);
+        
+        parseClassBody(newObject, table);
+        
+        // '}'
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, BRACKET, '{', "parseNewObject", "missng left brace to start anonymous class");
+        insertNewNode2Parent("bracket", n->t, newObject);
+
     }else{
         // the new object expression must either be a constructor call, or an array
         fprintf(stderr, "Error parseNewObject line %d: missing constructor call or array initialization for a new object\n", peeknext->t->lineNumber);
@@ -1448,7 +1463,269 @@ void parseCodeBlock(treeNode* parent, tokenTable* table){
     insertNewNode2Parent("bracket", n->t, codeBlock); 
 }
 
+void parseClassDeclaration(treeNode* parent, tokenTable* table){
+    treeNode* classDeclaration = insertNewNode2Parent("classDeclaration", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // optional access modifier
+    peeknext = peekNextNode(table);
+    if(isKey(PUBLIC, peeknext) || isKey(PRIVATE, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("accessModifier", n->t, classDeclaration);
+    }
+    
+    // optional abstract
+    peeknext = peekNextNode(table);
+    if(isKey(ABSTRACT, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("accessModifier", n->t, classDeclaration);
+    }
+    
+    // class
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, CLASS, "parseClassDeclaration", "missing class keyword");
+    insertNewNode2Parent("class", n->t, classDeclaration);
+    
+    // identifier
+    n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseClassDeclaration", "missing class identifier");
+    insertNewNode2Parent("identifier", n->t, classDeclaration);
+    
+    // optional generics
+    peeknext = peekNextNode(table);
+    if(isSymbol('<', peeknext)){
+        parseGenerics(classDeclaration, table);
+    }
+    
+    // optionally extends one super class
+    peeknext = peekNextNode(table);
+    if(isKey(EXTENDS, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("extends", n->t, classDeclaration);
+        
+        n = nextNode(table);
+        checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseClassDeclaration", "missing identifier for the super class to be extended");
+        insertNewNode2Parent("identifier", n->t, classDeclaration);
+        
+        peeknext = peekNextNode(table);
+        if(isSymbol('<', peeknext)){
+            parseGenerics(classDeclaration, table);
+        }
+    }
+    
+    // optionally implements some interfaces
+    peeknext = peekNextNode(table);
+    if(isKey(IMPLEMENTS, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("implements", n->t, classDeclaration);
+        
+        n = nextNode(table);
+        checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseClassDeclaration", "missing identifier for the interface to be implemented");
+        insertNewNode2Parent("identifier", n->t, classDeclaration);
+        
+        peeknext = peekNextNode(table);
+        if(isSymbol('<', peeknext)){
+            parseGenerics(classDeclaration, table);
+        }
+        
+        peeknext = peekNextNode(table);
+        while(isSymbol(',', peeknext)){
+            n = nextNode(table);
+            insertNewNode2Parent("symbol", n->t, classDeclaration);
+            
+            n = nextNode(table);
+            checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseClassDeclaration", "missing identifier for the interface to be implemented");
+            insertNewNode2Parent("identifier", n->t, classDeclaration);
+            
+            peeknext = peekNextNode(table);
+            if(isSymbol('<', peeknext)){
+                parseGenerics(classDeclaration, table);
+            }
+        }
+    }
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseClassDeclaration", "missing left brace to start the body of the class");
+    insertNewNode2Parent("bracket", n->t, classDeclaration);
+    
+    parseClassBody(classDeclaration, table);
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseClassDeclaration", "missing right brace to conclude the body of the class");
+    insertNewNode2Parent("bracket", n->t, classDeclaration);
+}
+
+void parseInterfaceDeclaration(treeNode* parent, tokenTable* table){
+    treeNode* interfaceDeclaration = insertNewNode2Parent("interfaceDeclaration", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // optional access modifier
+    peeknext = peekNextNode(table);
+    if(isKey(PUBLIC, peeknext) || isKey(PRIVATE, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("accessModifier", n->t, interfaceDeclaration);
+    }
+    
+    // interface
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, INTERFACE, "parseInterfaceDeclaration", "missing interface keyword");
+    insertNewNode2Parent("interface", n->t, interfaceDeclaration);
+    
+    // identifier
+    n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseInterfaceDeclaration", "missing interface identifier");
+    insertNewNode2Parent("identifier", n->t, interfaceDeclaration);
+    
+    // optional generics
+    peeknext = peekNextNode(table);
+    if(isSymbol('<', peeknext)){
+        parseGenerics(interfaceDeclaration, table);
+    }
+    
+    // optionally extends some interfaces
+    peeknext = peekNextNode(table);
+    if(isKey(EXTENDS, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("extends", n->t, interfaceDeclaration);
+        
+        n = nextNode(table);
+        checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseInterfaceDeclaration", "missing identifier for the interface to be extended");
+        insertNewNode2Parent("identifier", n->t, interfaceDeclaration);
+        
+        peeknext = peekNextNode(table);
+        if(isSymbol('<', peeknext)){
+            parseGenerics(interfaceDeclaration, table);
+        }
+        
+        peeknext = peekNextNode(table);
+        while(isSymbol(',', peeknext)){
+            n = nextNode(table);
+            insertNewNode2Parent("symbol", n->t, interfaceDeclaration);
+            
+            n = nextNode(table);
+            checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseInterfaceDeclaration", "missing identifier for the interface to be extended");
+            insertNewNode2Parent("identifier", n->t, interfaceDeclaration);
+            
+            peeknext = peekNextNode(table);
+            if(isSymbol('<', peeknext)){
+                parseGenerics(interfaceDeclaration, table);
+            }
+        }
+    }
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseInterfaceDeclaration", "missing left brace to start the body of the interface");
+    insertNewNode2Parent("bracket", n->t, interfaceDeclaration);
+    
+    parseInterfaceBody(interfaceDeclaration, table);
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseInterfaceDeclaration", "missing right brace to conclude the body of the interface");
+    insertNewNode2Parent("bracket", n->t, interfaceDeclaration);
+}    
 
 
+void parseClassBody(treeNode* parent, tokenTable* table){
+    treeNode* classbody = insertNewNode2Parent("classBody", NULL, parent);
+    tokenNode* peeknext;
+    
+    peeknext = peekNextNode(table);
+    while(isBracket('}', peeknext)){
+        if(isVariableDeclarationStart(peeknext)){
+            parseVariableDeclaration(classbody, table);
+        }
+        else if(isSubroutineDeclarationStart(peeknext)){
+            parseSubroutineDeclaration(classbody, table);
+        }
+        else{
+            fprintf(stderr, "Error parseClassBody line %d: unknown type of token in class body\n", peeknext->t->lineNumber);
+            exit(1);
+        }
+        peeknext = peekNextNode(table);
+    }
+}
+
+void parseInterfaceBody(treeNode* parent, tokenTable* table){
+    treeNode* interbody = insertNewNode2Parent("interfaceBody", NULL, parent);
+    parseSubroutineDeclaration(interbody, table);
+}
+
+void parseFile(treeNode* parent, tokenTable* table){
+    // we do not create a new node for this parser
+    tokenNode* peeknext;
+    
+    // import statements
+    peeknext = peekNextNode(table);
+    while(isKey(IMPORT, peeknext)){
+        parseImportStatement(parent, table);
+        peeknext = peekNextNode(table);
+    }
+    
+    // class or interface
+    peeknext = peekNextNode(table);
+    while(peeknext){
+        if(isClassStart(peeknext)){
+            parseClassDeclaration(parent, table);
+        }else if(isInterfaceStart(peeknext)){
+            parseInterfaceDeclaration(parent, table);
+        }else{
+            fprintf(stderr, "Error parseFile line %d: invalid token in file level\n", peeknext->t->lineNumber);
+            exit(1);
+        }
+        peeknext = peekNextNode(table);
+    }
+}
+
+void parseImportStatement(treeNode* parent, tokenTable* table){
+    treeNode* import = insertNewNode2Parent("import", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // 'import'
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, IMPORT, "parseImportStatement", "missing 'import' keyword");
+    insertNewNode2Parent("import", n->t, import);
+    
+    n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseImportStatement", "missing identifier after import");
+    insertNewNode2Parent("identifier", n->t, import);
+    
+    // if a '.' follows
+    peeknext = peekNextNode(table);
+    while(isSymbol('.', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("symbol", n->t, import);
+        
+        peeknext = peekNextNode(table);
+        if(isIdentifier(peeknext)){
+        
+            n = nextNode(table);
+            insertNewNode2Parent("identifier", n->t, import);
+            
+        }else if(isSymbol('*', peeknext)){
+        
+            n = nextNode(table);
+            insertNewNode2Parent("symbol", n->t, import);
+            break;
+            
+        }else{
+            fprintf(stderr, "Error parseImportStatement line %d: unknown type of token\n", peeknext->t->lineNumber);
+            exit(1);
+        }
+        
+        peeknext = peekNextNode(table);
+    }
+    
+    // ';'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseImportStatement", "missing semicolon to conclude import");
+    insertNewNode2Parent("semicolon", n->t, import); 
+}
 
 

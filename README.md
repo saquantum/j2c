@@ -37,7 +37,7 @@ semicolon.
 
 this includes arrays.
 
-if no access modifier, default is public. we implement a simpler version: only public and private.
+we have three accessibility: public > default > private.
 
 ```
 <variableDeclaration> ::=  
@@ -152,6 +152,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 <subroutineCall> ::= (<fieldAccess> | <identifier>) '(' <expressionList> ')'
 <newObject> ::= 'new' <type> [ <generics> ] '(' <expressionList> ')' // constructor call
               | 'new' <type> [ <generics> ] { '[' <expression> ']' } { '[' ']'} [ <arrayInitialization> ] // array
+              | 'new' <type> [ <generics> ] '{' <classBody> '}' // anonymous class
 <arrayInitialization> ::= '{' [ <term> {',' <term>} ] '}' | '{' [ <arrayInitialization> {',' <arrayInitialization>} ] '}'
 
 <expressionList> ::= [ <expression> {',' <expression> } ]
@@ -206,21 +207,21 @@ for simplicity we don't allow compound statements without braces.
 
 <continueStatement> ::= 'continue' ';'
 
-<staticStatement> ::= 'static' '{' [ <statement> ] '}'
+<staticStatement> ::= 'static' '{' { <statement> } '}'
 
-<codeBlock> ::= '{' [ <statement> ] '}'
+<codeBlock> ::= '{' { <statement> } '}'
 ```
 
 #### class declaration and polymorphism
 
-no inner classes allowed.
+no inner classes and initializer blocks allowed.
 
 ```
-<classDeclaration> ::= [<accessModifier>] ['abstract'] 'class' <identifier> ['<' <generics> '>'] ['extends' <identifier> ['<' <generics> '>'] ] ['implements' <identifier> ['<' <generics> '>'] { ',' <identifier> ['<' <generics> '>'] }] '{' <classBody> '}'
+<classDeclaration> ::= [<accessModifier>] ['abstract'] 'class' <identifier> [ <generics> ] ['extends' <identifier> [ <generics> ] ] ['implements' <identifier> [ <generics> ] { ',' <identifier> [ <generics> ] }] '{' <classBody> '}'
 
 <classBody> ::= { <variableDeclaration> | <subroutineDeclaration> }
 
-<interfaceDeclaration> ::= [<accessModifier>] 'interface' <identifier> ['<' <generics> '>'] ['extends' <identifier> ['<' <generics> '>'] { ',' <identifier> ['<' <generics> '>'] }] '{' <interfaceBody> '}'
+<interfaceDeclaration> ::= [<accessModifier>] 'interface' <identifier> [ <generics> ] ['extends' <identifier> [ <generics> ] { ',' <identifier> [ <generics> ] }] '{' <interfaceBody> '}'
 
 <interfaceBody> ::= { <subroutineDeclaration> }
 
@@ -230,6 +231,8 @@ no inner classes allowed.
 
 no package. 
 
+our import goes like `import home.kj24716.j2c.testfolder.*`. this will import all .java files in that folder recursively.
+
 ```
 <file> ::= {<importStatement>} {<classDeclaration> | <interfaceDeclaration>}
 
@@ -238,7 +241,7 @@ no package.
 
 #### advanced techniques
 
-method reference, lambda expressions, inner classes, anonymous classes and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
+method reference, lambda expressions and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
 
 ## Postprocessing
 

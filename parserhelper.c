@@ -304,6 +304,56 @@ bool isStatementStart(tokenNode* current){
     return false;
 }
 
+bool isClassStart(tokenNode* current){
+    while(isKey(PUBLIC, current) || isKey(PRIVATE, current) || isKey(ABSTRACT, current)){
+        current = current->next;
+    }
+    
+    if(isKey(CLASS, current)){
+        return true;
+    }
+    return false;
+}
+
+bool isInterfaceStart(tokenNode* current){
+    while(isKey(PUBLIC, current) || isKey(PRIVATE, current)){
+        current = current->next;
+    }
+    
+    if(isKey(INTERFACE, current)){
+        return true;
+    }
+    return false;
+}
+
+bool isPotentialType(tokenNode* current){
+    if(isKey(CHAR, current) || isKey(INT, current) || isKey(LONG, current) || isKey(BOOLEAN, current) || isKey(DOUBLE, current)){
+        return true;
+    }
+    
+    if(isIdentifier(current)){
+        current = current->next;
+    }
+    
+    if(isSymbol('<', current)){
+        return isPotentialGenerics(current);
+    }else{
+        return true;
+    }
+}
+
+bool isSubroutineDeclarationStart(tokenNode* current){
+    while(isKey(PUBLIC, current) || isKey(PRIVATE, current) || isKey(STATIC, current) || isKey(FINAL, current) || isKey(ABSTRACT, current) || isKey(NATIVE, current)){
+        current = current->next;
+    }
+    
+    if(isKey(VOID, current)){
+        return true;
+    }
+    
+    return isPotentialType(current);
+}
+
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
     if(!n || n->t->type != expectedType || n->t->data.key_val != expectedValue){
         fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
