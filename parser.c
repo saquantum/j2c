@@ -823,7 +823,7 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
     tokenNode* n;
     tokenNode* peeknext;
     
-    // an optional access modifier
+    // optional access modifier
     peeknext = peekNextNode(table);
     if(isKey(PUBLIC, peeknext) || isKey(PRIVATE, peeknext)){
         n = nextNode(table);
@@ -837,28 +837,34 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
         insertNewNode2Parent("nonAccessModifier", n->t, subroutineDeclaration);
     }
     
-    // an optional native
+    // optional native
     peeknext = peekNextNode(table);
     if(isKey(NATIVE, peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("native", n->t, subroutineDeclaration); 
     }
     
-    // a mandatory type or void
+    // if next token is identifier and next next token is '(', its a constructor
     peeknext = peekNextNode(table);
-    if(isKey(VOID, peeknext)){
-        n = nextNode(table);
-        insertNewNode2Parent("type", n->t, subroutineDeclaration);
-    }else{
-        parseType(subroutineDeclaration, table);
+    if(!(isIdentifier(peeknext) && isBracket('(', peeknext->next))){
+    
+        // else, is has a return type or void
+        peeknext = peekNextNode(table);
+        if(isKey(VOID, peeknext)){
+            n = nextNode(table);
+            insertNewNode2Parent("type", n->t, subroutineDeclaration);
+        }else{
+            parseType(subroutineDeclaration, table);
+        }
+    
     }
     
-    // an identifier
+    // identifier
     n = nextNode(table);
     checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseSubroutineDeclaration", "missing identifier for the method");
     insertNewNode2Parent("identifier", n->t, subroutineDeclaration);
     
-    // a mandatory left parenthesis
+    // mandatory left parenthesis
     n = nextNode(table);
     checkCharValueNodeExpected(n, BRACKET, '(', "parseSubroutineDeclaration", "missing left parenthesis to start the argument list");
     insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
@@ -866,12 +872,12 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
     // parameter list
     parseParameterList(subroutineDeclaration, table);
     
-    // a mandatory right parenthesis
+    // mandatory right parenthesis
     n = nextNode(table);
     checkCharValueNodeExpected(n, BRACKET, ')', "parseSubroutineDeclaration", "missing right parenthesis to conclude the argument list");
     insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
     
-    // a mandatory left brace
+    // mandatory left brace
     n = nextNode(table);
     checkCharValueNodeExpected(n, BRACKET, '{', "parseSubroutineDeclaration", "missing left brace to start the method body");
     insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
@@ -879,7 +885,7 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
     // subroutine body
     parseSubroutineBody(subroutineDeclaration, table);
     
-    // a mandatory right brace
+    // mandatory right brace
     n = nextNode(table);
     checkCharValueNodeExpected(n, BRACKET, '}', "parseSubroutineDeclaration", "missing right brace to conclude the method body");
     insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
@@ -945,17 +951,502 @@ void parseSubroutineBody(treeNode* parent, tokenTable* table){
     }
 }
 
-void parseStatement(treeNode* parent, tokenTable* table){}
-void parseIfStatement(treeNode* parent, tokenTable* table){}
-void parseSwitchStatement(treeNode* parent, tokenTable* table){}
-void parseForStatement(treeNode* parent, tokenTable* table){}
-void parseWhileStatement(treeNode* parent, tokenTable* table){}
-void parseDoWhileStatement(treeNode* parent, tokenTable* table){}
-void parseReturnStatement(treeNode* parent, tokenTable* table){}
-void parseContinueStatement(treeNode* parent, tokenTable* table){}
-void parseBreakStatement(treeNode* parent, tokenTable* table){}
+void parseStatement(treeNode* parent, tokenTable* table){
+    treeNode* statement = insertNewNode2Parent("statement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    peeknext = peekNextNode(table);
+    if(isKey(IF, peeknext)){
+        parseIfStatement(statement, table);
+    }else if(isKey(SWITCH, peeknext)){
+        parseSwitchStatement(statement, table);
+    }else if(isKey(FOR, peeknext)){
+        parseForStatement(statement, table);
+    }else if(isKey(WHILE, peeknext)){
+        parseWhileStatement(statement, table);
+    }else if(isKey(DO, peeknext)){
+        parseDoWhileStatement(statement, table);
+    }else if(isKey(RETURN, peeknext)){
+        parseReturnStatement(statement, table);
+    }else if(isKey(BREAK, peeknext)){
+        parseBreakStatement(statement, table);
+    }else if(isKey(CONTINUE, peeknext)){
+        parseContinueStatement(statement, table);
+    }else if(isKey(STATIC, peeknext)){
+        parseStaticStatement(statement, table);
+    }else if(isBracket('{', peeknext)){
+        parseCodeBlock(statement, table);
+    }else if(isSemicolon(peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("semicolon", n->t, statement);
+    }else if(isPotentialAssignment(peeknext)){
+        parseAssignment(statement, table);
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, SEMICOLON, ';', "parseStatement", "missing semicolon to conclude an assignment");
+        insertNewNode2Parent("semicolon", n->t, statement);
+    }else if(isExpressionStart(peeknext)){
+        parseExpression(statement, table);
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, SEMICOLON, ';', "parseStatement", "missing semicolon to conclude an expression");
+    }else{
+        fprintf(stderr, "Error parseStatement line %d: invalid statement\n", peeknext->t->lineNumber);
+        exit(1);
+    }
+}
 
+void parseIfStatement(treeNode* parent, tokenTable* table){
+    treeNode* ifStatement = insertNewNode2Parent("ifStatement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // if
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, IF, "parseIfStatement", "missing 'if' keyword for an if statement");
+    insertNewNode2Parent("if", n->t, ifStatement);
+    
+    // '('
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '(', "parseIfStatement", "missing left parenthesis to start the if condition");
+    insertNewNode2Parent("bracket", n->t, ifStatement);
+    
+    parseExpression(ifStatement, table);
+    
+    // ')'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, ')', "parseIfStatement", "missing right parenthesis to conlcude the if condition");
+    insertNewNode2Parent("bracket", n->t, ifStatement);
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseIfStatement", "missing left brace to start the if compound");
+    insertNewNode2Parent("bracket", n->t, ifStatement);
+    
+    // optional body
+    peeknext = peekNextNode(table);
+    if(!isBracket('}', peeknext)){
+        parseStatement(ifStatement, table);
+    }
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseIfStatement", "missing right brace to conclude the if compound");
+    insertNewNode2Parent("bracket", n->t, ifStatement);
+    
+    // else or else-if?
+    peeknext = peekNextNode(table);
+    while(isKey(ELSE, peeknext)){
+        if(isKey(IF, peeknext->next)){
+            // else-if 
+            // else
+            n = nextNode(table);
+            insertNewNode2Parent("else", n->t, ifStatement);
+            
+            // if
+            n = nextNode(table);
+            insertNewNode2Parent("if", n->t, ifStatement);
+    
+            // '('
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, BRACKET, '(', "parseIfStatement", "missing left parenthesis to start the if condition");
+            insertNewNode2Parent("bracket", n->t, ifStatement);
+    
+            parseExpression(ifStatement, table);
+    
+            // ')'
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, BRACKET, ')', "parseIfStatement", "missing right parenthesis to conlcude the if condition");
+            insertNewNode2Parent("bracket", n->t, ifStatement);
+    
+            // '{'
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, BRACKET, '{', "parseIfStatement", "missing left brace to start the if compound");
+            insertNewNode2Parent("bracket", n->t, ifStatement);
+    
+            // optional body
+            peeknext = peekNextNode(table);
+            if(!isBracket('}', peeknext)){
+                parseStatement(ifStatement, table);
+            }
+    
+            // '}'
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, BRACKET, '}', "parseIfStatement", "missing right brace to conclude the if compound");
+            insertNewNode2Parent("bracket", n->t, ifStatement);
+            
+        }else{
+            // else
+            n = nextNode(table);
+            insertNewNode2Parent("else", n->t, ifStatement);
+            
+            // '{'
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, BRACKET, '{', "parseIfStatement", "missing left brace to start the if compound");
+            insertNewNode2Parent("bracket", n->t, ifStatement);
+            
+            // optional body
+            peeknext = peekNextNode(table);
+            if(!isBracket('}', peeknext)){
+                parseStatement(ifStatement, table);
+            }
+            
+            // '}'
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, BRACKET, '}', "parseIfStatement", "missing right brace to conclude the if compound");
+            insertNewNode2Parent("bracket", n->t, ifStatement);
+            return;
+        }
+        peeknext = peekNextNode(table);
+    }
+}
 
+void parseSwitchStatement(treeNode* parent, tokenTable* table){
+    treeNode* switchStatement = insertNewNode2Parent("switchStatement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // switch
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, SWITCH, "parseSwitchStatement", "missing 'switch' keyword for a switch statement");
+    insertNewNode2Parent("switch", n->t, switchStatement);
+    
+    // '('
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '(', "parseSwitchStatement", "missing left parenthesis for a switch statement");
+    insertNewNode2Parent("bracket", n->t, switchStatement);
+      
+    // mandatory expression
+    parseExpression(switchStatement, table);
+
+    // ')'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, ')', "parseSwitchStatement", "missing right parenthesis for a switch statement");
+    insertNewNode2Parent("bracket", n->t, switchStatement);
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseSwitchStatement", "missing left brace to start a switch compound");
+    insertNewNode2Parent("bracket", n->t, switchStatement); 
+    
+    peeknext = peekNextNode(table);
+    while(isKey(CASE, peeknext) || isKey(DEFAULT, peeknext)){
+        if(isKey(CASE, peeknext)){
+            // case
+            n = nextNode(table);
+            insertNewNode2Parent("case", n->t, switchStatement); 
+        
+            parseExpression(switchStatement, table);
+        
+            // ':'
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, SYMBOL, ':', "parseSwitchStatement", "missing colon after case");
+            insertNewNode2Parent("bracket", n->t, switchStatement); 
+        
+            peeknext = peekNextNode(table);
+            while(isStatementStart(peeknext)){
+                parseStatement(switchStatement, table);
+                peeknext = peekNextNode(table);
+            }
+        }else if(isKey(DEFAULT, peeknext)){
+        // default
+            n = nextNode(table);
+            insertNewNode2Parent("default", n->t, switchStatement); 
+        
+            // ':'
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, SYMBOL, ':', "parseSwitchStatement", "missing colon after default");
+            insertNewNode2Parent("bracket", n->t, switchStatement); 
+        
+            peeknext = peekNextNode(table);
+            while(isStatementStart(peeknext)){
+                parseStatement(switchStatement, table);
+                peeknext = peekNextNode(table);
+            }
+        }
+        peeknext = peekNextNode(table);
+    }
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseSwitchStatement", "missing right brace to conclude a switch compound");
+    insertNewNode2Parent("bracket", n->t, switchStatement); 
+}
+
+void parseForStatement(treeNode* parent, tokenTable* table){
+    treeNode* forStatement = insertNewNode2Parent("forStatement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // for
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, FOR, "parseForStatement", "missing 'for' keyword for a for statement");
+    insertNewNode2Parent("for", n->t, forStatement);
+    
+    // '('
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '(', "parseForStatement", "missing left parenthesis for a for statement");
+    insertNewNode2Parent("bracket", n->t, forStatement);
+    
+    // optional assignment
+    peeknext = peekNextNode(table);
+    if(isPotentialAssignment(peeknext)){
+        parseAssignment(forStatement, table);
+    }
+    
+    // ';'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseForStatement", "missing semicolon");
+    insertNewNode2Parent("semicolon", n->t, forStatement);
+    
+    // optional expression
+    peeknext = peekNextNode(table);
+    if(isExpressionStart(peeknext)){
+        parseExpression(forStatement, table);
+    }
+    
+    // ';'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseForStatement", "missing semicolon");
+    insertNewNode2Parent("semicolon", n->t, forStatement);
+    
+    // optional expression or assignment
+    peeknext = peekNextNode(table);
+    if(isPotentialAssignment(peeknext)){
+        parseAssignment(forStatement, table);
+    }else if(isExpressionStart(peeknext)){
+        parseExpression(forStatement, table);
+    }
+    
+    // ')'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, ')', "parseForStatement", "missing right parenthesis for a for statement");
+    insertNewNode2Parent("bracket", n->t, forStatement);
+    
+    // end with a semicolon or a compound
+    peeknext = peekNextNode(table);
+    if(isSemicolon(peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("semicolon", n->t, forStatement);
+        return;
+    }
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseForStatement", "missing left brace to start a for compound");
+    insertNewNode2Parent("bracket", n->t, forStatement); 
+    
+    peeknext = peekNextNode(table);
+    while(isStatementStart(peeknext)){
+        parseStatement(forStatement, table);
+        peeknext = peekNextNode(table);
+    }
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseForStatement", "missing right brace to conclude a for compound");
+    insertNewNode2Parent("bracket", n->t, forStatement); 
+}
+
+void parseWhileStatement(treeNode* parent, tokenTable* table){
+    treeNode* whileStatement = insertNewNode2Parent("whileStatement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // while
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, WHILE, "parseWhileStatement", "missing 'while' keyword for a while statement");
+    insertNewNode2Parent("while", n->t, whileStatement);
+    
+    // '('
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '(', "parseWhileStatement", "missing left parenthesis for a while statement");
+    insertNewNode2Parent("bracket", n->t, whileStatement);
+      
+    // mandatory expression
+    parseExpression(whileStatement, table);
+
+    // ')'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, ')', "parseWhileStatement", "missing right parenthesis for a while statement");
+    insertNewNode2Parent("bracket", n->t, whileStatement);
+    
+    // end with a semicolon or a compound
+    peeknext = peekNextNode(table);
+    if(isSemicolon(peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("semicolon", n->t, whileStatement);
+        return;
+    }
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseWhileStatement", "missing left brace to start a while compound");
+    insertNewNode2Parent("bracket", n->t, whileStatement); 
+    
+    peeknext = peekNextNode(table);
+    while(isStatementStart(peeknext)){
+        parseStatement(whileStatement, table);
+        peeknext = peekNextNode(table);
+    }
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseWhileStatement", "missing right brace to conclude a while compound");
+    insertNewNode2Parent("bracket", n->t, whileStatement); 
+}
+
+void parseDoWhileStatement(treeNode* parent, tokenTable* table){
+    treeNode* doWhileStatement = insertNewNode2Parent("doWhileStatement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // do
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, DO, "parseDoWhileStatement", "missing 'do' keyword for a do-while statement");
+    insertNewNode2Parent("while", n->t, doWhileStatement);
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseDoWhileStatement", "missing left brace to start a do-while compound");
+    insertNewNode2Parent("bracket", n->t, doWhileStatement); 
+    
+    peeknext = peekNextNode(table);
+    while(isStatementStart(peeknext)){
+        parseStatement(doWhileStatement, table);
+        peeknext = peekNextNode(table);
+    }
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseDoWhileStatement", "missing right brace to conclude a do-while compound");
+    insertNewNode2Parent("bracket", n->t, doWhileStatement); 
+    
+    // while
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, WHILE, "parseDoWhileStatement", "missing 'while' keyword for a do-while statement");
+    insertNewNode2Parent("while", n->t, doWhileStatement);
+    
+    // '('
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '(', "parseDoWhileStatement", "missing left parenthesis for a do-while statement");
+    insertNewNode2Parent("bracket", n->t, doWhileStatement);
+      
+    // mandatory expression
+    parseExpression(doWhileStatement, table);
+
+    // ')'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, ')', "parseDoWhileStatement", "missing right parenthesis for a do-while statement");
+    insertNewNode2Parent("bracket", n->t, doWhileStatement);
+    
+    // must end with a semicolon
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseDoWhileStatement", "missing semicolon to conclude a do-while statement");
+    insertNewNode2Parent("semicolon", n->t, doWhileStatement);
+       
+}
+
+void parseReturnStatement(treeNode* parent, tokenTable* table){
+    treeNode* returnStatement = insertNewNode2Parent("returnStatement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // return
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, RETURN, "parseReturnStatement", "missing 'return' keyword for a return statement");
+    insertNewNode2Parent("return", n->t, returnStatement);
+    
+    // optional expression
+    peeknext = peekNextNode(table);
+    if(!isSemicolon(peeknext)){
+        parseExpression(returnStatement, table);
+    }
+    
+    // semicolon
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseReturnStatement", "missing semicolon to conclude a return statement");
+    insertNewNode2Parent("semicolon", n->t, returnStatement);
+    
+}
+
+void parseContinueStatement(treeNode* parent, tokenTable* table){
+    treeNode* continueStatement = insertNewNode2Parent("continueStatement", NULL, parent);
+    tokenNode* n;
+    
+    // continue
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, CONTINUE, "parseContinueStatement", "missing 'continue' keyword for a return statement");
+    insertNewNode2Parent("continue", n->t, continueStatement);
+    
+    // semicolon
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseReturnStatement", "missing semicolon to conclude a continue statement");
+    insertNewNode2Parent("semicolon", n->t, continueStatement);    
+}
+
+void parseBreakStatement(treeNode* parent, tokenTable* table){
+    treeNode* breakStatement = insertNewNode2Parent("breakStatement", NULL, parent);
+    tokenNode* n;
+    
+    // break
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, BREAK, "parseBreakStatement", "missing 'break' keyword for a return statement");
+    insertNewNode2Parent("break", n->t, breakStatement);
+    
+    // semicolon
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseBreakStatement", "missing semicolon to conclude a break statement");
+    insertNewNode2Parent("semicolon", n->t, breakStatement); 
+}
+
+void parseStaticStatement(treeNode* parent, tokenTable* table){
+    treeNode* staticStatement = insertNewNode2Parent("staticStatement", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // static
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, STATIC, "parseStaticStatement", "missing 'static' keyword for a return statement");
+    insertNewNode2Parent("static", n->t, staticStatement);
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseStaticStatement", "missing left brace to start a static statement");
+    insertNewNode2Parent("bracket", n->t, staticStatement); 
+    
+    peeknext = peekNextNode(table);
+    while(isStatementStart(peeknext)){
+        parseStatement(staticStatement, table);
+        peeknext = peekNextNode(table);
+    }
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseStaticStatement", "missing right brace to conclude a static statement");
+    insertNewNode2Parent("bracket", n->t, staticStatement); 
+}
+
+void parseCodeBlock(treeNode* parent, tokenTable* table){
+    treeNode* codeBlock = insertNewNode2Parent("codeBlock", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // '{'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '{', "parseCodeBlock", "missing left brace to start a code block");
+    insertNewNode2Parent("bracket", n->t, codeBlock); 
+    
+    peeknext = peekNextNode(table);
+    while(isStatementStart(peeknext)){
+        parseStatement(codeBlock, table);
+        peeknext = peekNextNode(table);
+    }
+    
+    // '}'
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "parseCodeBlock", "missing right brace to conclude a code block");
+    insertNewNode2Parent("bracket", n->t, codeBlock); 
+}
 
 
 

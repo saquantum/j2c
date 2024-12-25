@@ -289,10 +289,10 @@ bool isPotentialSubroutineCall(tokenNode* current){
 } 
 
 bool isStatementStart(tokenNode* current){
-    if(isSemicolon(current)){
+    if(isSemicolon(current) || isBracket('{', current)){
         return true;
     }
-    if(isKey(IF, current) || isKey(SWITCH, current) || isKey(FOR, current) || isKey(WHILE, current) || isKey(DO, current) || isKey(RETURN, current) || isKey(BREAK, current) || isKey(CONTINUE, current)){
+    if(isKey(IF, current) || isKey(SWITCH, current) || isKey(FOR, current) || isKey(WHILE, current) || isKey(DO, current) || isKey(RETURN, current) || isKey(BREAK, current) || isKey(CONTINUE, current) || isKey(STATIC, current)){
         return true;
     }
     if(isExpressionStart(current)){

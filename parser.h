@@ -64,6 +64,8 @@ void parseDoWhileStatement(treeNode* parent, tokenTable* table);
 void parseReturnStatement(treeNode* parent, tokenTable* table);
 void parseContinueStatement(treeNode* parent, tokenTable* table);
 void parseBreakStatement(treeNode* parent, tokenTable* table);
+void parseStaticStatement(treeNode* parent, tokenTable* table);
+void parseCodeBlock(treeNode* parent, tokenTable* table);
 
 /* parser helpers */
 

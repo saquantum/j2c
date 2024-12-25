@@ -168,8 +168,10 @@ subroutine call is merely calling a function.
 
 method declaration should include a `native` modifier for methods that are realized using lower level programming and tell the code generator to look for its source C code.
 
+if the subroutine does not have a return type or void, it's a constructor.
+
 ```
-<subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] ( <type> | 'void' ) <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
+<subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
 
 <parameterList> ::= [ <type> <identifier> { ',' <type> <identifier> }]
 
@@ -183,25 +185,30 @@ we will wait until semantics analysis to check if the expression are boolean or 
 for simplicity we don't allow compound statements without braces.
 
 ```
-<statement> ::= { <assignment> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | <breakStatement> | <continueStatement> | ';'}
+<statement> ::= { <assignment> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | <breakStatement> | <continueStatement> | <staticStatement> | <codeBlock> | ';'}
 
-<ifStatement> ::= 'if' '(' <expression> ')' '{' <statement> '}' { 'else' 'if' '(' <expression> ')' '{' <statement> '}' } [ 'else' '{' <statement> '}' ]
+<ifStatement> ::= 'if' '(' <expression> ')' '{' [<statement>] '}' { 'else' 'if' '(' <expression> ')' '{' [<statement>] '}' } [ 'else' '{' [<statement>] '}' ]
 
-<switchStatement> ::= 'switch' '(' <identifier> ')' '{' ( [<defaultBranch>] {<caseBranch>} | {<caseBranch>} [<defaultBranch>] {<caseBranch>} | {<caseBranch>} [<defaultBranch>] ) '}'
-<caseBranch> ::= 'case' <expression> ':' [<statement>] [<breakStatement>]
-<defaultBranch> ::= 'default' ':' <statement> [<breakStatement>]
+<switchStatement> ::= 'switch' '(' <expression> ')' '{' ( [<defaultBranch>] {<caseBranch>} | {<caseBranch>} [<defaultBranch>] {<caseBranch>} | {<caseBranch>} [<defaultBranch>] ) '}'
 
-<forStatement> ::= 'for' '(' <assignment> ';' <expression> ';' <assignment> ')' ( '{' [<statement>] '}' | ';' )
+<caseBranch> ::= 'case' <expression> ':' { <statement> }
+<defaultBranch> ::= 'default' ':' { <statement> }
 
-<whileStatement> ::= 'while' '(' <expression> ')' ( '{' [<statement>] '}' | ';' )
+<forStatement> ::= 'for' '(' [ <assignment> ] ';' [ <expression> ] ';' [ <assignment> | <expression> ] ')' ( '{' { <statement> } '}' | ';' )
 
-<doWhileStatement> ::= 'do' '{' <statement> '}' 'while' '(' <expression> ')' ';'
+<whileStatement> ::= 'while' '(' <expression> ')' ( '{' { <statement> } '}' | ';' )
 
-<returnStatement> ::= 'return' [<expression>] ';'
+<doWhileStatement> ::= 'do' '{' { <statement> } '}' 'while' '(' <expression> ')' ';'
+
+<returnStatement> ::= 'return' [ <expression> ] ';'
 
 <breakStatement> ::= 'break' ';'
 
-<continueStatement>::= 'continue' ';'
+<continueStatement> ::= 'continue' ';'
+
+<staticStatement> ::= 'static' '{' [ <statement> ] '}'
+
+<codeBlock> ::= '{' [ <statement> ] '}'
 ```
 
 #### class declaration and polymorphism
@@ -231,16 +238,22 @@ no package.
 
 #### advanced techniques
 
-method reference, lambda expressions, inner classes and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
+method reference, lambda expressions, inner classes, anonymous classes and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
+
+## Postprocessing
+
+in this process, we
+
+1. create virtual function table and function overload table for classes, variable symbol tables for classes methods and compounds. along with this process we should check the validity of variable and method definitions.
+
+2. combine field access with subroutine call to make sure chained accesses are handled.
+
+3. convert cst into ast to simplify semantics analysis.
+
+
+## Semantics
+
+
 
 #### reminders
-
-new expression needs modification.
-
-after parsing and before semantics:
-
-we need to create symbol tables at proper tree nodes.
-
-we need a second sweep of the cst to combine field access with subroutine call to make sure chained accesses are handled.
-
 
