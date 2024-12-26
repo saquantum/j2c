@@ -516,6 +516,78 @@ void printTreeNode(treeNode* n, int indent){
     }
 }
 
+void printLessCST(CST* cst){
+    if(!cst){
+        return;
+    }
+    printLessTreeNode(cst->root, 0);
+}
+
+void printLessTreeNode(treeNode* n, int indent){
+    bool flag = false;
+    if(!n){
+        return;
+    }
+    if(indent==0 || n->assoToken || n->childCount>1){
+        flag = true;
+    }
+    
+    if(flag){
+    for(int i=0; i<indent; i++){
+        printf(" ");
+    }
+    if(!n->assoToken){
+        printf("Rule = %s", n->ruleType);
+    }
+    else{
+        switch(n->assoToken->type){
+            case KEYWORD:
+                printf("TokenType = Keyword, TokenValue = %s%s%s", GRN, getKeyword(n->assoToken->data.key_val), NRM);
+                break;
+            case NUMBER:
+                printf("TokenType = Number, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                break;
+            case IDENTIFIER:
+                printf("TokenType = Identifier, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                break;
+            case OPERATOR:
+                printf("TokenType = Operator, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                break;
+            case STRING:
+                printf("TokenType = String, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                break;
+            case SYMBOL:
+                printf("TokenType = Symbol, TokenValue = %s%c%s", GRN, n->assoToken->data.char_val, NRM);
+                break;
+            case BRACKET:
+                printf("TokenType = Bracket, TokenValue = %s%c%s", GRN, n->assoToken->data.char_val, NRM);
+                break;
+            case SEMICOLON:
+                printf("TokenType = Semicolon, TokenValue = %s%c%s", GRN, n->assoToken->data.char_val, NRM);
+                break;
+        }
+    }
+    
+    if(n->parent){
+        printf(", ParentRule = %s", n->parent->ruleType);
+    }
+    if(n->childCount){
+        printf(", ChildRules: ");
+        for(int i=0; i<n->childCount; i++){
+            printf("%s, ", n->children[i]->ruleType);
+        }
+    }
+    printf("\n");
+    }
+    if(n->childCount){
+        for(int i=0; i<n->childCount; i++){
+            printLessTreeNode(n->children[i], indent+(flag?2:0)); 
+        }
+        
+    }
+}
+
+
 void freeCST(CST** cst){
     if(!cst || !(*cst)){
         return;

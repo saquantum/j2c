@@ -113,6 +113,8 @@ void insertChildNode(treeNode* n, treeNode* child);
 
 void printCST(CST* cst);
 void printTreeNode(treeNode* n, int indent);
+void printLessCST(CST* cst);
+void printLessTreeNode(treeNode* n, int indent);
 
 void freeCST(CST** cst);
 void freeTreeNode(treeNode* n);

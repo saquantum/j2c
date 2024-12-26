@@ -184,7 +184,7 @@ void unread(tokenTable* table){
 }
 
 tokenNode* peekNextNode(tokenTable* table){
-    if (!table || !table->current || !table->start){
+    if (!table || !table->start){
         return NULL;
     }
     return table->current;

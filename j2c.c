@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 
     CST* cst = parseTokenTable(argv[1], ttable);
     
-    printCST(cst);
+    printLessCST(cst);
     printf("--------------\n");
     
     printTokenTable(ttable);

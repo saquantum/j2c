@@ -7,3 +7,6 @@
 #include<ctype.h>
 #include<assert.h>
 
+#define NRM "\033[0m"
+#define GRN "\033[1;32m"
+
