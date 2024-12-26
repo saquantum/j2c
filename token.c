@@ -208,7 +208,7 @@ void combineSymbols(tokenTable* table){
     while(current && current->next){
         if(current->t->type==SYMBOL && current->next->t->type==SYMBOL){
             char combined[3] = {current->t->data.char_val, current->next->t->data.char_val, 0};
-            if(!strcmp(combined, "&&") || !strcmp(combined, "||") || !strcmp(combined, "==") || !strcmp(combined, "!=") || !strcmp(combined, "+=") || !strcmp(combined, "-=") || !strcmp(combined, "*=") || !strcmp(combined, "/=") ){
+            if(!strcmp(combined, "&&") || !strcmp(combined, "||") || !strcmp(combined, "==") || !strcmp(combined, "!=") || !strcmp(combined, "+=") || !strcmp(combined, "-=") || !strcmp(combined, "*=") || !strcmp(combined, "/=")  || !strcmp(combined, "++")  || !strcmp(combined, "--") ){
                 current->t->type = OPERATOR;
                 current->t->data.str_val = calloc(3,sizeof(char));
                 if(!current->t->data.str_val){

@@ -23,12 +23,17 @@ tokenTable* lexFile(FILE* f){
     bool in_number = false;
     // if we encounter a letter or underscore, turn in_id on. turn it off when reach anything else than letter, digit or underscore.
     bool in_id = false;
-    // if we encounter a // ,turn it on. turn it off when reach another // .
+    // if we encounter a // ,turn it on. turn it off when reach a newline .
     bool in_one_comment = false;
     // /* */
     bool in_multi_comment = false;
     
     while((c=fgetc(f))!=EOF){
+        if(c=='\n'){
+            printf("Debug: next token = newline\n");
+        }else{
+            printf("Debug: next token = %c\n", c);
+        }
         // at most one of the flags can be on.
         // if flags are all off:
         if(!in_string && !in_number && !in_id && !in_one_comment && !in_multi_comment){
@@ -48,9 +53,17 @@ tokenTable* lexFile(FILE* f){
                     in_one_comment = true;
                 }else if (next == '*'){
                     in_multi_comment = true;
+                    /*
+                    dont know why the newline after multi comment is skipped, but with a continue fixed this. poo. 
+                    */
+                    continue; 
                 }else{
-                    fprintf(stderr, "Error lexFile line %d: wrong usage of comment.\n", lineNumber);
+                    char tmp[2]={0};
+                    tmp[0]=c;
+                    //printf("Debug: symbol %c inserted into table.\n",c);
+                    writeToken(lexToken(tmp, lineNumber), ttable);
                 }
+                ungetc(next, f);
             }
             // we encounter a \", turn on in_string.
             else if(c=='\"'){
@@ -123,13 +136,13 @@ tokenTable* lexFile(FILE* f){
             }
         }
         else if(in_multi_comment){
-            if(c=='*'){
+            if(c=='\n'){
+                lineNumber++;
+            }else if(c=='*'){
                 char next = fgetc(f);
                 if(next == '/'){
                     in_multi_comment = false;
                 }
-            } else if(c=='\n'){
-                lineNumber++;
             }
         }
         

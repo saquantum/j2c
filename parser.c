@@ -12,9 +12,9 @@ CST* parseTokenTable(char* filename, tokenTable* table){
     }
     cst->root = createTreeNode(filename, NULL);
     
-    printf("Debug: in expressions only mode.\n");
+    printf("Debug: in statements only mode.\n");
     while(hasNext(table)){
-        parseExpression(cst->root, table);
+        parseStatement(cst->root, table);
     }
     return cst;
 }
@@ -325,7 +325,7 @@ void parseLogicalOrExpression(treeNode* parent, tokenTable* table){
     while(isOperator("||", peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, logicalOr);
-        
+        printf("Debug: logical operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
         parseLogicalAndExpression(logicalOr, table);
         
         peeknext = peekNextNode(table);
@@ -343,7 +343,7 @@ void parseLogicalAndExpression(treeNode* parent, tokenTable* table){
     while(isOperator("&&", peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, logicalAnd);
-        
+        printf("Debug: logical operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
         parseBitwiseOrExpression(logicalAnd, table);
         
         peeknext = peekNextNode(table);
@@ -361,7 +361,7 @@ void parseBitwiseOrExpression(treeNode* parent, tokenTable* table){
     while(isSymbol('|', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, bitwiseOr);
-        
+        printf("Debug: bitwise operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
         parseBitwiseXorExpression(bitwiseOr, table);
         
         peeknext = peekNextNode(table);
@@ -378,7 +378,7 @@ void parseBitwiseXorExpression(treeNode* parent, tokenTable* table){
     while(isSymbol('^', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, bitwiseXor);
-        
+        printf("Debug: bitwise operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
         parseBitwiseAndExpression(bitwiseXor, table);
         
         peeknext = peekNextNode(table);
@@ -395,7 +395,7 @@ void parseBitwiseAndExpression(treeNode* parent, tokenTable* table){
     while(isSymbol('&', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, bitwiseAnd);
-        
+        printf("Debug: bitwise operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
         parseEqualityExpression(bitwiseAnd, table);
         
         peeknext = peekNextNode(table);
@@ -413,7 +413,7 @@ void parseEqualityExpression(treeNode* parent, tokenTable* table){
     while(isOperator("==", peeknext) || isOperator("!=", peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, equality);
-        
+        printf("Debug: equality operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
         parseRelationalExpression(equality, table);
         
         peeknext = peekNextNode(table);
@@ -443,8 +443,8 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
     // If we reach here, it's not generics; process as relational operator
     peeknext = peekNextNode(table);
     if (isSymbol('<', peeknext) || isSymbol('>', peeknext)) {
-        tokenNode* peeknextnext = peeknext->next;
-        if (isSymbol('=', peeknext)) {
+        tokenNode* peeknextnext = peeknextnext = peeknext ? peeknext->next : NULL;
+        if (isSymbol('=', peeknextnext)) {
             // Combine '<=' or '>='
             char combined[3] = {peeknext->t->data.char_val, peeknextnext->t->data.char_val, 0};
             peeknext->t->type = OPERATOR;
@@ -469,11 +469,11 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
         //printf("Debug: finished combining symbols\n");
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, relational);
-        //printf("Debug: inserted combined operator\n");
-        //printf("--------------\n");
-        //printTokenTable(table);
-        //printf("--------------\n");
-        //printCurrentToken(peekNextNode(table));
+        if (isSymbol('<', n) || isSymbol('>', n)) {
+            printf("Debug: relational operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
+        }else{
+            printf("Debug: relational operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
+        }
         parseShiftExpression(relational, table);
     }        
     else if (isKey(INSTANCEOF, peeknext)) {
@@ -518,6 +518,12 @@ void parseShiftExpression(treeNode* parent, tokenTable* table){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, shift);
         
+        if (isSymbol('<', n) || isSymbol('>', n)) {
+            printf("Debug: shift operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
+        }else{
+            printf("Debug: shift operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
+        }
+        
         parseAdditiveExpression(shift, table);
         
         peeknext = peekNextNode(table);
@@ -536,7 +542,7 @@ void parseAdditiveExpression(treeNode* parent, tokenTable* table){
     while(isSymbol('+', peeknext) || isSymbol('-', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, additive);
-        
+        printf("Debug: additive operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
         parseMultiplicativeExpression(additive, table);
         
         peeknext = peekNextNode(table);
@@ -554,7 +560,7 @@ void parseMultiplicativeExpression(treeNode* parent, tokenTable* table){
     while(isSymbol('*', peeknext) || isSymbol('/', peeknext) || isSymbol('%', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, multiplicative);
-        
+        printf("Debug: multiplicative operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
         parseCastExpression(multiplicative, table);
         
         peeknext = peekNextNode(table);
@@ -590,7 +596,7 @@ void parseUnaryExpression(treeNode* parent, tokenTable* table){
     if(isSymbol('!', peeknext) || isSymbol('-', peeknext) || isSymbol('~', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, unary);
-        
+        printf("Debug: unary operator %c at line %d\n", n->t->data.char_val, n->t->lineNumber);
         parseUnaryExpression(unary, table);
 
         return;
@@ -598,7 +604,7 @@ void parseUnaryExpression(treeNode* parent, tokenTable* table){
     else if(isOperator("++", peeknext) || isOperator("--", peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, unary);
-        
+        printf("Debug: prefix operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
         parseTerm(unary, table);
 
         return;
@@ -619,6 +625,7 @@ void parsePostfixExpression(treeNode* parent, tokenTable* table){
     if(isOperator("++", peeknext) || isOperator("--", peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("operator", n->t, postfix);
+        printf("Debug: postfix operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
     }
 }
 
@@ -1012,9 +1019,11 @@ void parseStatement(treeNode* parent, tokenTable* table){
         checkCharValueNodeExpected(n, SEMICOLON, ';', "parseStatement", "missing semicolon to conclude an assignment");
         insertNewNode2Parent("semicolon", n->t, statement);
     }else if(isExpressionStart(peeknext)){
+        printf("Debug: parse expression at line %d\n", peeknext->t->lineNumber);
         parseExpression(statement, table);
         n = nextNode(table);
         checkCharValueNodeExpected(n, SEMICOLON, ';', "parseStatement", "missing semicolon to conclude an expression");
+        insertNewNode2Parent("semicolon", n->t, statement);
     }else{
         fprintf(stderr, "Error parseStatement line %d: invalid statement\n", peeknext->t->lineNumber);
         exit(1);

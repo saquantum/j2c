@@ -17,8 +17,8 @@ int main(int argc, char** argv){
     printLessCST(cst);
     printf("--------------\n");
     
-    printTokenTable(ttable);
-    printf("--------------\n");
+    //printTokenTable(ttable);
+    //printf("--------------\n");
     
     
     fclose(input);
