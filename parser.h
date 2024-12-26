@@ -112,7 +112,7 @@ treeNode* createTreeNode(char* rule, token* t);
 void insertChildNode(treeNode* n, treeNode* child);
 
 void printCST(CST* cst);
-void printTreeNode(treeNode* n);
+void printTreeNode(treeNode* n, int indent);
 
 void freeCST(CST** cst);
 void freeTreeNode(treeNode* n);

@@ -457,12 +457,15 @@ void printCST(CST* cst){
     if(!cst){
         return;
     }
-    printTreeNode(cst->root);
+    printTreeNode(cst->root, 0);
 }
 
-void printTreeNode(treeNode* n){
+void printTreeNode(treeNode* n, int indent){
     if(!n){
         return;
+    }
+    for(int i=0; i<indent; i++){
+        printf(" ");
     }
     if(!n->assoToken){
         printf("Rule = %s", n->ruleType);
@@ -507,7 +510,7 @@ void printTreeNode(treeNode* n){
     printf(".\n");
     if(n->childCount){
         for(int i=0; i<n->childCount; i++){
-            printTreeNode(n->children[i]); 
+            printTreeNode(n->children[i], indent+2); 
         }
         
     }

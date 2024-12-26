@@ -34,7 +34,8 @@ void parseTerm(treeNode* parent, tokenTable* table){
     
     peeknext = peekNextNode(table);
 
-    // use while loop to accomplish chaining accessing: obj.method1().field1.field2[2].method2()
+    // use while loop to accomplish chained access: 
+    // obj.method1().field1.field2[2].method2()
     while(peeknext){
         if(isSymbol('.', peeknext)){
             parseFieldAccess(term, table);
@@ -158,9 +159,15 @@ void parseArrayInitialization(treeNode* parent, tokenTable* table){
 
 void parseBaseTerm(treeNode* parent, tokenTable* table){
     tokenNode* n;
-    tokenNode* peeknext = nextNode(table);
+    tokenNode* peeknext;
+    
+    if(!parent){
+        fprintf(stderr, "Error parseBaseTerm: null parent node for a base term.\n");
+        exit(1);
+    }
+    peeknext = nextNode(table);
     if(!peeknext){
-        fprintf(stderr, "Error parseBaseTerm: unexpected end of tokens .\n");
+        fprintf(stderr, "Error parseBaseTerm: unexpected end of tokens.\n");
         exit(1);
     }
     // four terminal cases: true, false, null, this
@@ -180,7 +187,9 @@ void parseBaseTerm(treeNode* parent, tokenTable* table){
     }
     // token is a variable 
     else if(isIdentifier(peeknext)){
+        printf("%p\n", (void*)peeknext);
         n = nextNode(table);
+        printf("%p\n", (void*)n);
         insertNewNode2Parent("identifier", n->t, parent);
     }
     // term is an expression within a round bracket
