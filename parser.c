@@ -777,6 +777,8 @@ void parseAssignment(treeNode* parent, tokenTable* table){
     treeNode* assignment = insertNewNode2Parent("assignment", NULL, parent);
     tokenNode* n;
     
+    printf("Debug: assignment at line %d\n", peekNextNode(table)->t->lineNumber);
+    
     // a lvalue (term)
     parseTerm(assignment, table);
     
@@ -858,6 +860,8 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
     tokenNode* n;
     tokenNode* peeknext;
     
+    printf("Debug: subroutine declaration start at line %d\n", peekNextNode(table)->t->lineNumber);
+    
     // optional access modifier
     peeknext = peekNextNode(table);
     if(isKey(PUBLIC, peeknext) || isKey(PRIVATE, peeknext)){
@@ -922,8 +926,10 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
     
     // mandatory right brace
     n = nextNode(table);
+    printf("!!!!!Debug: subroutine declaration end at line %d\n", n->t->lineNumber);
     checkCharValueNodeExpected(n, BRACKET, '}', "parseSubroutineDeclaration", "missing right brace to conclude the method body");
     insertNewNode2Parent("bracket", n->t, subroutineDeclaration);
+    
     
 }
 
@@ -972,13 +978,17 @@ void parseSubroutineBody(treeNode* parent, tokenTable* table){
     peeknext = peekNextNode(table);
     while(!isBracket('}', peeknext)){
         if(isVariableDeclarationStart(peeknext)){
+            printf("Debug: variable declaration in subroutine body at line %d\n", peeknext->t->lineNumber);
             parseVariableDeclaration(subroutineBody, table);
             // a semicolon
             n = nextNode(table);
             checkCharValueNodeExpected(n, SEMICOLON, ';', "parseSubroutineBody", "missing semicolon to conclude a variable declaration");
-        insertNewNode2Parent("identifier", n->t, subroutineBody);
+            insertNewNode2Parent("identifier", n->t, subroutineBody);
+            peeknext = peekNextNode(table);
         }else if(isStatementStart(peeknext)){
+            printf("Debug: statement in subroutine body at line %d\n", peeknext->t->lineNumber);
             parseStatement(subroutineBody, table);
+            peeknext = peekNextNode(table);
         }else{
             fprintf(stderr, "Error parseSubroutineBody line %d: unknow contents inside method body\n", peeknext->t->lineNumber);
             exit(1);
