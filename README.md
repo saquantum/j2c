@@ -1,5 +1,14 @@
 # Bootstrap C into basic Java
 
+how to use this program:
+
+```
+
+$ make
+$ ./t INPUTFILE OUTPUTFILE
+
+```
+
 ## Lexing
 
 keywords: 
