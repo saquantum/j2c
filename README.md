@@ -66,8 +66,10 @@ we have three accessibility: public > default > private.
 
 #### assignment
 
+the `<term>` in `<assignment>` must be a valid left value.
+
 ```
-<assignment> ::= <identifier> [ '[' <expression> ']' ] <assignmentOperator> <expression>
+<assignment> ::= <term> <assignmentOperator> <expression>
 
 <assignmentOperator> ::= '=' | '+=' | '-=' | '*=' | '/='
 ```

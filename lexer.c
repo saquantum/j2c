@@ -360,7 +360,7 @@ bool isValidChar(char* str){
             return true;
         }
     }
-    if(len==5){
+    if(len==6){
         if(str[2]!='x'){
             return false;
         }

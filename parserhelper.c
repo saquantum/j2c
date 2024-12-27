@@ -144,34 +144,19 @@ bool isPotentialGenerics(tokenNode* current){
 }
 
 bool isPotentialAssignment(tokenNode* current){
-    // <assignment> ::= <identifier> [ '[' <expression> ']' ] <assignmentOperator> <expression>
-
-    if(isIdentifier(current)){
-        current = current->next;
-    }else{
-        return false;
-    }
-    
-    if(isBracket('[', current)){
-        current = current->next;
-        int depth = 1;
-        while(depth>0){
-            if(isBracket('[', current)){
-                depth++;
-            }else if(isBracket(']', current)){
-                depth--;
-            }else if(isSemicolon(current)){
-                return false;
-            }else if(!current){
-                return false;
-            }
-            current = current->next;
+    // <assignment> ::= <lvalue> <assignmentOperator> <expression>
+    while(!isSemicolon(current)){
+        if(isOperator("+=", current) || isOperator("-=", current) || isOperator("*=", current) || isOperator("/=", current)){
+            return true;
         }
+        if((isSymbol('=', current))){
+            if(!isSymbol('<', current->prev) && !isSymbol('>', current->prev)){
+                return true;
+            }
+        }
+        current = current->next; 
     }
     
-    if((isSymbol('=', current) || isOperator("+=", current) || isOperator("-=", current) || isOperator("*=", current) || isOperator("/=", current))){
-        return true;
-    }
     return false;
 }
 

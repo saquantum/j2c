@@ -773,27 +773,11 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
 void parseAssignment(treeNode* parent, tokenTable* table){
     treeNode* assignment = insertNewNode2Parent("assignment", NULL, parent);
     tokenNode* n;
-    tokenNode* peeknext;
     
-    // a mandatory identifier for the variable
-    n = nextNode(table);
-    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseAssignment", "missing starting identifier for an assignment");
-    insertNewNode2Parent("identifier", n->t, assignment); 
+    // a lvalue (term)
+    parseTerm(assignment, table);
     
-    // an optional array access
-    peeknext = peekNextNode(table);
-    if(isBracket('[', peeknext)){
-        n = nextNode(table);
-        insertNewNode2Parent("bracket", n->t, assignment); 
-        
-        parseExpression(assignment, table);
-        
-        n = nextNode(table);
-        checkCharValueNodeExpected(n, BRACKET, ']', "parseAssignment", "missing right square bracket to conclude array access");
-        insertNewNode2Parent("bracket", n->t, assignment); 
-    }
-    
-    // a mandatory assignment operator
+    // mandatory assignment operator
     n = nextNode(table);
     if(!(isSymbol('=', n) || isOperator("+=", n) || isOperator("-=", n) || isOperator("*=", n) || isOperator("/=", n))){
         fprintf(stderr, "Error parseAssignment line %d: missing assignment operator\n", n->t->lineNumber);

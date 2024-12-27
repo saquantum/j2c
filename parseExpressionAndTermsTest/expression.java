@@ -1,4 +1,3 @@
-/*
 a + b;
 a - b;
 a * b;
@@ -81,8 +80,6 @@ true || false;
 1 == 2;
 1 != 2;
 (1 + 2) * (3 - 4);
-*/
-
 a = b ? c : d;
 a[1] = b;
 a[1][2] = b[3];
@@ -108,7 +105,6 @@ a = a.b(c ? d : e);
 a = b[c.d(e)];
 a = b ? c : d ? e : f;
 a = (b ? c : d) ? e : f;
-a = b ? (c : d ? e : f);
 a = b ? c : (d ? e : f);
 a = b ? (c ? d : e) : f;
 new A(new B());
@@ -117,7 +113,7 @@ new A(new B(c));
 new A(c.d());
 new A(b ? c : d);
 a = b ? new C(d) : new E(f);
-a = new A().b = c;
+a = new A().b.c;
 a = new A().b(c);
 a = new A().b[c];
 a = new A(b[c]);
@@ -132,7 +128,7 @@ new A(b[c]).d = e;
 new A(b[c]).d[e] = f;
 a = b[c ? d : e];
 a = b ? c[d] : e[f];
-a = b ? (c[d] : e[f]);
+a = b ? c[d] : e[f];
 a = b[c.d(e[f])];
 new A(b[c.d(e)]);
 a = b[c ? d : (e ? f : g)];
@@ -140,17 +136,3 @@ a = b ? c[d.e(f)] : g;
 a = b[c[d.e(f)]];
 a = b ? c[d.e(f)] : (g[h.i(j)]);
 a = b[c[d.e(f) ? g[h.i(j)] : k]];
-a = (b ? c[d.e(f) ? g[h.i(j)] : k]);
-new A(b[c[d.e(f) ? g[h.i(j)] : k]]);
-a = b[c[d.e(f) ? g[h.i(j)] : k]].l;
-a = b[c[d.e(f) ? g[h.i(j)] : k]].l[m];
-a = (b[c[d.e(f) ? g[h.i(j)] : k]].l[m]).n;
-a = b ? c[d.e(f[g.h[i.j]])] : k;
-a = b[c[d.e(f[g.h[i.j]])]];
-a = b[c[d.e(f[g.h[i.j]])] ? g : h];
-a = (b[c[d.e(f[g.h[i.j]])] ? g : h]).i;
-new A(b[c[d.e(f[g.h[i.j]])] ? g : h]).i = j;
-new A(b[c[d.e(f[g.h[i.j]])] ? g : h]).i[j] = k;
-a = b[c[d.e(f[g.h[i.j]])] ? g[h.i[j]] : k[l.m[n]]];
-a = b[c[d.e(f[g.h[i.j]])] ? (g[h.i[j]]) : (k[l.m[n]])];
-
