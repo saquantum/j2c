@@ -207,8 +207,12 @@ bool isVariableDeclarationStart(tokenNode* current){
     }
     
     if(isIdentifier(current)){
+        current = current->next;
+    }
+    if(!isBracket('(', current)){
         return true;
     }
+    
     return false;
 }
 
@@ -344,6 +348,19 @@ bool isSubroutineDeclarationStart(tokenNode* current){
     
     if(isKey(VOID, current)){
         return true;
+    }
+    
+    if(isSymbol('<', current)){
+        int depth = 1;
+        current = current->next;
+        while(depth>0){
+            if(isSymbol('<', current)){
+                depth++;
+            }else if(isSymbol('>', current)){
+                depth--;
+            }
+            current = current->next;
+        }
     }
     
     return isPotentialType(current);

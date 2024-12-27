@@ -874,6 +874,7 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
     while(isKey(STATIC, peeknext) || isKey(FINAL, peeknext) || isKey(ABSTRACT, peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("nonAccessModifier", n->t, subroutineDeclaration);
+        peeknext = peekNextNode(table);
     }
     
     // optional native
@@ -883,7 +884,13 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
         insertNewNode2Parent("native", n->t, subroutineDeclaration); 
     }
     
-    // if next token is identifier and next next token is '(', its a constructor
+    // optional type bounds
+    peeknext = peekNextNode(table);
+    if(isSymbol('<', peeknext)){
+        parseTypeBoundList(subroutineDeclaration, table);
+    }
+    
+    // if next token is identifier and next next token is '(', it can only be constructor
     peeknext = peekNextNode(table);
     if(!(isIdentifier(peeknext) && isBracket('(', peeknext->next))){
     
@@ -948,6 +955,18 @@ void parseParameterList(treeNode* parent, tokenTable* table){
     // a mandatory type
     parseType(parameterList, table);
     
+    // optional array square brackets
+    peeknext = peekNextNode(table);
+    while(isBracket('[', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("bracket", n->t, parameterList);
+        
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, BRACKET, ']', "parseParameterList", "missing right square bracket for the formal array");
+        insertNewNode2Parent("bracket", n->t, parameterList);
+        peeknext = peekNextNode(table);
+    }
+    
     // an identifier
     n = nextNode(table);
     checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseParameterList", "missing identifier for the argument");
@@ -968,6 +987,73 @@ void parseParameterList(treeNode* parent, tokenTable* table){
         peeknext = peekNextNode(table);
     }
     
+}
+
+void parseTypeBoundList(treeNode* parent, tokenTable* table){
+    treeNode* typeBoundList = insertNewNode2Parent("typeBoundList", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SYMBOL, '<', "parseTypeBoundList", "missing left angle to start the parameter bound list");
+    insertNewNode2Parent("langle", n->t, typeBoundList);
+    
+    parseTypeBound(typeBoundList, table);
+    
+    peeknext = peekNextNode(table);
+    while(isSymbol(',', peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("comma", n->t, typeBoundList);
+        
+        parseTypeBound(typeBoundList, table);
+        
+        peeknext = peekNextNode(table);
+    }
+    
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SYMBOL, '>', "parseTypeBoundList", "missing right angle to conclude the parameter bound list");
+    insertNewNode2Parent("rangle", n->t, typeBoundList);
+}
+
+void parseTypeBound(treeNode* parent, tokenTable* table){
+    treeNode* typeBound = insertNewNode2Parent("typeBound", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseTypeBound", "missing identifier for the type to be bounded");
+    insertNewNode2Parent("identifier", n->t, typeBound);
+    
+    // optional boundedness
+    peeknext = peekNextNode(table);
+    if(isKey(EXTENDS, peeknext)){
+        parseConstraint(typeBound, table);
+    }
+}
+
+void parseConstraint(treeNode* parent, tokenTable* table){
+    treeNode* constraint = insertNewNode2Parent("constraint", NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+    
+    // extends one class or interface
+    n = nextNode(table);
+    checkKeyValueNodeExpected(n, KEYWORD, EXTENDS, "parseConstraint", "missing extends keyword for a constraint");
+    insertNewNode2Parent("extends", n->t, constraint);
+    
+    parseType(constraint, table);
+    
+    // optionally extends some more interfaces
+    peeknext = peekNextNode(table);
+    while(isSymbol('&', peeknext)){
+    
+        n = nextNode(table);
+        insertNewNode2Parent("and", n->t, constraint);
+        
+        parseType(constraint, table);
+        
+        peeknext = peekNextNode(table);
+    }
 }
 
 void parseSubroutineBody(treeNode* parent, tokenTable* table){

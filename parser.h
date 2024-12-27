@@ -53,6 +53,9 @@ void parseAssignment(treeNode* parent, tokenTable* table);
 void parseVariableDeclaration(treeNode* parent, tokenTable* table);
 void parseSubroutineDeclaration(treeNode* parent, tokenTable* table);
 void parseParameterList(treeNode* parent, tokenTable* table);
+void parseTypeBoundList(treeNode* parent, tokenTable* table);
+void parseTypeBound(treeNode* parent, tokenTable* table);
+void parseConstraint(treeNode* parent, tokenTable* table);
 void parseSubroutineBody(treeNode* parent, tokenTable* table);
 
 void parseStatement(treeNode* parent, tokenTable* table);

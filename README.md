@@ -175,9 +175,13 @@ method declaration should include a `native` modifier for methods that are reali
 if the subroutine does not have a return type or void, it's a constructor.
 
 ```
-<subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
+<subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
 
-<parameterList> ::= [ <type> <identifier> { ',' <type> <identifier> }]
+<parameterList> ::= [ <type> [ '[' ']' ] <identifier> { ',' <type> [ '[' ']' ] <identifier> }]
+
+<typeBoundsList> ::= '<' <typeBound> {',' <typeBound>} '>'
+<typeBound> ::= <identifier> [ <constraint> ]
+<constraint> ::= 'extends' <type> {'&' <type>}
 
 <subroutineBody> ::= [ { ( <variableDeclaration> ';' ) | <statement> } ]
 ```
@@ -244,7 +248,7 @@ our import goes like `import home.kj24716.j2c.testfolder.*`. this will import al
 
 #### advanced techniques
 
-method reference, lambda expressions and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
+method reference, enhanced for, lambda expressions, varargs and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
 
 ## Postprocessing
 
