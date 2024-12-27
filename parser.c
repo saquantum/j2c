@@ -12,9 +12,9 @@ CST* parseTokenTable(char* filename, tokenTable* table){
     }
     cst->root = createTreeNode(filename, NULL);
     
-    printf("Debug: in statements only mode.\n");
+    //printf("Debug: in statements only mode.\n");
     while(hasNext(table)){
-        parseStatement(cst->root, table);
+        parseFile(cst->root, table);
     }
     return cst;
 }
@@ -657,8 +657,9 @@ void parseType(treeNode* parent, tokenTable* table){
         
         return;
     }
-    
+    printf("Debug: the type is a reference type.\n");
     parseReferenceType(type, table);
+    printf("Debug: end reference type.\n");
     
 }
 
@@ -672,6 +673,8 @@ void parseReferenceType(treeNode* parent, tokenTable* table){
         fprintf(stderr, "Error parseReferenceType: unexpected end of tokens\n");
         exit(1);
     }
+    printf("Debug: next token in reference type:\n");
+    printCurrentToken(n);
     checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseReferenceType", "missing identifier for reference type");
     insertNewNode2Parent("identifier", n->t, reference);
     
@@ -1652,14 +1655,20 @@ void parseInterfaceDeclaration(treeNode* parent, tokenTable* table){
 
 void parseClassBody(treeNode* parent, tokenTable* table){
     treeNode* classbody = insertNewNode2Parent("classBody", NULL, parent);
+    tokenNode* n;
     tokenNode* peeknext;
     
     peeknext = peekNextNode(table);
-    while(isBracket('}', peeknext)){
+    while(!isBracket('}', peeknext)){
         if(isVariableDeclarationStart(peeknext)){
+            printf("Debug: variable declaration at line %d\n", peeknext->t->lineNumber);
             parseVariableDeclaration(classbody, table);
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, SEMICOLON, ';', "parseClassBody", "missing semicolon to conclude a variable declaration");
+            insertNewNode2Parent("semicolon", n->t, classbody);
         }
         else if(isSubroutineDeclarationStart(peeknext)){
+            printf("Debug: subroutine declaration at line %d\n", peeknext->t->lineNumber);
             parseSubroutineDeclaration(classbody, table);
         }
         else{
@@ -1672,7 +1681,12 @@ void parseClassBody(treeNode* parent, tokenTable* table){
 
 void parseInterfaceBody(treeNode* parent, tokenTable* table){
     treeNode* interbody = insertNewNode2Parent("interfaceBody", NULL, parent);
-    parseSubroutineDeclaration(interbody, table);
+    tokenNode* peeknext;
+    
+    peeknext = peekNextNode(table);
+    while(!isBracket('}', peeknext)){
+        parseSubroutineDeclaration(interbody, table);
+    }
 }
 
 void parseFile(treeNode* parent, tokenTable* table){

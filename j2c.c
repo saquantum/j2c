@@ -8,7 +8,6 @@ int main(int argc, char** argv){
     tokenTable* ttable = lexFile(input);
     combineSymbols(ttable);
     
-    printf("Debug: the token table before parsing.\n");
     printTokenTable(ttable);
     printf("--------------\n");
 
@@ -16,9 +15,6 @@ int main(int argc, char** argv){
     
     printLessCST(cst);
     printf("--------------\n");
-    
-    //printTokenTable(ttable);
-    //printf("--------------\n");
     
     
     fclose(input);
