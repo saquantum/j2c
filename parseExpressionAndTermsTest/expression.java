@@ -17,14 +17,12 @@ a == b;
 a != b;
 a && b;
 a || b;
-*/
 !a;
 ~a;
 a++;
 a--;
 ++a;
 --a;
-/*
 a ? b : c;
 (a + b);
 a = b;
@@ -83,6 +81,8 @@ true || false;
 1 == 2;
 1 != 2;
 (1 + 2) * (3 - 4);
+*/
+
 a = b ? c : d;
 a[1] = b;
 a[1][2] = b[3];
@@ -153,4 +153,4 @@ new A(b[c[d.e(f[g.h[i.j]])] ? g : h]).i = j;
 new A(b[c[d.e(f[g.h[i.j]])] ? g : h]).i[j] = k;
 a = b[c[d.e(f[g.h[i.j]])] ? g[h.i[j]] : k[l.m[n]]];
 a = b[c[d.e(f[g.h[i.j]])] ? (g[h.i[j]]) : (k[l.m[n]])];
-*/
+

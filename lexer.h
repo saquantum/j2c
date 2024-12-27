@@ -12,6 +12,8 @@ tokenTable* lexFile(FILE* f);
 
 token* lexToken(char* str, int lineNumber);
 
+bool isValidChar(char* str);
+
 hll* createHLL();
 
 void insert2HLL(char c, hll* h);

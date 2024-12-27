@@ -29,11 +29,7 @@ tokenTable* lexFile(FILE* f){
     bool in_multi_comment = false;
     
     while((c=fgetc(f))!=EOF){
-        if(c=='\n'){
-            printf("Debug: next token = newline\n");
-        }else{
-            printf("Debug: next token = %c\n", c);
-        }
+        
         // at most one of the flags can be on.
         // if flags are all off:
         if(!in_string && !in_number && !in_id && !in_one_comment && !in_multi_comment){
@@ -46,6 +42,22 @@ tokenTable* lexFile(FILE* f){
             else if(isspace(c)){
                 continue;
             }
+            // we encounter a '\'', its should be a character.
+            else if(c=='\''){
+                char tmp[7]={0};
+                tmp[0]=c;
+                int idx = 1;
+                while(idx<7 && (c=fgetc(f))!=EOF && c!='\''){
+                    tmp[idx]=c;
+                    idx++;
+                }
+                if(c=='\''){
+                    tmp[idx]=c;
+                }else{
+                    ungetc(c, f);
+                }
+                writeToken(lexToken(tmp, lineNumber), ttable);
+            }
             // we encounter a '/', first check if it has a next '/' or '*'. if no, throws error.
             else if(c=='/'){
                 char next = fgetc(f);
@@ -53,10 +65,6 @@ tokenTable* lexFile(FILE* f){
                     in_one_comment = true;
                 }else if (next == '*'){
                     in_multi_comment = true;
-                    /*
-                    dont know why the newline after multi comment is skipped, but with a continue fixed this. poo. 
-                    */
-                    continue; 
                 }else{
                     char tmp[2]={0};
                     tmp[0]=c;
@@ -142,6 +150,8 @@ tokenTable* lexFile(FILE* f){
                 char next = fgetc(f);
                 if(next == '/'){
                     in_multi_comment = false;
+                }else{
+                    ungetc(next, f);
                 }
             }
         }
@@ -230,6 +240,7 @@ token* lexToken(char* str, int lineNumber){
     t->lineNumber = lineNumber;
     int len = strlen(str);
     
+    // symbol, bracket, semicolon:
     if(len == 1){
         if(str[0]=='+' || str[0]=='-' || str[0]=='*' || str[0]=='/' || str[0]=='%' || str[0]=='?' || str[0]==':' || str[0]=='|' || str[0]=='&' || str[0]=='!' || str[0]=='~' || str[0]=='^' || str[0]=='>' || str[0]=='<' || str[0]=='=' || str[0]=='@' || str[0]=='.' || str[0]=='\'' || str[0]==','){
             t->type = SYMBOL;
@@ -248,6 +259,7 @@ token* lexToken(char* str, int lineNumber){
         }
     }
     
+    // keyword:
     int KEY = isKeyword(str);
     if(KEY>=0){
             t->type = KEYWORD;
@@ -255,7 +267,19 @@ token* lexToken(char* str, int lineNumber){
             return t;
     }
     
+    // character:
+    if(str[0]=='\'' && str[len-1]=='\''){
+        if(!isValidChar(str)){
+            fprintf(stderr, "Error lexToken line %d: invalid character %s", t->lineNumber, str);
+            exit(1);
+        }
+        t->type = CHARACTER;
+        t->data.str_val = calloc(len+1, sizeof(char));
+        strcpy(t->data.str_val, str);
+        return t;
+    }
     
+    // number:
     if((len>=1 && isdigit(str[0])) || (len>1 && (str[0]=='-' || str[0]=='.'))){
         // this might be a number, need further verification:
         int countdot=0;
@@ -283,6 +307,7 @@ token* lexToken(char* str, int lineNumber){
         }
     }
     
+    // string:
     if(str[0]=='\"' && str[len-1]=='\"'){
         t->type = STRING;
         t->data.str_val = calloc(len+1, sizeof(char));
@@ -290,6 +315,7 @@ token* lexToken(char* str, int lineNumber){
         return t;
     }
     
+    // identifier:
     // an identifier cannot start with a digit.
     if(isdigit(str[0])){
         fprintf(stderr, "Error lexToken line %d: identifier %s cannnot start with a digit.\n", lineNumber, str);
@@ -309,11 +335,43 @@ token* lexToken(char* str, int lineNumber){
         return t;
     }
     
-    
-    
     // deal with unknown token.
     fprintf(stderr, "Error lexToken line %d: unknown identifier %s.\n", lineNumber, str);
     exit(1);
+}
+
+bool isValidChar(char* str){
+    int len = strlen(str);
+    if(!(len==3 || len==4 || len==6)){
+        return false;
+    }
+    if(!(str[0]=='\'' && str[len-1]=='\'')){
+        return false;
+    }
+    
+    if(len==3){
+        return isprint(str[1]);
+    }
+    if(len==4){
+        if(str[1]!='\\'){
+            return false;
+        }
+        if(str[2]=='n' || str[2]=='r' || str[2]=='v' || str[2]=='t' || str[2]=='f' || str[2]=='0'){
+            return true;
+        }
+    }
+    if(len==5){
+        if(str[2]!='x'){
+            return false;
+        }
+        if(!(isxdigit(str[3]) && isxdigit(str[4]))){
+            return false;
+        }
+        if('0'<=str[3] && str[3]<='7'){
+            return true;
+        }
+    }
+    return false;
 }
 
 hll* createHLL(){

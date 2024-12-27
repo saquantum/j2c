@@ -48,7 +48,7 @@ token* createToken(){
 }
 
 void freeToken(token* t){
-    if(t->type == IDENTIFIER || t->type == STRING || t->type == NUMBER || t->type == OPERATOR){
+    if(t->type == IDENTIFIER || t->type == STRING || t->type == NUMBER || t->type == CHARACTER || t->type == OPERATOR){
         free(t->data.str_val);
     }
     free(t);
@@ -72,6 +72,9 @@ void printTokenTable(tokenTable* table){
                 break;
             case NUMBER:
                 printf("TokenType = Number, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
+                break;
+            case CHARACTER:
+                printf("TokenType = Character, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
                 break;
             case IDENTIFIER:
                 printf("TokenType = Identifier, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
@@ -109,6 +112,9 @@ void printCurrentToken(tokenNode* n){
                 break;
             case NUMBER:
                 printf("TokenType = Number, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
+                break;
+            case CHARACTER:
+                printf("TokenType = Character, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);
                 break;
             case IDENTIFIER:
                 printf("TokenType = Identifier, TokenValue = %s, lineNumber = %d\n", n->t->data.str_val, n->t->lineNumber);

@@ -18,6 +18,9 @@ bool isBracket(char c, tokenNode* n){
 bool isNumber(tokenNode* n){
     return n && n->t->type==NUMBER;
 }
+bool isCharacter(tokenNode* n){
+    return n && n->t->type==CHARACTER;
+}
 bool isString(tokenNode* n){
     return n && n->t->type==STRING;
 }
@@ -32,13 +35,20 @@ bool isExpressionStart(tokenNode* current){
     return current->t->type==NUMBER || current->t->type==STRING || current->t->type==IDENTIFIER ||
             (current->t->type==KEYWORD && (
             current->t->data.key_val==BOOL_TRUE || current->t->data.key_val==BOOL_FALSE ||
-            current->t->data.key_val==NULLER || current->t->data.key_val==THIS
+            current->t->data.key_val==NULLER || current->t->data.key_val==THIS ||
+            current->t->data.key_val==NEW
             ) ) ||
             (current->t->type==SYMBOL && (
             current->t->data.char_val=='!' || current->t->data.char_val=='-' ||
             current->t->data.char_val=='~'
             ) ) ||
-            (current->t->type==BRACKET && current->t->data.char_val=='(');
+            (current->t->type==OPERATOR && (
+            !strcmp(current->t->data.str_val, "++") || 
+            !strcmp(current->t->data.str_val, "--") 
+            ) ) ||
+            (current->t->type==BRACKET && current->t->data.char_val=='(') || 
+            current->t->type==CHARACTER
+            ;
 }
 
 bool isPotentialGenerics(tokenNode* current){
@@ -354,6 +364,49 @@ bool isSubroutineDeclarationStart(tokenNode* current){
     return isPotentialType(current);
 }
 
+bool isPotentialCasting(tokenNode* current){
+    if(isBracket('(', current)){
+        current = current->next;
+    }else{
+        return false;
+    }
+    
+    if(isKey(CHAR, current) || isKey(INT, current) || isKey(LONG, current) || isKey(BOOLEAN, current) || isKey(DOUBLE, current)){
+        current = current->next;
+    }else if(isIdentifier(current)){
+        current = current->next;
+    }else{
+        return false;
+    }
+    
+    if(isSymbol('<', current)){
+        if(isPotentialGenerics(current)){
+            int depth = 1;
+            current = current->next;
+            while(depth>0){
+                if(isSymbol('<', current)){
+                    depth++;
+                }else if(isSymbol('>', current)){
+                    depth--;
+                }
+                current = current->next;
+            }
+            if(isBracket(')', current)){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+    }else if(isBracket(')', current)){
+        return true;
+    }
+    
+    return false;
+    
+}
+
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
     if(!n || n->t->type != expectedType || n->t->data.key_val != expectedValue){
         fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
@@ -478,6 +531,9 @@ void printTreeNode(treeNode* n, int indent){
             case NUMBER:
                 printf("TokenType = Number, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
                 break;
+            case CHARACTER:
+                printf("TokenType = Character, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
+                break;
             case IDENTIFIER:
                 printf("TokenType = Identifier, TokenValue = %s, lineNumber = %d", n->assoToken->data.str_val, n->assoToken->lineNumber);
                 break;
@@ -537,47 +593,51 @@ void printLessTreeNode(treeNode* n, int indent){
         printf(" ");
     }
     if(!n->assoToken){
-        printf("Rule = %s", n->ruleType);
+        printf("Rule = %s, ", n->ruleType);
     }
     else{
+        printf("Rule = %s, ", n->ruleType);
         switch(n->assoToken->type){
             case KEYWORD:
-                printf("TokenType = Keyword, TokenValue = %s%s%s", GRN, getKeyword(n->assoToken->data.key_val), NRM);
+                printf("TokenValue = %s%s%s, ", GRN, getKeyword(n->assoToken->data.key_val), NRM);
                 break;
             case NUMBER:
-                printf("TokenType = Number, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                printf("TokenValue = %s%s%s, ", GRN, n->assoToken->data.str_val, NRM);
+                break;
+            case CHARACTER:
+                printf("TokenValue = %s%s%s, ", GRN, n->assoToken->data.str_val, NRM);
                 break;
             case IDENTIFIER:
-                printf("TokenType = Identifier, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                printf("TokenValue = %s%s%s, ", GRN, n->assoToken->data.str_val, NRM);
                 break;
             case OPERATOR:
-                printf("TokenType = Operator, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                printf("TokenValue = %s%s%s, ", GRN, n->assoToken->data.str_val, NRM);
                 break;
             case STRING:
-                printf("TokenType = String, TokenValue = %s%s%s", GRN, n->assoToken->data.str_val, NRM);
+                printf("TokenValue = %s%s%s, ", GRN, n->assoToken->data.str_val, NRM);
                 break;
             case SYMBOL:
-                printf("TokenType = Symbol, TokenValue = %s%c%s", GRN, n->assoToken->data.char_val, NRM);
+                printf("TokenValue = %s%c%s, ", GRN, n->assoToken->data.char_val, NRM);
                 break;
             case BRACKET:
-                printf("TokenType = Bracket, TokenValue = %s%c%s", GRN, n->assoToken->data.char_val, NRM);
+                printf("TokenValue = %s%c%s, ", GRN, n->assoToken->data.char_val, NRM);
                 break;
             case SEMICOLON:
-                printf("TokenType = Semicolon, TokenValue = %s%c%s", GRN, n->assoToken->data.char_val, NRM);
+                printf("TokenValue = %s%c%s, ", GRN, n->assoToken->data.char_val, NRM);
                 break;
         }
     }
     
     if(n->parent){
-        printf(", ParentRule = %s", n->parent->ruleType);
+        printf("ParentRule = %s, ", n->parent->ruleType);
     }
     if(n->childCount){
-        printf(", ChildRules: ");
+        printf("ChildRules: ");
         for(int i=0; i<n->childCount; i++){
-            printf("%s, ", n->children[i]->ruleType);
+            printf("%s%s%s, ", GRN, n->children[i]->ruleType, NRM);
         }
     }
-    printf("\n");
+    printf("%s\n", NRM);
     }
     if(n->childCount){
         for(int i=0; i<n->childCount; i++){

@@ -4,6 +4,7 @@
 typedef enum tokenType{
     KEYWORD,
     NUMBER,
+    CHARACTER,
     IDENTIFIER,
     OPERATOR,
     STRING,

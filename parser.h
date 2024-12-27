@@ -82,6 +82,7 @@ bool isIdentifier(tokenNode* n);
 bool isOperator(char* o, tokenNode* n);
 bool isBracket(char c, tokenNode* n);
 bool isNumber(tokenNode* n);
+bool isCharacter(tokenNode* n);
 bool isString(tokenNode* n);
 bool isSemicolon(tokenNode* n);
 
@@ -95,6 +96,7 @@ bool isClassStart(tokenNode* current);
 bool isInterfaceStart(tokenNode* current);
 bool isPotentialType(tokenNode* current);
 bool isSubroutineDeclarationStart(tokenNode* current);
+bool isPotentialCasting(tokenNode* current);
 
 /* tree and nodes */
 

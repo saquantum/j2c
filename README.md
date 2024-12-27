@@ -78,7 +78,7 @@ expression refers to a snippet of code that has a value. this could be a boolean
 
 we don't check if an expression is boolean or not until semantics analysis.
 
-`<number>` , `<identifier>`and `<string>` are dealt with during lexing.
+`<number>` , `character`, `<identifier>`and `<string>` are dealt with during lexing.
 
 ```
 <expression> ::= <ternaryExpression>
@@ -138,6 +138,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 ```
 <term> ::= 'true' | 'false' | 'null' | 'this'
 		 | <number>
+		 | <character>
 		 | <string>
 		 | <identifier>
 		 | '(' <expression> ')'

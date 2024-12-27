@@ -75,6 +75,7 @@ void parseNewObject(treeNode* parent, tokenTable* table){
     // branch: constructor, array or anonymous class
     peeknext = peekNextNode(table);
     if(isBracket('(', peeknext)){
+        printf("Debug: new constructor\n");
         // constructor call
         n = nextNode(table);
         insertNewNode2Parent("bracket", n->t, newObject);
@@ -88,7 +89,7 @@ void parseNewObject(treeNode* parent, tokenTable* table){
     else if(isBracket('[', peeknext)){
         // array
         // let's defer the rule, that int[10][] is valid while int[][10] is invalid to semantics.
-        
+        printf("Debug: new array\n");
         while(isBracket('[', peeknext)){
             n = nextNode(table);
             insertNewNode2Parent("bracket", n->t, newObject);
@@ -104,10 +105,12 @@ void parseNewObject(treeNode* parent, tokenTable* table){
         // optional initialization
         peeknext = peekNextNode(table);
         if(isBracket('{', peeknext)){
+            printf("Debug: new array initialization\n");
             parseArrayInitialization(newObject, table);
         }
     }
     else if(isBracket('{', peeknext)){
+        printf("Debug: new anonymous class\n");
         // anonymous class
         // '{'
         n = nextNode(table);
@@ -153,8 +156,13 @@ void parseArrayInitialization(treeNode* parent, tokenTable* table){
             n = nextNode(table);
             insertNewNode2Parent("comma", n->t, arrayInitialization);
             parseTerm(arrayInitialization, table);
+            peeknext = peekNextNode(table);
         }
     }
+    
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '}', "arrayInitialization", "missng right brace to conclude array initialization");
+    insertNewNode2Parent("bracket", n->t, arrayInitialization);
 }
 
 void parseBaseTerm(treeNode* parent, tokenTable* table){
@@ -179,6 +187,11 @@ void parseBaseTerm(treeNode* parent, tokenTable* table){
     else if(isNumber(peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("number", n->t, parent);
+    }
+    // token is a character
+    else if(isCharacter(peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("character", n->t, parent);
     }
     // token is a string
     else if(isString(peeknext)){
@@ -302,14 +315,14 @@ void parseTernaryExpression(treeNode* parent, tokenTable* table){
     
     // '?'
     n = nextNode(table);
-    insertNewNode2Parent("ternary", n->t, ternary);
+    insertNewNode2Parent("ternaryOperator", n->t, ternary);
     
     parseExpression(ternary, table);
     
     // ':'   
     n = nextNode(table);
     checkCharValueNodeExpected(n, SYMBOL, ':', "parseTernaryExpression", "missing colon in ternary expression");
-    insertNewNode2Parent("ternary", n->t, ternary);
+    insertNewNode2Parent("ternaryOperator", n->t, ternary);
     
     parseExpression(ternary, table);
 }
@@ -573,7 +586,7 @@ void parseCastExpression(treeNode* parent, tokenTable* table){
     tokenNode* peeknext;
     
     peeknext = peekNextNode(table);
-    if(isBracket('(', peeknext)){
+    if(isBracket('(', peeknext) && isPotentialCasting(peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("bracket", n->t, cast);
         
@@ -582,6 +595,8 @@ void parseCastExpression(treeNode* parent, tokenTable* table){
         n = nextNode(table);
         checkCharValueNodeExpected(n, BRACKET, ')', "parseCastExpression", "missing right parenthesis to conclude casting");
         insertNewNode2Parent("bracket", n->t, cast);
+        printf("Debug: casting at line %d\n", n->t->lineNumber);
+        parseCastExpression(cast, table);
     }else{
         parseUnaryExpression(cast, table);
     }
