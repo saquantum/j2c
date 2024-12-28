@@ -1,24 +1,190 @@
 #pragma once
 #include "lexer.h"
 
+typedef enum ruletype{
+    identifier_rule,
+    bracket_rule,
+    compound_rule,
+    operator_rule,
+    semicolon_rule,
+    
+    type_rule,primitiveType_rule,referenceType_rule,
+    generics_rule,typeArgument_rule,wildcard_rule,
+    langle_rule,rangle_rule,
+    comma_rule,
+    extends_rule,super_rule,implements_rule,
+    annotation_rule,at_rule,
+    term_rule,
+    parenthesizedExpression_rule,
+    newObject_rule,new_rule,
+    arrayInitialization_rule,
+    terminalTerm_rule,number_rule,character_rule,string_rule,
+    dot_rule,fieldAccess_rule,arrayAccess_rule,
+    subroutineCall_rule,expressionList_rule,
+    expression_rule,
+    ternaryExpression_rule,ternaryOperator_rule,
+    logicalOrExpression_rule,
+    logicalAndExpression_rule,
+    bitwiseOrExpression_rule,
+    bitwiseXorExpression_rule,
+    bitwiseAndExpression_rule,
+    equalityExpression_rule,
+    relationalExpression_rule,instanceof_rule,
+    shiftExpression_rule,
+    additiveExpression_rule,
+    multiplicativeExpression_rule,
+    castExpression_rule,
+    unaryExpression_rule,
+    postfixExpression_rule,
+    assignment_rule,assignmentOperator_rule,
+    variableDeclaration_rule,
+    accessModifier_rule,nonAccessModifier_rule,
+    subroutineDeclaration_rule,
+    native_rule,
+    parameterList_rule,const_rule,
+    typeBoundList_rule,typeBound_rule,constraint_rule,moreInterface_rule,
+    subroutineBody_rule,
+    statement_rule,
+    ifStatement_rule,if_rule,else_rule,
+    switchStatement_rule,switch_rule,case_rule,colon_rule,default_rule,
+    forStatement_rule,for_rule,
+    whileStatement_rule,while_rule,
+    doWhileStatement_rule,do_rule,
+    returnStatement_rule,return_rule,
+    continueStatement_rule,continue_rule,
+    breakStatement_rule,break_rule,
+    staticStatement_rule,static_rule,
+    codeBlock_rule,
+    classDeclaration_rule,abstract_rule,class_rule,
+    interfaceDeclaration_rule,interface_rule,classBody_rule,interfaceBody_rule,
+    importStatement_rule,import_rule,
+    file_rule
+}ruletype;
+
 typedef struct treeNode{
-    char* ruleType;
+    // node info --------
+    ruletype ruleType;
     token* assoToken;
     struct treeNode** children;
-    int capacity;
-    int childCount;
+    size_t capacity;
+    size_t childCount;
     struct treeNode* parent;
+    // symbol table --------
+    struct classST* classSymbolTable; // attach this for a structural class node
+    struct methodST* methodSymbolTable; // attach this for a structural method node
+    struct varST** varSymbolTable; // attach this for a structural compound node
+    size_t varCount;
+    // vtable ----------
+    struct vtable* virtualTable;
 }treeNode;
 
 // every .java file has one CST.
 typedef struct CST{
     treeNode* root;
+    char* filename;
 }CST;
+
+typedef enum classification_of_ST{
+    CLASS_ST,
+    METHOD_ST,
+    VAR_ST,
+    GEN_ST
+} classification_of_ST;
+
+typedef struct classST{
+    classification_of_ST cf; // should be set to CLASS_ST by default
+    char* name;
+    
+    bool isClass;
+    bool isInterface; // one and only one of them can be true, the other must be false
+    
+    struct genST* generics; // class level generics
+    
+    struct genST* superclassGenerics; // if not designated during parsing, it's Object
+    
+    struct genST** interfacesGenerics; // if not designated during parsing, it's NULL
+    size_t interfacesCount; 
+    
+    struct varST** fields;
+    size_t fieldsCount;
+    
+    struct methodST** methods;
+    size_t methodsCount;
+    
+    bool isPublic;
+    bool isPrivate;
+    bool isAbstract;
+    bool isStatic;
+    bool isFinal;
+    
+    treeNode* parentNode;
+} classST;
+
+typedef struct methodST{
+    classification_of_ST cf; // should be set to METHOD_ST by default
+    char* name;
+    
+    struct genST* returnType;
+    
+    struct genST* generics; // type boundedness for this method, this affects arguments
+    
+    struct varST** arguments; // array of arguments of this method, NULL -> no argument
+    
+    struct varST** locals; // array of local variables, NULL -> no local
+    
+    bool isPublic;
+    bool isPrivate;
+    bool isAbstract;
+    bool isStatic;
+    bool isFinal;
+    
+    struct classST* parentClass;
+    treeNode* parentNode;
+    
+}methodST;
+
+// Map<? extends Comparable<?> , V extends List<String> >
+typedef struct genST{
+    classification_of_ST cf; // should be set to GEN_ST by default
+    char* name; // the identifier before extends or super. Map< ... , ... > -> name = NULL
+    bool extends;
+    bool super;
+    char* type; // Map is the type!
+    struct genST** nested; // to next level. {name="?", extends=true, super=false, type=Comparable, nested={name=NULL, extends=false, super=false, type="?"}}, {name="V", extends=true, super=false, type=List, nested={name=NULL, extends=false, super=false, type="String"}}.
+    size_t nestedCount;
+}genST;
+
+typedef struct varST{
+    classification_of_ST cf; // should be set to VAR_ST by default
+    char* name;
+    struct genST* type; // type of a variable is with generics by default
+    
+    // array dimension determines number of asterisks for a pointer
+    int arrDimension; // if 0, not an array
+    int* arrSizes;
+    
+    bool isPublic;
+    bool isPrivate;
+    bool isStatic;
+    bool isFinal;
+    
+    struct classST* parentClass;
+    struct methodST* parentMethod;
+    struct varST* parentCompound;
+    treeNode* parentNode;
+}varST;
+
+typedef struct vtable{
+    treeNode* parentNode;
+} vtable;
+
+
 
 /* parsers */
 
 CST* parseTokenTable(char* filename, tokenTable* table);
 
+void parseAnnotation(treeNode* parent, tokenTable* table);
 void parseTerm(treeNode* parent, tokenTable* table);
 void parseNewObject(treeNode* parent, tokenTable* table);
 void parseArrayInitialization(treeNode* parent, tokenTable* table);
@@ -108,11 +274,11 @@ void checkCharValueNodeExpected(tokenNode* n, tokenType expectedType, char expec
 void checkStringValueNodeExpected(tokenNode* n, tokenType expectedType, char* expectedValue, char* functionName, char* errorMessage);
 
 // create a child node with rule and token, and insert it to parent.
-treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent);
+treeNode* insertNewNode2Parent(ruletype rule, token* t, treeNode* parent);
 
 // this function never returns null pointer, it only crashes.
 // so we don't need null pointer check after calling this function.
-treeNode* createTreeNode(char* rule, token* t);
+treeNode* createTreeNode(ruletype rule, token* t);
 
 void insertChildNode(treeNode* n, treeNode* child);
 
@@ -121,5 +287,8 @@ void printTreeNode(treeNode* n, int indent);
 void printLessCST(CST* cst);
 void printLessTreeNode(treeNode* n, int indent);
 
+char* getRule(ruletype r);
+
 void freeCST(CST** cst);
 void freeTreeNode(treeNode* n);
+

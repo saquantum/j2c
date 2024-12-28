@@ -162,7 +162,7 @@ bool isPotentialAssignment(tokenNode* current){
 
 bool isVariableDeclarationStart(tokenNode* current){
     // <variableDeclaration> ::=  [<accessModifier>] {<nonAccessModifier>} <type> [ '[' ']' ] ( <identifier> | <assignment>) {',' ( <identifier> | <assignment>)} 
-    
+    bool flag = false; // use this flag to record whether there is a type
     if(isKey(PUBLIC, current) || isKey(PRIVATE, current)){
         current = current->next;
     }
@@ -173,9 +173,12 @@ bool isVariableDeclarationStart(tokenNode* current){
     
     if(isKey(CHAR, current) || isKey(INT, current) || isKey(LONG, current) || isKey(DOUBLE, current) || isKey(BOOLEAN, current)){
         current = current->next;
+        flag = true;
+        printf("Debug: flag set to true -- a keyword\n");
     }else if(isIdentifier(current)){
         current = current->next;
-        
+        flag = true;
+        printf("Debug: flag set to true -- an identifier\n");
         if(isBracket('<', current)){
             current = current->next;
             int depth = 1;
@@ -208,9 +211,12 @@ bool isVariableDeclarationStart(tokenNode* current){
     
     if(isIdentifier(current)){
         current = current->next;
+    }else{
+        return false;
     }
+    
     if(!isBracket('(', current)){
-        return true;
+        return flag;
     }
     
     return false;
@@ -342,6 +348,15 @@ bool isPotentialType(tokenNode* current){
 }
 
 bool isSubroutineDeclarationStart(tokenNode* current){
+    if(isSymbol('@', current)){
+        current = current->next;
+        if(isIdentifier(current)){
+            current = current->next;
+        }else{
+            return false;
+        }
+    }
+
     while(isKey(PUBLIC, current) || isKey(PRIVATE, current) || isKey(STATIC, current) || isKey(FINAL, current) || isKey(ABSTRACT, current) || isKey(NATIVE, current)){
         current = current->next;
     }
@@ -411,7 +426,7 @@ bool isPotentialCasting(tokenNode* current){
 
 void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword expectedValue, char* functionName, char* errorMessage){
     if(!n || n->t->type != expectedType || n->t->data.key_val != expectedValue){
-        fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+        fprintf(stderr, "%sError %s line %d: %s.%s\n", RED, functionName, n->t->lineNumber, errorMessage, NRM);
         exit(1);
     }
 }
@@ -419,13 +434,13 @@ void checkKeyValueNodeExpected(tokenNode* n, tokenType expectedType, keyword exp
 void checkCharValueNodeExpected(tokenNode* n, tokenType expectedType, char expectedValue, char* functionName, char* errorMessage){
     if(expectedValue == -1){
         if(!n || n->t->type != expectedType){
-            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            fprintf(stderr, "%sError %s line %d: %s.%s\n", RED, functionName, n->t->lineNumber, errorMessage, NRM);
             exit(1);
         }
     }
     else{
         if(!n || n->t->type != expectedType || n->t->data.char_val != expectedValue){
-            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            fprintf(stderr, "%sError %s line %d: %s.%s\n", RED, functionName, n->t->lineNumber, errorMessage, NRM);
             exit(1);
         }
     }
@@ -434,45 +449,36 @@ void checkCharValueNodeExpected(tokenNode* n, tokenType expectedType, char expec
 void checkStringValueNodeExpected(tokenNode* n, tokenType expectedType, char* expectedValue, char* functionName, char* errorMessage){
     if(expectedValue == NULL){
         if(!n || n->t->type != expectedType){
-            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            fprintf(stderr, "%sError %s line %d: %s.%s\n", RED, functionName, n->t->lineNumber, errorMessage, NRM);
             exit(1);
         }
     }
     else{
         if(!n || n->t->type != expectedType || strcmp(n->t->data.str_val, expectedValue)){
-            fprintf(stderr, "Error %s line %d: %s.\n", functionName, n->t->lineNumber, errorMessage);
+            fprintf(stderr, "%sError %s line %d: %s.%s\n", RED, functionName, n->t->lineNumber, errorMessage, NRM);
             exit(1);
         }
     }
 }
 
-treeNode* insertNewNode2Parent(char* rule, token* t, treeNode* parent){
+treeNode* insertNewNode2Parent(ruletype rule, token* t, treeNode* parent){
     treeNode* child = createTreeNode(rule, t);
     child->parent = parent;
     insertChildNode(parent, child);
     return child;
 }
 
-treeNode* createTreeNode(char* rule, token* t){
-    if(!rule){
-        fprintf(stderr, "Error createTreeNode: null rule provided.\n");
-        exit(1);
-    }
+treeNode* createTreeNode(ruletype rule, token* t){
     treeNode* n = calloc(1,sizeof(treeNode));
     if(!n){
-        fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create tree node.\n", t->lineNumber);
+        fprintf(stderr, "%sError createTreeNode line %d: not enough memory, cannot create tree node.%s\n", RED, t->lineNumber, NRM);
         exit(1);
     } 
-    n->ruleType = calloc((int)strlen(rule)+1, sizeof(char));
-    if(!n->ruleType){
-        fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create rule type string.\n", t->lineNumber);
-        exit(1);
-    } 
-    strcpy(n->ruleType, rule);
+    n->ruleType = rule;
     n->assoToken = t;
     n->children = calloc(16, sizeof(treeNode*));
     if(!n->children){
-        fprintf(stderr, "Error createTreeNode line %d: not enough memory, cannot create children array.\n", t->lineNumber);
+        fprintf(stderr, "%sError createTreeNode line %d: not enough memory, cannot create children array.%s\n", RED, t->lineNumber, NRM);
         exit(1);
     } 
     n->capacity = 16;
@@ -481,14 +487,14 @@ treeNode* createTreeNode(char* rule, token* t){
 
 void insertChildNode(treeNode* n, treeNode* child){
     if(!n || !child){
-        fprintf(stderr, "Error insertChildNode: null pointer provided.\n");
+        fprintf(stderr, "%sError insertChildNode: null pointer provided.%s\n", RED, NRM);
         exit(1);
     }
     if(n->capacity < n->childCount){
         if(n->assoToken){
-            fprintf(stderr, "Error insertChildNode line %d: code of parser has destructively wrong logic.\n", n->assoToken->lineNumber);
+            fprintf(stderr, "%sError insertChildNode line %d: code of parser has destructively wrong logic.%s\n", RED, n->assoToken->lineNumber, NRM);
         }else{
-            fprintf(stderr, "Error insertChildNode: code of parser has destructively wrong logic.\n");
+            fprintf(stderr, "%sError insertChildNode: code of parser has destructively wrong logic.%s\n", RED, NRM);
         }
         exit(1);
     }
@@ -496,9 +502,9 @@ void insertChildNode(treeNode* n, treeNode* child){
         n->children = (treeNode**)realloc(n->children, 2*(n->capacity)*sizeof(treeNode*));
         if(!n->children){
             if(n->assoToken){
-                fprintf(stderr, "Error insertChildNode line %d: not enough memory, cannot realloc children array.\n", n->assoToken->lineNumber);
+                fprintf(stderr, "%sError insertChildNode line %d: not enough memory, cannot realloc children array.%s\n", RED, n->assoToken->lineNumber, NRM);
             }else{
-                fprintf(stderr, "Error insertChildNode: not enough memory, cannot realloc children array.\n");
+                fprintf(stderr, "%sError insertChildNode: not enough memory, cannot realloc children array.%s\n", RED, NRM);
             }
             exit(1);
         }
@@ -523,7 +529,7 @@ void printTreeNode(treeNode* n, int indent){
         printf(" ");
     }
     if(!n->assoToken){
-        printf("Rule = %s", n->ruleType);
+        printf("Rule = %s", getRule(n->ruleType));
     }
     else{
         switch(n->assoToken->type){
@@ -557,17 +563,17 @@ void printTreeNode(treeNode* n, int indent){
         }
     }
     if(n->parent){
-        printf(", ParentRule = %s", n->parent->ruleType);
+        printf(", ParentRule = %s", getRule(n->parent->ruleType));
     }
     if(n->childCount){
         printf(", ChildRules: ");
-        for(int i=0; i<n->childCount; i++){
-            printf("%s, ", n->children[i]->ruleType);
+        for(size_t i=0; i<n->childCount; i++){
+            printf("%s, ", getRule(n->children[i]->ruleType));
         }
     }
     printf(".\n");
     if(n->childCount){
-        for(int i=0; i<n->childCount; i++){
+        for(size_t i=0; i<n->childCount; i++){
             printTreeNode(n->children[i], indent+2); 
         }
         
@@ -595,10 +601,10 @@ void printLessTreeNode(treeNode* n, int indent){
         printf(" ");
     }
     if(!n->assoToken){
-        printf("Rule = %s, ", n->ruleType);
+        printf("Rule = %s, ", getRule(n->ruleType));
     }
     else{
-        printf("Rule = %s, ", n->ruleType);
+        printf("Rule = %s, ", getRule(n->ruleType));
         switch(n->assoToken->type){
             case KEYWORD:
                 printf("TokenValue = %s%s%s, ", GRN, getKeyword(n->assoToken->data.key_val), NRM);
@@ -631,24 +637,127 @@ void printLessTreeNode(treeNode* n, int indent){
     }
     
     if(n->parent){
-        printf("ParentRule = %s, ", n->parent->ruleType);
+        printf("ParentRule = %s, ", getRule(n->parent->ruleType));
     }
     if(n->childCount){
         printf("ChildRules: ");
-        for(int i=0; i<n->childCount; i++){
-            printf("%s%s%s, ", GRN, n->children[i]->ruleType, NRM);
+        for(size_t i=0; i<n->childCount; i++){
+            printf("%s%s%s, ", GRN, getRule(n->children[i]->ruleType), NRM);
         }
     }
     printf("%s\n", NRM);
     }
     if(n->childCount){
-        for(int i=0; i<n->childCount; i++){
+        for(size_t i=0; i<n->childCount; i++){
             printLessTreeNode(n->children[i], indent+(flag?2:0)); 
         }
         
     }
 }
 
+char* getRule(ruletype r){
+    static char* rules[] = {
+    "identifier",
+    "bracket",
+    "compound",
+    "operator",
+    "semicolon",
+    "type",
+    "primitiveType",
+    "referenceType",
+    "generics",
+    "typeArgument",
+    "wildcard",
+    "langle",
+    "rangle",
+    "comma",
+    "extends",
+    "super",
+    "implements",
+    "annotation",
+    "at",
+    "term",
+    "parenthesizedExpression",
+    "newObject",
+    "new",
+    "arrayInitialization",
+    "terminalTerm",
+    "number",
+    "character",
+    "string",
+    "dot",
+    "fieldAccess",
+    "arrayAccess",
+    "subroutineCall",
+    "expressionList",
+    "expression",
+    "ternaryExpression",
+    "ternaryOperator",
+    "logicalOrExpression",
+    "logicalAndExpression",
+    "bitwiseOrExpression",
+    "bitwiseXorExpression",
+    "bitwiseAndExpression",
+    "equalityExpression",
+    "relationalExpression",
+    "instanceof",
+    "shiftExpression",
+    "additiveExpression",
+    "multiplicativeExpression",
+    "castExpression",
+    "unaryExpression",
+    "postfixExpression",
+    "assignment",
+    "assignmentOperator",
+    "variableDeclaration",
+    "accessModifier",
+    "nonAccessModifier",
+    "subroutineDeclaration",
+    "native",
+    "parameterList",
+    "const",
+    "typeBoundList",
+    "typeBound",
+    "constraint",
+    "moreInterface",
+    "subroutineBody",
+    "statement",
+    "ifStatement",
+    "if",
+    "else",
+    "switchStatement",
+    "switch",
+    "case",
+    "colon",
+    "default",
+    "forStatement",
+    "for",
+    "whileStatement",
+    "while",
+    "doWhileStatement",
+    "do",
+    "returnStatement",
+    "return",
+    "continueStatement",
+    "continue",
+    "breakStatement",
+    "break",
+    "staticStatement",
+    "static",
+    "codeBlock",
+    "classDeclaration",
+    "abstract",
+    "class",
+    "interfaceDeclaration",
+    "interface",
+    "classBody",
+    "interfaceBody",
+    "importStatement",
+    "import",
+    "file"
+        };
+    return rules[r];
+}
 
 void freeCST(CST** cst){
     if(!cst || !(*cst)){
@@ -663,10 +772,9 @@ void freeTreeNode(treeNode* n){
     if(!n){
         return;
     }
-    for(int i=0; i < n->childCount; i++){
+    for(size_t i=0; i < n->childCount; i++){
         freeTreeNode(n->children[i]);
     }
     free(n->children);
-    free(n->ruleType);
     free(n);
 }

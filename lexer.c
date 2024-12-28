@@ -8,7 +8,7 @@ tokenTable* lexFile(FILE* f){
     }
     tokenTable* ttable = createTokenTable();
     if(!ttable){
-        fprintf(stderr, "Error lexFile: not enough heap memory, cannot create token table.\n");
+        fprintf(stderr, "%sError lexFile: not enough heap memory, cannot create token table.%s\n", RED, NRM);
         exit(1);
     }
     
@@ -77,7 +77,7 @@ tokenTable* lexFile(FILE* f){
             else if(c=='\"'){
                 h = createHLL();
                 if(!h){
-                    fprintf(stderr, "Error lexFile line %d: not enough heap memory, cannot create hybrid linked list.\n", lineNumber);
+                    fprintf(stderr, "%sError lexFile line %d: not enough heap memory, cannot create hybrid linked list.%s\n", RED, lineNumber, NRM);
                     exit(1);
                 }
                 insert2HLL(c, h);
@@ -89,7 +89,7 @@ tokenTable* lexFile(FILE* f){
             else if(isalpha(c) || c=='_'){
                 h = createHLL();
                 if(!h){
-                    fprintf(stderr, "Error lexFile line %d: not enough heap memory, cannot create hybrid linked list.\n", lineNumber);
+                    fprintf(stderr, "%sError lexFile line %d: not enough heap memory, cannot create hybrid linked list.%s\n", RED, lineNumber, NRM);
                     exit(1);
                 }
                 insert2HLL(c, h);
@@ -100,7 +100,7 @@ tokenTable* lexFile(FILE* f){
             else if(isdigit(c)){
                 h = createHLL();
                 if(!h){
-                    fprintf(stderr, "Error lexFile line %d: not enough heap memory, cannot create hybrid linked list.\n", lineNumber);
+                    fprintf(stderr, "%sError lexFile line %d: not enough heap memory, cannot create hybrid linked list.%s\n", RED, lineNumber, NRM);
                     exit(1);
                 }
                 insert2HLL(c, h);
@@ -113,7 +113,7 @@ tokenTable* lexFile(FILE* f){
                 if(isdigit(next)){
                     h = createHLL();
                     if(!h){
-                        fprintf(stderr, "Error lexFile line %d: not enough heap memory, cannot create hybrid linked list.\n", lineNumber);
+                        fprintf(stderr, "%sError lexFile line %d: not enough heap memory, cannot create hybrid linked list.%s\n", RED, lineNumber, NRM);
                         exit(1);
                 }
                 insert2HLL(c, h);
@@ -172,12 +172,12 @@ tokenTable* lexFile(FILE* f){
             }
             // unexpected exit
             else if(c == EOF){
-                fprintf(stderr, "Error lexFile line %d: unfinished string literal.\n", lineNumber);
+                fprintf(stderr, "%sError lexFile line %d: unfinished string literal.%s\n", RED, lineNumber, NRM);
                 exit(1);
             }
             // non printable char
             else if(!isprint(c)){
-                fprintf(stderr, "Error lexFile line %d: non-printable char detected in string literal.\n", lineNumber);
+                fprintf(stderr, "%sError lexFile line %d: non-printable char detected in string literal.%s\n", RED, lineNumber, NRM);
                 exit(1);
             }
             else{
@@ -234,7 +234,7 @@ token* lexToken(char* str, int lineNumber){
     
     token* t = createToken();
     if(!t){
-        fprintf(stderr, "Error lexToken line %d: not enough heap memory, cannot create token.\n", lineNumber);
+        fprintf(stderr, "%sError lexToken line %d: not enough heap memory, cannot create token.%s\n", RED, lineNumber, NRM);
         exit(1);
     }
     t->lineNumber = lineNumber;
@@ -270,7 +270,7 @@ token* lexToken(char* str, int lineNumber){
     // character:
     if(str[0]=='\'' && str[len-1]=='\''){
         if(!isValidChar(str)){
-            fprintf(stderr, "Error lexToken line %d: invalid character %s", t->lineNumber, str);
+            fprintf(stderr, "%sError lexToken line %d: invalid character %s%s\n", RED, t->lineNumber, str, NRM);
             exit(1);
         }
         t->type = CHARACTER;
@@ -318,7 +318,7 @@ token* lexToken(char* str, int lineNumber){
     // identifier:
     // an identifier cannot start with a digit.
     if(isdigit(str[0])){
-        fprintf(stderr, "Error lexToken line %d: identifier %s cannnot start with a digit.\n", lineNumber, str);
+        fprintf(stderr, "%sError lexToken line %d: identifier %s cannnot start with a digit.%s\n", RED, lineNumber, str, NRM);
         exit(1);
     }
     
@@ -336,7 +336,7 @@ token* lexToken(char* str, int lineNumber){
     }
     
     // deal with unknown token.
-    fprintf(stderr, "Error lexToken line %d: unknown identifier %s.\n", lineNumber, str);
+    fprintf(stderr, "%sError lexToken line %d: unknown identifier %s.%s\n", RED, lineNumber, str, NRM);
     exit(1);
 }
 
@@ -380,7 +380,7 @@ hll* createHLL(){
 
 void insert2HLL(char c, hll* h){
     if(!h){
-        fprintf(stderr, "Error insert2HLL line %d: inserting into null buffer.\n", lineNumber);
+        fprintf(stderr, "%sError insert2HLL line %d: inserting into null buffer.%s\n", RED, lineNumber, NRM);
         exit(1);
     }
     bool flag = true;
@@ -389,7 +389,7 @@ void insert2HLL(char c, hll* h){
             if(!h->next){
                 hll* h2 = createHLL();
                 if(!h2){
-                    fprintf(stderr, "Error insert2HLL line %d: not enough heap memory, cannot create hybrid linked list.\n", lineNumber);
+                    fprintf(stderr, "%sError insert2HLL line %d: not enough heap memory, cannot create hybrid linked list.%s\n", RED, lineNumber, NRM);
                     exit(1);
                 }
                 h->next = h2;
@@ -419,12 +419,12 @@ char* hll2str(hll* h){
     }
     char* str = calloc(len + 1, sizeof(char));
     if(!str){
-        fprintf(stderr, "Error hll2str line %d: not enough heap memory, cannot create string.\n", lineNumber);
+        fprintf(stderr, "%sError hll2str line %d: not enough heap memory, cannot create string.%s\n", RED, lineNumber, NRM);
         exit(1);
     }
     int n = 0;
     while(h){
-        for(int i = 0;i < h->current;i++){
+        for(size_t i = 0;i < h->current;i++){
             str[n+i] = h->buffer[i];
         }
         n = n + h->current;

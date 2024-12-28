@@ -218,7 +218,7 @@ void combineSymbols(tokenTable* table){
                 current->t->type = OPERATOR;
                 current->t->data.str_val = calloc(3,sizeof(char));
                 if(!current->t->data.str_val){
-                    fprintf(stderr, "Error combineSymbols: not enough memory, cannot create a string value for the node\n");
+                    fprintf(stderr, "%sError combineSymbols: not enough memory, cannot create a string value for the node%s\n", RED, NRM);
                     exit(1);
                 }
                 strcpy(current->t->data.str_val, combined);

@@ -54,6 +54,7 @@ we have three accessibility: public > default > private.
 
 <accessModifier> ::= 'public' | 'private'
 <nonAccessModifier> ::= 'static' | 'final' | 'abstract'
+
 ```
 
 #### types
@@ -183,8 +184,10 @@ method declaration should include a `native` modifier for methods that are reali
 
 if the subroutine does not have a return type or void, it's a constructor.
 
+For current version of grammar we only use annotations for method overridence.
+
 ```
-<subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
+<subroutineDeclaration> ::= [<annotation>] [<accessModifier>] {<nonAccessModifier>} [`native`] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
 
 <parameterList> ::= [ ['final'] <type> [ '[' ']' ] <identifier> { ',' ['final'] <type> [ '[' ']' ] <identifier> }]
 
@@ -193,6 +196,8 @@ if the subroutine does not have a return type or void, it's a constructor.
 <constraint> ::= 'extends' <type> {'&' <type>}
 
 <subroutineBody> ::= [ { ( <variableDeclaration> ';' ) | <statement> } ]
+
+<annotation> ::= '@' <identifier>
 ```
 
 #### flow control
@@ -265,9 +270,7 @@ in this process, we
 
 1. create virtual function table and function overload table for classes, variable symbol tables for classes methods and compounds. along with this process we should check the validity of variable and method definitions.
 
-2. combine field access with subroutine call to make sure chained accesses are handled.
-
-3. convert cst into ast to simplify semantics analysis.
+2. convert cst into ast to simplify semantics analysis.
 
 
 ## Semantics

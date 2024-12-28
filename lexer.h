@@ -4,7 +4,7 @@
 
 typedef struct hll{
     char buffer[256];
-    int current;
+    size_t current;
     struct hll* next;
 } hll;
 
