@@ -304,7 +304,7 @@ bool isStatementStart(tokenNode* current){
 }
 
 bool isClassStart(tokenNode* current){
-    while(isKey(PUBLIC, current) || isKey(PRIVATE, current) || isKey(ABSTRACT, current)){
+    while(isKey(PUBLIC, current) || isKey(PRIVATE, current) || isKey(ABSTRACT, current) || isKey(STATIC, current) || isKey(FINAL, current)){
         current = current->next;
     }
     

@@ -186,7 +186,7 @@ if the subroutine does not have a return type or void, it's a constructor.
 ```
 <subroutineDeclaration> ::= [<accessModifier>] {<nonAccessModifier>} [`native`] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
 
-<parameterList> ::= [ <type> [ '[' ']' ] <identifier> { ',' <type> [ '[' ']' ] <identifier> }]
+<parameterList> ::= [ ['final'] <type> [ '[' ']' ] <identifier> { ',' ['final'] <type> [ '[' ']' ] <identifier> }]
 
 <typeBoundsList> ::= '<' <typeBound> {',' <typeBound>} '>'
 <typeBound> ::= <identifier> [ <constraint> ]
@@ -233,7 +233,7 @@ for simplicity we don't allow compound statements without braces.
 no inner classes and initializer blocks allowed.
 
 ```
-<classDeclaration> ::= [<accessModifier>] ['abstract'] 'class' <identifier> [ <generics> ] ['extends' <identifier> [ <generics> ] ] ['implements' <identifier> [ <generics> ] { ',' <identifier> [ <generics> ] }] '{' <classBody> '}'
+<classDeclaration> ::= [<accessModifier>] [<nonAccessModifier>] ['abstract'] 'class' <identifier> [ <generics> ] ['extends' <identifier> [ <generics> ] ] ['implements' <identifier> [ <generics> ] { ',' <identifier> [ <generics> ] }] '{' <classBody> '}'
 
 <classBody> ::= { <variableDeclaration> | <subroutineDeclaration> }
 

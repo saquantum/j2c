@@ -952,6 +952,13 @@ void parseParameterList(treeNode* parent, tokenTable* table){
     }
     
     // else, it has at least one argument.
+    // optional final keyword
+    peeknext = peekNextNode(table);
+    if(isKey(FINAL, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("final", n->t, parameterList);
+    }
+    
     // a mandatory type
     parseType(parameterList, table);
     
@@ -977,6 +984,13 @@ void parseParameterList(treeNode* parent, tokenTable* table){
     while(isSymbol(',', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("comma", n->t, parameterList);
+        
+        // optional final keyword
+        peeknext = peekNextNode(table);
+        if(isKey(FINAL, peeknext)){
+            n = nextNode(table);
+            insertNewNode2Parent("final", n->t, parameterList);
+        }
         
         parseType(parameterList, table);
         
@@ -1591,6 +1605,14 @@ void parseClassDeclaration(treeNode* parent, tokenTable* table){
     if(isKey(PUBLIC, peeknext) || isKey(PRIVATE, peeknext)){
         n = nextNode(table);
         insertNewNode2Parent("accessModifier", n->t, classDeclaration);
+    }
+    
+    // optional non-access modifier
+    peeknext = peekNextNode(table);
+    while(isKey(STATIC, peeknext) || isKey(FINAL, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent("nonAccessModifier", n->t, classDeclaration);
+        peeknext = peekNextNode(table);
     }
     
     // optional abstract
