@@ -56,17 +56,15 @@ typedef struct tokenTable{
     tokenNode* end;
 } tokenTable;
 
+char* mystrdup(char* str);
 
 char* getKeyword(keyword KEY);
-
 int isKeyword(char* str);
 
 token* createToken();
-
 void freeToken(token* t);
 
 tokenTable* createTokenTable();
-
 void printTokenTable(tokenTable* table);
 
 void printCurrentToken(tokenNode* n);

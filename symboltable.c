@@ -135,24 +135,112 @@ void attachClassSymbolTable(treeNode* n){
 }
 
 genST* attachGenericsSymbolTable(char* type, treeNode* gen){
-    if(!type){
-        fprintf(stderr, "%sError attachGenericsSymbolTable: missing name for generics%s\n", RED, NRM);
-        exit(1);
+    if(!type && !gen){
+        return NULL;
     }
     genST* st = calloc(1, sizeof(genST));
     if(!st){
         fprintf(stderr, "%sError attachGenericsSymbolTable: not enough memory, cannot create a generics symbol table%s\n", RED, NRM);
         exit(1);
     }
+    st->cf = GEN_ST;
     
-    st->type = calloc((int)strlen(type)+1, sizeof(char));
-    if(!st->type){
-        fprintf(stderr, "%sError attachGenericsSymbolTable: not enough memory, cannot create the name for a generics%s\n", RED, NRM);
+    /*
+    typedef struct genST{
+    classification_of_ST cf; 
+    char* name; 
+    bool extends;
+    bool super;
+    char* type; 
+    struct genST** nested; 
+    size_t nestedCount;
+}genST;
+    */
+    
+    // 3 branches: 
+    // 1. type=NULL. E extends Number
+    // 2. gen=NULL. input is a type without generics. String
+    // 3. type!=NULL, gen!=NULL. the outermost part of a generics. List<...>
+    if(!gen && type){
+        st->type = mystrdup(type);
+        return st;
+    }
+    
+    // gen should be of typeArgument type to process only one generic
+    if(!type && gen){
+        if(gen->ruleType!=typeArgument_rule){
+            fprintf("%sError attachGenericsSymbolTable: in nested generics the gen node passed to function should be of typeArgument rule type%s\n", RED, NRM);
+            exit(1);
+        }
+        
+        if(gen->children[0]->ruleType==identifier_rule){
+            st->name = mystrdup(gen->children[0]->assoToken->data.str_val);
+        }else if(gen->children[0]->ruleType==wildcard_rule){
+            st->isWildcard = true;
+        }
+        
+        if(gen->childCount==1){
+            return st;
+        }
+        // childCount > 1, next node must be either extends or super
+        if(gen->children[1]->ruleType==extends_rule){
+            st->extends = true;
+        }else if(gen->children[1]->ruleType==super_rule){
+            st->super = true;
+        }
+        // extends or super a reference type, which is futher decomposed 
+        // into identifier + optional generics
+        treeNode* ref = gen->children[2];
+        if(ref->ruleType!=referenceType_rule){
+            fprintf(stderr, "%sthe parser has gone wrong. this node must be a reference type.%s\n", RED, NRM);
+            exit(1);
+        }
+        // referenceType->identifier is the type of current ST
+        st->type = mystrdup(ref->children[0]->assoToken->data.str_val);
+        // if childCount of ref->generics > 1, count number of typeArguments first
+        if(ref->children[1]->childCount > 1){
+            int commaCount = 0;
+            for(size_t i=0; i<ref->children[1]->childCount; i++){
+                if(ref->children[1]->children[i]->ruleType==comma_rule){
+                    commaCount++;
+                }
+            }
+            st->nestedCount = commaCount + 1;
+            st->nested = calloc(st->nestedCount, sizeof(genST*));
+            // then recursively deal with them
+            size_t idx_nested = 0;
+            for(size_t i=0; i<ref->children[1]->childCount; i++){
+                if(ref->children[1]->children[i]->ruleType==typeArgument_rule){
+                    st->nested[idx_nested] = attachGenericsSymbolTable(NULL, ref->children[1]->children[i]);
+                    idx_nested++;
+                }
+            }
+        }
+        return st;
+    }
+    
+    // case 3. type!=NULL, gen!=NULL.
+    st->type = mystrdup(type);
+    // almost same code as above, but now gen must be of generics type
+    if(gen->ruleType!=generics_rule){
+        fprintf("%sError attachGenericsSymbolTable: at first call of generics the gen node passed to function should be of generics rule type%s\n", RED, NRM);
         exit(1);
     }
-    strcpy(st->type, type);
-    
-    // placeholder
+    int commaCount = 0;
+    for(size_t i=0; i<gen->childCount; i++){
+        if(gen->children[i]->ruleType==comma_rule){
+            commaCount++;
+        }
+    }
+    st->nestedCount = commaCount + 1;
+    st->nested = calloc(st->nestedCount, sizeof(genST*));
+    size_t idx_nested = 0;
+    for(size_t i=0; i<gen->childCount; i++){
+        if(gen->children[i]->ruleType==typeArgument_rule){
+            st->nested[idx_nested] = attachGenericsSymbolTable(NULL, gen->children[i]);
+            idx_nested++;
+        }
+    }
     
     return st;
 }

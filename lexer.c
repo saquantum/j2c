@@ -274,8 +274,7 @@ token* lexToken(char* str, int lineNumber){
             exit(1);
         }
         t->type = CHARACTER;
-        t->data.str_val = calloc(len+1, sizeof(char));
-        strcpy(t->data.str_val, str);
+        t->data.str_val = mystrdup(str);
         return t;
     }
     
@@ -301,8 +300,7 @@ token* lexToken(char* str, int lineNumber){
         }
         if(isnumber){
             t->type = NUMBER;
-            t->data.str_val = calloc(len+1, sizeof(char));
-            strcpy(t->data.str_val, str);
+            t->data.str_val = mystrdup(str);
             return t;
         }
     }
@@ -310,8 +308,7 @@ token* lexToken(char* str, int lineNumber){
     // string:
     if(str[0]=='\"' && str[len-1]=='\"'){
         t->type = STRING;
-        t->data.str_val = calloc(len+1, sizeof(char));
-        strcpy(t->data.str_val, str);
+        t->data.str_val = mystrdup(str);
         return t;
     }
     
@@ -330,8 +327,7 @@ token* lexToken(char* str, int lineNumber){
     }
     if(isid){
         t->type = IDENTIFIER;
-        t->data.str_val = calloc(len+1, sizeof(char));
-        strcpy(t->data.str_val, str);
+        t->data.str_val = mystrdup(str);
         return t;
     }
     

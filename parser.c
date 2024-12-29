@@ -470,13 +470,7 @@ void parseRelationalExpression(treeNode* parent, tokenTable* table) {
             // Combine '<=' or '>='
             char combined[3] = {peeknext->t->data.char_val, peeknextnext->t->data.char_val, 0};
             peeknext->t->type = OPERATOR;
-            peeknext->t->data.str_val = calloc(3, sizeof(char));
-            if (!peeknext->t->data.str_val) {
-                fprintf(stderr, "%sError parseRelationalExpression: not enough memory, cannot create a string value for the node%s\n", RED, NRM);
-                exit(1);
-            }
-            strcpy(peeknext->t->data.str_val, combined);
-
+            peeknext->t->data.str_val = mystrdup(combined);
             // Remove the second token
             tokenNode* tmp = peeknextnext;
             peeknext->next = tmp->next;
@@ -521,12 +515,7 @@ void parseShiftExpression(treeNode* parent, tokenTable* table){
         // modify the token table, combine the two nodes into one
         char combined[3] = {peeknext->t->data.char_val, peeknextnext->t->data.char_val, 0};
         peeknext->t->type = OPERATOR;
-        peeknext->t->data.str_val = calloc(3,sizeof(char));
-        if(!peeknext->t->data.str_val){
-            fprintf(stderr, "%sError parseShiftExpression: not enough memory, cannot create a string value for the node%s\n", RED, NRM);
-            exit(1);
-        }
-        strcpy(peeknext->t->data.str_val, combined);
+        peeknext->t->data.str_val = mystrdup(combined);
         peeknext->next = peeknextnext->next;
         if(peeknextnext->next){
             peeknextnext->next->prev = peeknext;

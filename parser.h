@@ -150,6 +150,7 @@ typedef struct methodST{
 typedef struct genST{
     classification_of_ST cf; // should be set to GEN_ST by default
     char* name; // the identifier before extends or super. Map< ... , ... > -> name = NULL
+    bool isWildcard;
     bool extends;
     bool super;
     char* type; // Map is the type!
