@@ -4,7 +4,7 @@ how to use this program:
 
 ```
 
-$ make
+$ make parse ( in parser only mode)
 $ ./t INPUTFILE OUTPUTFILE
 
 ```
