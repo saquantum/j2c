@@ -16,14 +16,13 @@ int main(int argc, char** argv){
     printLessCST(cst);
     printf("--------------\n");
     
-    attachSymbolTables(cst);
-    
-    printSymbolTables(cst);
+    //attachSymbolTables(cst);
+    //printSymbolTables(cst);
     
     
     fclose(input);
     fclose(output);
-    freeSymbolTables(cst);
+    //freeSymbolTables(cst);
     freeCST(&cst);
     freeTokenTable(&ttable);
     

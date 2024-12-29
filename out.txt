@@ -1,0 +1,73 @@
+--------------
+Debug: next token in reference type:
+Current token: TokenType = Identifier, TokenValue = E, lineNumber = 4
+Debug: next token in reference type:
+Current token: TokenType = Identifier, TokenValue = List, lineNumber = 4
+Debug: next token in reference type:
+Current token: TokenType = Identifier, TokenValue = List, lineNumber = 4
+Debug: next token in reference type:
+Current token: TokenType = Identifier, TokenValue = List, lineNumber = 4
+Debug: next token in reference type:
+Current token: TokenType = Identifier, TokenValue = String, lineNumber = 4
+Debug: next token in reference type:
+Current token: TokenType = Identifier, TokenValue = Number, lineNumber = 4
+Rule = file, ChildRules: [1;32mclassDeclaration[0m, [0m
+  Rule = classDeclaration, ParentRule = file, ChildRules: [1;32maccessModifier[0m, [1;32mnonAccessModifier[0m, [1;32mabstract[0m, [1;32mclass[0m, [1;32midentifier[0m, [1;32mgenerics[0m, [1;32mextends[0m, [1;32midentifier[0m, [1;32mgenerics[0m, [1;32mimplements[0m, [1;32midentifier[0m, [1;32mgenerics[0m, [1;32mcomma[0m, [1;32midentifier[0m, [1;32mcompound[0m, [1;32mclassBody[0m, [1;32mcompound[0m, [0m
+    Rule = accessModifier, TokenValue = [1;32mpublic[0m, ParentRule = classDeclaration, [0m
+    Rule = nonAccessModifier, TokenValue = [1;32mfinal[0m, ParentRule = classDeclaration, [0m
+    Rule = abstract, TokenValue = [1;32mabstract[0m, ParentRule = classDeclaration, [0m
+    Rule = class, TokenValue = [1;32mclass[0m, ParentRule = classDeclaration, [0m
+    Rule = identifier, TokenValue = [1;32mstudent[0m, ParentRule = classDeclaration, [0m
+    Rule = generics, ParentRule = classDeclaration, ChildRules: [1;32mlangle[0m, [1;32mtypeArgument[0m, [1;32mrangle[0m, [0m
+      Rule = langle, TokenValue = [1;32m<[0m, ParentRule = generics, [0m
+      Rule = identifier, TokenValue = [1;32mE[0m, ParentRule = referenceType, [0m
+      Rule = rangle, TokenValue = [1;32m>[0m, ParentRule = generics, [0m
+    Rule = extends, TokenValue = [1;32mextends[0m, ParentRule = classDeclaration, [0m
+    Rule = identifier, TokenValue = [1;32mMap[0m, ParentRule = classDeclaration, [0m
+    Rule = generics, ParentRule = classDeclaration, ChildRules: [1;32mlangle[0m, [1;32mtypeArgument[0m, [1;32mcomma[0m, [1;32mtypeArgument[0m, [1;32mrangle[0m, [0m
+      Rule = langle, TokenValue = [1;32m<[0m, ParentRule = generics, [0m
+      Rule = typeArgument, ParentRule = generics, ChildRules: [1;32midentifier[0m, [1;32mextends[0m, [1;32mreferenceType[0m, [0m
+        Rule = identifier, TokenValue = [1;32mA[0m, ParentRule = typeArgument, [0m
+        Rule = extends, TokenValue = [1;32mextends[0m, ParentRule = typeArgument, [0m
+        Rule = referenceType, ParentRule = typeArgument, ChildRules: [1;32midentifier[0m, [1;32mgenerics[0m, [0m
+          Rule = identifier, TokenValue = [1;32mList[0m, ParentRule = referenceType, [0m
+          Rule = generics, ParentRule = referenceType, ChildRules: [1;32mlangle[0m, [1;32mtypeArgument[0m, [1;32mrangle[0m, [0m
+            Rule = langle, TokenValue = [1;32m<[0m, ParentRule = generics, [0m
+            Rule = typeArgument, ParentRule = generics, ChildRules: [1;32midentifier[0m, [1;32mextends[0m, [1;32mreferenceType[0m, [0m
+              Rule = identifier, TokenValue = [1;32mB[0m, ParentRule = typeArgument, [0m
+              Rule = extends, TokenValue = [1;32mextends[0m, ParentRule = typeArgument, [0m
+              Rule = referenceType, ParentRule = typeArgument, ChildRules: [1;32midentifier[0m, [1;32mgenerics[0m, [0m
+                Rule = identifier, TokenValue = [1;32mList[0m, ParentRule = referenceType, [0m
+                Rule = generics, ParentRule = referenceType, ChildRules: [1;32mlangle[0m, [1;32mtypeArgument[0m, [1;32mrangle[0m, [0m
+                  Rule = langle, TokenValue = [1;32m<[0m, ParentRule = generics, [0m
+                  Rule = typeArgument, ParentRule = generics, ChildRules: [1;32midentifier[0m, [1;32mextends[0m, [1;32mreferenceType[0m, [0m
+                    Rule = identifier, TokenValue = [1;32mC[0m, ParentRule = typeArgument, [0m
+                    Rule = extends, TokenValue = [1;32mextends[0m, ParentRule = typeArgument, [0m
+                    Rule = referenceType, ParentRule = typeArgument, ChildRules: [1;32midentifier[0m, [1;32mgenerics[0m, [0m
+                      Rule = identifier, TokenValue = [1;32mList[0m, ParentRule = referenceType, [0m
+                      Rule = generics, ParentRule = referenceType, ChildRules: [1;32mlangle[0m, [1;32mtypeArgument[0m, [1;32mrangle[0m, [0m
+                        Rule = langle, TokenValue = [1;32m<[0m, ParentRule = generics, [0m
+                        Rule = typeArgument, ParentRule = generics, ChildRules: [1;32midentifier[0m, [1;32mextends[0m, [1;32mreferenceType[0m, [0m
+                          Rule = identifier, TokenValue = [1;32mD[0m, ParentRule = typeArgument, [0m
+                          Rule = extends, TokenValue = [1;32mextends[0m, ParentRule = typeArgument, [0m
+                          Rule = identifier, TokenValue = [1;32mString[0m, ParentRule = referenceType, [0m
+                        Rule = rangle, TokenValue = [1;32m>[0m, ParentRule = generics, [0m
+                  Rule = rangle, TokenValue = [1;32m>[0m, ParentRule = generics, [0m
+            Rule = rangle, TokenValue = [1;32m>[0m, ParentRule = generics, [0m
+      Rule = comma, TokenValue = [1;32m,[0m, ParentRule = generics, [0m
+      Rule = typeArgument, ParentRule = generics, ChildRules: [1;32mwildcard[0m, [1;32mextends[0m, [1;32mreferenceType[0m, [0m
+        Rule = wildcard, TokenValue = [1;32m?[0m, ParentRule = typeArgument, [0m
+        Rule = extends, TokenValue = [1;32mextends[0m, ParentRule = typeArgument, [0m
+        Rule = identifier, TokenValue = [1;32mNumber[0m, ParentRule = referenceType, [0m
+      Rule = rangle, TokenValue = [1;32m>[0m, ParentRule = generics, [0m
+    Rule = implements, TokenValue = [1;32mimplements[0m, ParentRule = classDeclaration, [0m
+    Rule = identifier, TokenValue = [1;32mComparable[0m, ParentRule = classDeclaration, [0m
+    Rule = generics, ParentRule = classDeclaration, ChildRules: [1;32mlangle[0m, [1;32mtypeArgument[0m, [1;32mrangle[0m, [0m
+      Rule = langle, TokenValue = [1;32m<[0m, ParentRule = generics, [0m
+      Rule = wildcard, TokenValue = [1;32m?[0m, ParentRule = typeArgument, [0m
+      Rule = rangle, TokenValue = [1;32m>[0m, ParentRule = generics, [0m
+    Rule = comma, TokenValue = [1;32m,[0m, ParentRule = classDeclaration, [0m
+    Rule = identifier, TokenValue = [1;32mIterable[0m, ParentRule = classDeclaration, [0m
+    Rule = compound, TokenValue = [1;32m{[0m, ParentRule = classDeclaration, [0m
+    Rule = compound, TokenValue = [1;32m}[0m, ParentRule = classDeclaration, [0m
+--------------

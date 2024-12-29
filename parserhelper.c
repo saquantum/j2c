@@ -65,7 +65,7 @@ bool isPotentialGenerics(tokenNode* current){
     // >: (identifier | '?' | '<' | '>'), '>', (',' | '>')  (depth>0)
     // ,: ('>' | '?' | identifier), ',', (identifier | '?')
     // ?: (',' | '<'), '?', (extends | super | ',' | '>')
-    // identifier: (extends | super | ',' | '<'), identifier, ('<' | '>' | ',')
+    // identifier: (extends | super | ',' | '<'), identifier, ('<' | '>' | ',' | extends | super )
     
     int depth = 0; // mimics stack
     while (current) {
@@ -126,7 +126,7 @@ bool isPotentialGenerics(tokenNode* current){
             return false;
         }
         if(isIdentifier(current)){
-            if( (isKey(EXTENDS, current->prev) || isKey(SUPER, current->prev) || isSymbol(',', current->prev) || isSymbol('<', current->prev)) && (isSymbol(',', current->next) || isSymbol('<', current->next) || isSymbol('>', current->next)) ){
+            if( (isKey(EXTENDS, current->prev) || isKey(SUPER, current->prev) || isSymbol(',', current->prev) || isSymbol('<', current->prev)) && (isSymbol(',', current->next) || isSymbol('<', current->next) || isSymbol('>', current->next) || isKey(EXTENDS, current->next) || isKey(SUPER, current->next)) ){
                 current = current->next;
                 continue;
             }else{

@@ -12,6 +12,8 @@ void attachSymbolTables2Nodes(treeNode* n);
 
 void attachClassSymbolTable(treeNode* n);
 genST* attachGenericsSymbolTable(char* type, treeNode* gen);
+void attachMethodSymbolTable(treeNode* n, classST* parentClass);
+void attachVarSymbolTable(treeNode* n, classST* parentClass, methodST* methodST, varST* parentCompound);
 
 void printSymbolTables(CST* cst);
 void printNodeSymbolTable(treeNode* n, int indent);

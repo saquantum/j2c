@@ -76,7 +76,7 @@ typedef struct treeNode{
     struct varST** varSymbolTable; // attach this for a structural compound node
     size_t varCount;
     // vtable ----------
-    struct vtable* virtualTable;
+    struct vtable* virtualTable; // attach this for a structural class node
 }treeNode;
 
 // every .java file has one CST.
@@ -172,7 +172,7 @@ typedef struct varST{
     bool isFinal;
     
     struct classST* parentClass;
-    struct methodST* parentMethod;
+    struct methodST* methodST;
     struct varST* parentCompound;
     treeNode* parentNode;
 }varST;

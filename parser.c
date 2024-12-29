@@ -756,10 +756,16 @@ void parseTypeArgument(treeNode* parent, tokenTable* table){
         exit(1);
     }
     
-    if(isSymbol('?', peeknext)){
-        // '?'
-        n = nextNode(table);
-        insertNewNode2Parent(wildcard_rule, n->t, typeArgument); 
+    if(isSymbol('?', peeknext) || isKey(EXTENDS, peeknext->next) || isKey(SUPER, peeknext->next)){
+        // '?' or identifier
+        if(isSymbol('?', peeknext)){
+            n = nextNode(table);
+            insertNewNode2Parent(wildcard_rule, n->t, typeArgument); 
+        }else{
+            n = nextNode(table);
+            checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseTypeArgument", "missing identifier for type argument in generics");
+            insertNewNode2Parent(identifier_rule, n->t, typeArgument); 
+        }
         
         peeknext = peekNextNode(table);
         if(isKey(EXTENDS, peeknext) || isKey(SUPER, peeknext)){

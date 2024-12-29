@@ -1,7 +1,7 @@
 /*
 a test file.
 */
-public final abstract class student<E> extends List<String> implements Comparable<?>, Iterable{
+public final abstract class student<E> extends Map<A extends List<B extends List<C extends List<D extends String>>>, ? extends Number> implements Comparable<?>, Iterable{
     /*
     private String name;
     private boolean gender;

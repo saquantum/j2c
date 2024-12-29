@@ -68,9 +68,9 @@ we have three accessibility: public > default > private.
 
 <typeArgument> ::= <referenceType> 
 				 | '?'
-                 | '?' 'extends' <referenceType>
-                 | '?' 'super' <referenceType>
-
+                 | ('?'| <identifier> ) 'extends' <referenceType>
+                 | ('?'| <identifier> ) 'super' <referenceType>
+ 
 <primitiveType> ::= 'char' | 'int' | 'long' | 'double' | 'boolean' 
 ```
 

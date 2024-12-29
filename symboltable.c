@@ -157,27 +157,9 @@ genST* attachGenericsSymbolTable(char* type, treeNode* gen){
     return st;
 }
 
+void attachMethodSymbolTable(treeNode* n, classST* parentClass){}
+void attachVarSymbolTable(treeNode* n, classST* parentClass, methodST* methodST, varST* parentCompound){}
 
-/*
-varST** summarizeVarDec(treeNode* n, int* varCount){
-    if(n->ruleType != variableDeclaration_rule){
-        fprintf(stderr, "%sError summarizeVarDec: non variable declaration node%s\n", RED, NRM);
-        exit(1);
-    }
-    if(!varCount){
-        fprintf(stderr, "%sError summarizeVarDec: no variable counter%s\n", RED, NRM);
-        exit(1);
-    }
-    *varCount = 1;
-    varST* st = calloc(1, sizeof(varST));
-    if(!st){
-        fprintf(stderr, "%sError summarizeVarDec: not enough memory, cannot create variable symbol table%s\n", RED, NRM);
-        exit(1);
-    }
-    st->cf = VAR_ST;
-     
-}
-*/
 
 void printSymbolTables(CST* cst){
     if(!cst || !cst->root){
@@ -302,14 +284,19 @@ void freeMethodST(methodST* st){
     if(!st){
         return;
     }
-    // placeholder
+    freeGenericsST(st->generics);
+    free(st->generics);
+    
 }
 
 void freeVarST(varST* st){
     if(!st){
         return;
     }
-    //placeholder
+    freeGenericsST(st->generics);
+    free(st->generics);
+    free(st->name);
+    free(st->arrSizes);
 }
 
 void freeGenericsST(genST* st){
