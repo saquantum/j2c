@@ -815,12 +815,13 @@ void parseVariableDeclaration(treeNode* parent, tokenTable* table){
         n = nextNode(table);
         insertNewNode2Parent(accessModifier_rule, n->t, variableDeclaration); 
     }
-    
+
     // zero or more non-access modifier
     peeknext = peekNextNode(table);
     while(isKey(STATIC, peeknext) || isKey(FINAL, peeknext)){
         n = nextNode(table);
         insertNewNode2Parent(nonAccessModifier_rule, n->t, variableDeclaration);
+        peeknext = peekNextNode(table);
     }
     
     // a mandatory type
@@ -840,8 +841,10 @@ void parseVariableDeclaration(treeNode* parent, tokenTable* table){
     // an identifier, or an assignment
     peeknext = peekNextNode(table);
     if(isPotentialAssignment(peeknext)){
+        printf("Debug: assignment in variable declaration at line %d\n", peeknext->t->lineNumber);
         parseAssignment(variableDeclaration, table);
     }else{
+        printf("Debug: uninitialized variable declaration at line %d\n", peeknext->t->lineNumber);
         n = nextNode(table);
         checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseVariableDeclaration", "missing identifier for the variable");
         insertNewNode2Parent(identifier_rule, n->t, variableDeclaration);
@@ -854,8 +857,10 @@ void parseVariableDeclaration(treeNode* parent, tokenTable* table){
         insertNewNode2Parent(comma_rule, n->t, variableDeclaration);
         peeknext = peekNextNode(table);
         if(isPotentialAssignment(peeknext)){
+            printf("Debug: assignment in variable declaration at line %d\n", peeknext->t->lineNumber);
             parseAssignment(variableDeclaration, table);
         }else{
+            printf("Debug: uninitialized variable declaration at line %d\n", peeknext->t->lineNumber);
             n = nextNode(table);
             checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseVariableDeclaration", "missing identifier for the variable");
             insertNewNode2Parent(identifier_rule, n->t, variableDeclaration);
@@ -1098,7 +1103,7 @@ void parseSubroutineBody(treeNode* parent, tokenTable* table){
             // a semicolon
             n = nextNode(table);
             checkCharValueNodeExpected(n, SEMICOLON, ';', "parseSubroutineBody", "missing semicolon to conclude a variable declaration");
-            insertNewNode2Parent(identifier_rule, n->t, subroutineBody);
+            insertNewNode2Parent(semicolon_rule, n->t, subroutineBody);
             peeknext = peekNextNode(table);
         }else if(isStatementStart(peeknext)){
             printf("Debug: statement in subroutine body at line %d\n", peeknext->t->lineNumber);

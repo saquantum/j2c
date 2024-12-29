@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "symboltable.h"
 
 int main(int argc, char** argv){
     assert(argc == 3);
@@ -8,7 +8,7 @@ int main(int argc, char** argv){
     tokenTable* ttable = lexFile(input);
     combineSymbols(ttable);
     
-    printTokenTable(ttable);
+    //printTokenTable(ttable);
     printf("--------------\n");
 
     CST* cst = parseTokenTable(argv[1], ttable);
@@ -16,9 +16,14 @@ int main(int argc, char** argv){
     printLessCST(cst);
     printf("--------------\n");
     
+    attachSymbolTables(cst);
+    
+    printSymbolTables(cst);
+    
     
     fclose(input);
     fclose(output);
+    freeSymbolTables(cst);
     freeCST(&cst);
     freeTokenTable(&ttable);
     

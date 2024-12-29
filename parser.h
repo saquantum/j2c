@@ -56,7 +56,8 @@ typedef enum ruletype{
     staticStatement_rule,static_rule,
     codeBlock_rule,
     classDeclaration_rule,abstract_rule,class_rule,
-    interfaceDeclaration_rule,interface_rule,classBody_rule,interfaceBody_rule,
+    interfaceDeclaration_rule,interface_rule,
+    classBody_rule,interfaceBody_rule,
     importStatement_rule,import_rule,
     file_rule
 }ruletype;
@@ -91,9 +92,9 @@ typedef enum classification_of_ST{
     GEN_ST
 } classification_of_ST;
 
+// to access the name of a class, retrieve classST->generics->type
 typedef struct classST{
     classification_of_ST cf; // should be set to CLASS_ST by default
-    char* name;
     
     bool isClass;
     bool isInterface; // one and only one of them can be true, the other must be false
@@ -103,7 +104,7 @@ typedef struct classST{
     struct genST* superclassGenerics; // if not designated during parsing, it's Object
     
     struct genST** interfacesGenerics; // if not designated during parsing, it's NULL
-    size_t interfacesCount; 
+    size_t interfacesCount;
     
     struct varST** fields;
     size_t fieldsCount;
@@ -120,17 +121,19 @@ typedef struct classST{
     treeNode* parentNode;
 } classST;
 
+// to access the name of a method, retrieve methodST->generics->type
 typedef struct methodST{
     classification_of_ST cf; // should be set to METHOD_ST by default
-    char* name;
     
     struct genST* returnType;
     
     struct genST* generics; // type boundedness for this method, this affects arguments
     
     struct varST** arguments; // array of arguments of this method, NULL -> no argument
+    size_t argumentsCount;
     
     struct varST** locals; // array of local variables, NULL -> no local
+    size_t localsCount;
     
     bool isPublic;
     bool isPrivate;

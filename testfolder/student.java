@@ -1,7 +1,8 @@
 /*
 a test file.
 */
-public class student{
+public final abstract class student<E> extends List<String> implements Comparable<?>, Iterable{
+    /*
     private String name;
     private boolean gender;
     private int age;
@@ -47,4 +48,10 @@ public class student{
     public void setId(){
         this.id = id;
     }
+    
+    public long hashCode(){
+        public static List<String>[] hash0 = 0, hash1 = 1, hash2, hash3, hash4 = 4;
+        return hash;
+    }
+    */
 }

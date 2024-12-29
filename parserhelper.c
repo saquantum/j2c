@@ -145,7 +145,7 @@ bool isPotentialGenerics(tokenNode* current){
 
 bool isPotentialAssignment(tokenNode* current){
     // <assignment> ::= <lvalue> <assignmentOperator> <expression>
-    while(!isSemicolon(current)){
+    while(!isSemicolon(current) && !isSymbol(',', current)){
         if(isOperator("+=", current) || isOperator("-=", current) || isOperator("*=", current) || isOperator("/=", current)){
             return true;
         }
@@ -170,7 +170,8 @@ bool isVariableDeclarationStart(tokenNode* current){
     while(isKey(STATIC, current) || isKey(FINAL, current)){
         current = current->next;
     }
-    
+    //printf("Debug: comsumed modifiers. next:\n");
+    //printCurrentToken(current);
     if(isKey(CHAR, current) || isKey(INT, current) || isKey(LONG, current) || isKey(DOUBLE, current) || isKey(BOOLEAN, current)){
         current = current->next;
         flag = true;
@@ -178,14 +179,16 @@ bool isVariableDeclarationStart(tokenNode* current){
     }else if(isIdentifier(current)){
         current = current->next;
         flag = true;
+        //printf("Debug: comsumed identifier. next:\n");
+        //printCurrentToken(current);
         printf("Debug: flag set to true -- an identifier\n");
-        if(isBracket('<', current)){
+        if(isSymbol('<', current)){
             current = current->next;
             int depth = 1;
             while(depth>0){
-                if(isBracket('<', current)){
+                if(isSymbol('<', current)){
                     depth++;
-                }else if(isBracket('>', current)){
+                }else if(isSymbol('>', current)){
                     depth--;
                 }else if(isSemicolon(current)){
                     return false;
@@ -208,12 +211,14 @@ bool isVariableDeclarationStart(tokenNode* current){
             return false;
         }
     }
-    
+    //printf("Debug: 0reached here\n");
+    //printCurrentToken(current);
     if(isIdentifier(current)){
         current = current->next;
     }else{
         return false;
     }
+    //printf("Debug: 1reached here\n");
     
     if(!isBracket('(', current)){
         return flag;
