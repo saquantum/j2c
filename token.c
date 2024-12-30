@@ -1,6 +1,9 @@
 #include "token.h"
 
 char* mystrdup(char* str){
+    if(!str){
+        return NULL;
+    }
     char* s = calloc((int)strlen(str)+1, sizeof(char));
     if(!s){
         fprintf(stderr, "Error mystrdup: out of memory.\n");

@@ -33,6 +33,7 @@ void attachClassSymbolTable(treeNode* n){
         fprintf(stderr, "%sError attachClassSymbolTable: not enough memory, cannot create a class symbol table%s\n", RED, NRM);
         exit(1);
     }
+    st->parentNode = n;
     
     st->cf = CLASS_ST;
     if(n->ruleType == classDeclaration_rule){
@@ -145,18 +146,6 @@ genST* attachGenericsSymbolTable(char* type, treeNode* gen){
     }
     st->cf = GEN_ST;
     
-    /*
-    typedef struct genST{
-    classification_of_ST cf; 
-    char* name; 
-    bool extends;
-    bool super;
-    char* type; 
-    struct genST** nested; 
-    size_t nestedCount;
-}genST;
-    */
-    
     // 3 branches: 
     // 1. type=NULL. E extends Number
     // 2. gen=NULL. input is a type without generics. String
@@ -169,10 +158,10 @@ genST* attachGenericsSymbolTable(char* type, treeNode* gen){
     // gen should be of typeArgument type to process only one generic
     if(!type && gen){
         if(gen->ruleType!=typeArgument_rule){
-            fprintf("%sError attachGenericsSymbolTable: in nested generics the gen node passed to function should be of typeArgument rule type%s\n", RED, NRM);
+            fprintf(stderr, "%sError attachGenericsSymbolTable: in nested generics the gen node passed to function should be of typeArgument rule type%s\n", RED, NRM);
             exit(1);
         }
-        
+        // the first token is either wildcard or an identifier
         if(gen->children[0]->ruleType==identifier_rule){
             st->name = mystrdup(gen->children[0]->assoToken->data.str_val);
         }else if(gen->children[0]->ruleType==wildcard_rule){
@@ -197,6 +186,11 @@ genST* attachGenericsSymbolTable(char* type, treeNode* gen){
         }
         // referenceType->identifier is the type of current ST
         st->type = mystrdup(ref->children[0]->assoToken->data.str_val);
+        // if referenceType has no further generics, end here
+        if(ref->childCount==1){
+            return st;
+        }
+        
         // if childCount of ref->generics > 1, count number of typeArguments first
         if(ref->children[1]->childCount > 1){
             int commaCount = 0;
@@ -223,7 +217,7 @@ genST* attachGenericsSymbolTable(char* type, treeNode* gen){
     st->type = mystrdup(type);
     // almost same code as above, but now gen must be of generics type
     if(gen->ruleType!=generics_rule){
-        fprintf("%sError attachGenericsSymbolTable: at first call of generics the gen node passed to function should be of generics rule type%s\n", RED, NRM);
+        fprintf(stderr, "%sError attachGenericsSymbolTable: at first call of generics the gen node passed to function should be of generics rule type%s\n", RED, NRM);
         exit(1);
     }
     int commaCount = 0;
@@ -277,13 +271,17 @@ void printClassST(classST* st){
     if(!st){
         return;
     }
-    printf("ClassName = %s, extends %s, ", st->generics->type, st->superclassGenerics->type);
+    printf("Class = ");
+    printGenericsST(st->generics);
+    printf(", extends ");
+    printGenericsST(st->superclassGenerics);
     if(st->interfacesGenerics){
-        printf("implements ");
+        printf(", implements ");
         for(size_t i=0; i<st->interfacesCount; i++){
-            printf("%s, ", st->interfacesGenerics[i]->type);
+            printGenericsST(st->interfacesGenerics[i]);
         }
     }
+    printf(", parent = %s", getRule(st->parentNode->ruleType));
     printf(".\n");
 }
 
@@ -305,7 +303,29 @@ void printGenericsST(genST* st){
     if(!st){
         return;
     }
-    // placeholder
+    
+    if(st->name){
+        printf("%s ", st->name);
+    }else if(st->isWildcard){
+        printf("? ");
+    }
+    
+    if(st->extends){
+        printf("extends ");
+    }else if(st->super){
+        printf("super ");
+    }
+    
+    printf("%s ", st->type);
+    printf("<");
+    
+    if(st->nestedCount>0){
+        for(size_t i=0; i<st->nestedCount; i++){
+            printGenericsST(st->nested[i]);
+        }
+    }
+    
+    printf("> ");
 }
 
 void freeSymbolTables(CST* cst){
@@ -381,8 +401,8 @@ void freeVarST(varST* st){
     if(!st){
         return;
     }
-    freeGenericsST(st->generics);
-    free(st->generics);
+    freeGenericsST(st->type);
+    free(st->type);
     free(st->name);
     free(st->arrSizes);
 }
