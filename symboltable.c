@@ -76,8 +76,10 @@ void attachClassSymbolTable(treeNode* n){
         // class name with generics
         if(child->ruleType == class_rule || child->ruleType == interface_rule){
             if(n->children[i+2]->ruleType == generics_rule){
+                printf("Debug: attach ST on class name with generics\n");
                 st->generics = attachGenericsSymbolTable(n->children[i+1]->assoToken->data.str_val, n->children[i+2]);
             }else{
+                printf("Debug: attach ST on class name without generics\n");
                 st->generics = attachGenericsSymbolTable(n->children[i+1]->assoToken->data.str_val, NULL);
             }
         }
@@ -150,19 +152,27 @@ genST* attachGenericsSymbolTable(char* type, treeNode* gen){
     // 1. type=NULL. E extends Number
     // 2. gen=NULL. input is a type without generics. String
     // 3. type!=NULL, gen!=NULL. the outermost part of a generics. List<...>
+    
+    // case 2. gen=NULL
     if(!gen && type){
         st->type = mystrdup(type);
         return st;
     }
     
-    // gen should be of typeArgument type to process only one generic
+    // case 1, gen should be of typeArgument type to process only one generic
     if(!type && gen){
+        
         if(gen->ruleType!=typeArgument_rule){
             fprintf(stderr, "%sError attachGenericsSymbolTable: in nested generics the gen node passed to function should be of typeArgument rule type%s\n", RED, NRM);
             exit(1);
         }
+        
+        // a standalone typeArgument->referencetype->identifier
+        if(gen->children[0]->ruleType==referenceType_rule){
+            st->name = mystrdup(gen->children[0]->children[0]->assoToken->data.str_val);
+        }
         // the first token is either wildcard or an identifier
-        if(gen->children[0]->ruleType==identifier_rule){
+        else if(gen->children[0]->ruleType==identifier_rule){
             st->name = mystrdup(gen->children[0]->assoToken->data.str_val);
         }else if(gen->children[0]->ruleType==wildcard_rule){
             st->isWildcard = true;
@@ -271,12 +281,12 @@ void printClassST(classST* st){
     if(!st){
         return;
     }
-    printf("Class = ");
+    printf("Class =");
     printGenericsST(st->generics);
-    printf(", extends ");
+    printf(", extends");
     printGenericsST(st->superclassGenerics);
     if(st->interfacesGenerics){
-        printf(", implements ");
+        printf(", implements");
         for(size_t i=0; i<st->interfacesCount; i++){
             printGenericsST(st->interfacesGenerics[i]);
         }
@@ -305,27 +315,32 @@ void printGenericsST(genST* st){
     }
     
     if(st->name){
-        printf("%s ", st->name);
+        printf("%s", st->name);
     }else if(st->isWildcard){
-        printf("? ");
+        printf("?");
     }
     
     if(st->extends){
-        printf("extends ");
+        printf(" extends");
     }else if(st->super){
-        printf("super ");
+        printf(" super");
     }
-    
-    printf("%s ", st->type);
-    printf("<");
+    if(st->type){
+        printf(" %s", st->type);
+    }
     
     if(st->nestedCount>0){
+        printf("<");
         for(size_t i=0; i<st->nestedCount; i++){
             printGenericsST(st->nested[i]);
+            if(st->nestedCount>1 && i!=st->nestedCount-1){
+                printf(", ");
+            }
         }
+        printf("> ");
     }
     
-    printf("> ");
+    
 }
 
 void freeSymbolTables(CST* cst){
