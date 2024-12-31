@@ -198,6 +198,7 @@ varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* paren
         fprintf(stderr, "%sError attachVarSymbolTable: not enough memory, cannot create an array of variable symbol tables%s\n", RED, NRM);
         exit(1);
     }
+    n->varSymbolTable = arr;
     
     // common properties of all vars
     bool isPublic = false;
@@ -205,7 +206,9 @@ varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* paren
     bool isStatic = false;
     bool isFinal = false;
     size_t arrDimension = 0; 
-    genST* type = NULL;
+    
+    treeNode* markType = NULL;
+    int typeOption = 0;
     
     int idx_arr = 0;
     
@@ -235,14 +238,22 @@ varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* paren
         }
         
         if(child->ruleType == type_rule){
+            markType = child;
+            // primitive type
             if(child->children[0]->ruleType == primitiveType_rule){
-                type = attachGenericsSymbolTable(getKeyword(child->children[0]->assoToken->data.key_val), NULL);
+                typeOption = 1;
+                printf("  type = 1\n");
             }
             else if(child->children[0]->ruleType == referenceType_rule){
+                // reference type without generics
                 if(child->children[0]->childCount==1){
-                    type = attachGenericsSymbolTable(child->children[0]->children[0]->assoToken->data.str_val, NULL);
-                }else{
-                    type = attachGenericsSymbolTable(child->children[0]->children[0]->assoToken->data.str_val, child->children[0]->children[1]);
+                    typeOption = 2;
+                    printf("  type = 2\n");
+                }
+                // reference type with generics
+                else{
+                    typeOption = 3;
+                    printf("  type = 3\n");
                 }
             }
         }
@@ -276,7 +287,22 @@ varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* paren
             else if(child->ruleType == assignment_rule){
                 st->name = mystrdup(child->children[0]->children[0]->assoToken->data.str_val);
             }
-            st->type = type;
+            
+            switch(typeOption){
+                case 1:
+                    st->type = attachGenericsSymbolTable(getKeyword(markType->children[0]->assoToken->data.key_val), NULL);
+                    break;
+                case 2:
+                    st->type = attachGenericsSymbolTable(markType->children[0]->children[0]->assoToken->data.str_val, NULL);
+                    break;
+                case 3:
+                    st->type = attachGenericsSymbolTable(markType->children[0]->children[0]->assoToken->data.str_val, markType->children[0]->children[1]);
+                    break;
+                default:
+                    fprintf(stderr, "%sinvalid type attaching var ST%s\n", RED, NRM);
+                    exit(1);
+            }
+            
             st->isPublic = isPublic;
             st->isPrivate = isPrivate;
             st->isStatic = isStatic;
@@ -453,7 +479,7 @@ void printNodeSymbolTable(treeNode* n, int indent){
         flag = true;
     }
     if(n->ruleType == subroutineDeclaration_rule){
-        freeMethodST(n->methodSymbolTable);
+        printMethodST(n->methodSymbolTable);
         flag = true;
     }
     if(n->ruleType == variableDeclaration_rule){
@@ -598,9 +624,8 @@ void printGenericsST(genST* st){
         }
         printf("> ");
     }
-    
-    
 }
+
 
 void freeSymbolTables(CST* cst){
     if(!cst || !cst->root){
@@ -620,7 +645,7 @@ void freeNodeSymbolTables(treeNode* n){
     if(n->varSymbolTable){
         for(size_t i=0; i<n->varCount; i++){
             freeVarST(n->varSymbolTable[i]); 
-            free(n->varSymbolTable[i]); 
+            free(n->varSymbolTable[i]);
         }
     }
     free(n->varSymbolTable);
@@ -637,29 +662,30 @@ void freeClassST(classST* st){
         return;
     }
     freeGenericsST(st->generics);
-    free(st->generics);
     freeGenericsST(st->superclassGenerics);
-    free(st->superclassGenerics);
     if(st->interfacesGenerics){
         for(size_t i=0; i<st->interfacesCount; i++){
             freeGenericsST(st->interfacesGenerics[i]);
-            free(st->interfacesGenerics[i]);
         }
     }
     free(st->interfacesGenerics);
+    /*
     if(st->fields){
         for(size_t i=0; i<st->fieldsCount; i++){
             freeVarST(st->fields[i]);
             free(st->fields[i]);
         }
     }
+    */
     free(st->fields);
+    /*
     if(st->methods){
         for(size_t i=0; i<st->methodsCount; i++){
             freeMethodST(st->methods[i]);
             free(st->methods[i]);
         }
     }
+    */
     free(st->methods);
 }
 
@@ -668,22 +694,24 @@ void freeMethodST(methodST* st){
         return;
     }
     freeGenericsST(st->returnType);
-    free(st->returnType);
     freeGenericsST(st->generics);
-    free(st->generics);
+    /*
     if(st->arguments){
         for(size_t i=0; i<st->argumentsCount; i++){
             freeVarST(st->arguments[i]);
             free(st->arguments[i]);
         }
     }
+    */
     free(st->arguments);
+    /*
     if(st->locals){
         for(size_t i=0; i<st->localsCount; i++){
             freeVarST(st->locals[i]);
             free(st->locals[i]);
         }
     }
+    */
     free(st->locals);
 }
 
@@ -692,6 +720,7 @@ void freeVarST(varST* st){
         return;
     }
     freeGenericsST(st->type);
+    free(st->type);
     free(st->name);
 }
 
@@ -700,8 +729,10 @@ void freeGenericsST(genST* st){
         return;
     }
     free(st->name);
+    //st->name=NULL;
     free(st->type);
-    if(st->nested){
+    //st->type=NULL;
+    if(st->nestedCount){
         for(size_t i=0; i<st->nestedCount; i++){
             freeGenericsST(st->nested[i]);
             free(st->nested[i]);
