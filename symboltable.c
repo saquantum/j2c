@@ -11,44 +11,62 @@ void attachSymbolTables2Nodes(treeNode* n){
     if(!n){
         return;
     }
+    // post order traversal assures
+    // we always first deal wtih child nodes
+    if(n->childCount){
+        for(size_t i=0; i<n->childCount; i++){
+            attachSymbolTables2Nodes(n->children[i]); 
+        }
+    }
+    
+    // class declaration
     if(n->ruleType == classDeclaration_rule || n->ruleType == interfaceDeclaration_rule){
         printf("Debug: attach class symbol table to class or interface declaration\n");
         n->classSymbolTable = attachClassSymbolTable(n);
     }
+    
+    // method declaration
+    // classDec->classBody->subDec
+    if(n->ruleType == subroutineDeclaration_rule){
+        printf("Debug: attach method symbol table to method declaration\n");
+        n->methodSymbolTable = attachMethodSymbolTable(n, n->parent->parent);
+    }
+    
+    // argument list
+    // subDec->paralist
+    if(n->ruleType == parameterList_rule){
+        printf("Debug: attach var symbol table to parameter list\n");
+        n->varSymbolTable = attachArgListSymbolTable(n, n->parent);
+        n->varCount += countCommas(n) + 1;
+    }
+    
+    // variable declaration
     if(n->ruleType == variableDeclaration_rule){
         printf("Debug: attach var symbol table to variable declaration, \n");
         // class level field
         // classDec->classBody->varDec
         if(n->parent->ruleType==classBody_rule){
             printf("    parent = class.\n");
-            //mergeVarST(n->varCount, &(n->varSymbolTable), countCommas(n),  attachVarSymbolTable(n, n->parent->parent, NULL, NULL));
             n->varSymbolTable = attachVarSymbolTable(n, n->parent->parent, NULL, NULL);
-            n->varCount += countCommas(n);
+            n->varCount += countCommas(n) + 1;
         }
         // method level local variable
         // subDec->subBody->varDec
         else if(n->parent->ruleType==subroutineBody_rule){
             printf("    parent = method.\n");
-            //mergeVarST(n->varCount, &(n->varSymbolTable), countCommas(n),  attachVarSymbolTable(n, NULL, n->parent->parent, NULL));
             n->varSymbolTable = attachVarSymbolTable(n, NULL, n->parent->parent, NULL);
-            n->varCount += countCommas(n);
+            n->varCount += countCommas(n) + 1;
         }
         // compound level local variable
         // if, switch, for, while, do-while, static, code block
         // stmt->forStmt->stmt->varDec
         else if(n->parent->parent->ruleType==ifStatement_rule || n->parent->parent->ruleType==switchStatement_rule || n->parent->parent->ruleType==whileStatement_rule || n->parent->parent->ruleType==doWhileStatement_rule || n->parent->parent->ruleType==staticStatement_rule || n->parent->parent->ruleType==codeBlock_rule){
             printf("    parent = compound.\n");
-            //mergeVarST(n->varCount, &(n->varSymbolTable), countCommas(n),  attachVarSymbolTable(n, NULL, NULL, n->parent->parent));
             n->varSymbolTable = attachVarSymbolTable(n, NULL, NULL, n->parent->parent);
-            n->varCount += countCommas(n);
+            n->varCount += countCommas(n) + 1;
         }
     }
-    // placeholder for method and var ST
-    if(n->childCount){
-        for(size_t i=0; i<n->childCount; i++){
-            attachSymbolTables2Nodes(n->children[i]); 
-        }
-    }
+    
 }
 
 classST* attachClassSymbolTable(treeNode* n){
@@ -74,6 +92,8 @@ classST* attachClassSymbolTable(treeNode* n){
     if(n->ruleType == interfaceDeclaration_rule){
         st->isInterface = true;
     }
+    
+    treeNode* markClassBody = NULL;
     
     for(size_t i=0; i < n->childCount; i++){
         // the order for tokens is guaranteed by parser,
@@ -108,10 +128,10 @@ classST* attachClassSymbolTable(treeNode* n){
         // class name with generics
         if(child->ruleType == class_rule || child->ruleType == interface_rule){
             if(n->children[i+2]->ruleType == generics_rule){
-                printf("Debug: attach ST on class name with generics\n");
+                
                 st->generics = attachGenericsSymbolTable(n->children[i+1]->assoToken->data.str_val, n->children[i+2]);
             }else{
-                printf("Debug: attach ST on class name without generics\n");
+                
                 st->generics = attachGenericsSymbolTable(n->children[i+1]->assoToken->data.str_val, NULL);
             }
         }
@@ -129,7 +149,7 @@ classST* attachClassSymbolTable(treeNode* n){
         if((st->isClass && child->ruleType == implements_rule) || (st->isInterface && child->ruleType == extends_rule)){
             int commaCount = countCommas(n);
             st->interfacesCount = commaCount + 1;
-            printf("Debug: implemented %ld interfaces\n", st->interfacesCount);
+            
             st->interfacesGenerics = calloc(st->interfacesCount, sizeof(genST*));
             if(!st->interfacesGenerics){
                 fprintf(stderr, "%sError attachClassSymbolTable: not enough memory, cannot create a array of interfaces%s\n", RED, NRM);
@@ -141,10 +161,10 @@ classST* attachClassSymbolTable(treeNode* n){
             while(n->children[i+k]->ruleType != compound_rule){
                 if(n->children[i+k]->ruleType == identifier_rule){
                     if(n->children[i+k+1]->ruleType == generics_rule){
-                        printf("Debug: insert interface with generics\n");
+                        
                         st->interfacesGenerics[idx] = attachGenericsSymbolTable(n->children[i+k]->assoToken->data.str_val, n->children[i+k+1]);
                     }else{
-                        printf("Debug: insert interface without generics\n");
+                        
                         st->interfacesGenerics[idx] = attachGenericsSymbolTable(n->children[i+k]->assoToken->data.str_val, NULL);
                     }
                     idx++;
@@ -154,11 +174,51 @@ classST* attachClassSymbolTable(treeNode* n){
             
         }
         
+        // mark position of classBody
+        if(child->ruleType == classBody_rule){
+            markClassBody = child;
+        }
+        
     }
     
     // if no superclass, then it extends Object
     if(st->isClass && !st->superclassGenerics){
         st->superclassGenerics = attachGenericsSymbolTable("Object", NULL);
+    }
+    
+    // link child STs to current ST
+    int fieldsCount = 0;
+    int methodsCount = 0;
+    for(size_t i=0; i<markClassBody->childCount; i++){
+        if(markClassBody->children[i]->ruleType == variableDeclaration_rule){
+            fieldsCount += markClassBody->children[i]->varCount;
+        }
+        if(markClassBody->children[i]->ruleType == subroutineDeclaration_rule){
+            methodsCount++;
+        }
+    }
+    //printf("Debug: fieldCount = %d, methodCount = %d\n", fieldCount, methodCount);
+    st->fieldsCount = fieldsCount;
+    st->fields = fieldsCount==0?NULL:calloc(fieldsCount, sizeof(varST*));
+
+    st->methodsCount = methodsCount;
+    st->methods = methodsCount==0?NULL:calloc(methodsCount, sizeof(methodST*));
+
+    
+    int field_idx = 0;
+    int method_idx = 0;
+    
+    for(size_t i=0; i<markClassBody->childCount; i++){
+        if(markClassBody->children[i]->ruleType == variableDeclaration_rule){
+            for(size_t j=0; j<markClassBody->children[i]->varCount; j++){
+                st->fields[field_idx] = markClassBody->children[i]->varSymbolTable[j];
+                field_idx++;
+            }
+        }
+        if(markClassBody->children[i]->ruleType == subroutineDeclaration_rule){
+            st->methods[method_idx] = markClassBody->children[i]->methodSymbolTable;
+            method_idx++;
+        }
     }
     
     return st;
@@ -169,12 +229,224 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
         fprintf(stderr, "%sError attachMethodSymbolTable: tree node not passed in%s\n", RED, NRM);
         exit(1);
     }
+    if(n->ruleType != subroutineDeclaration_rule){
+        fprintf(stderr, "%sError attachMethodSymbolTable: not subroutine declaration node%s\n", RED, NRM);
+        exit(1);
+    }
     if(!parentClass){
         fprintf(stderr, "%sError attachMethodSymbolTable: parent class not passed in%s\n", RED, NRM);
         exit(1);
     }
-    // placeholder
-    return NULL;
+    
+    methodST* st = calloc(1, sizeof(methodST));
+    if(!st){
+        fprintf(stderr, "%sError attachMethodSymbolTable: not enough memory, cannot create a method symbol table%s\n", RED, NRM);
+        exit(1);
+    }
+    st->cf = METHOD_ST;
+    st->attachNode = n;
+    st->parentClass = parentClass;
+    
+    treeNode* markBound = NULL;
+    treeNode* markType = NULL;
+    treeNode* markId = NULL;
+    treeNode* markSubBody = NULL;
+    
+    for(size_t i=0; i < n->childCount; i++){
+        treeNode* child = n->children[i];
+        
+        // accessibility
+        if(child->ruleType == accessModifier_rule){
+            if(child->assoToken->data.key_val == PUBLIC){
+                st->isPublic = true;
+            }
+            else if(child->assoToken->data.key_val == PRIVATE){
+                st->isPrivate = true;
+            }
+        }
+        
+        // is static or final?
+        if(child->ruleType == nonAccessModifier_rule){
+            if(child->assoToken->data.key_val == STATIC){
+                st->isStatic = true;
+            }
+            else if(child->assoToken->data.key_val == FINAL){
+                st->isFinal = true;
+            }
+        }
+        
+        // is abstract method?
+        if(child->ruleType == abstract_rule){
+            st->isAbstract = true;
+        }
+        
+        // is native method?
+        if(child->ruleType == native_rule){
+            st->isNative = true;
+        }
+               
+        // mark position of type boundedness
+        if(child->ruleType == typeBoundList_rule){
+            markBound = child;
+        }
+        // mark position of type
+        if(child->ruleType == type_rule){
+            markType = child;
+        }
+        // mark position of method name
+        if(child->ruleType == identifier_rule){
+            markId = child;
+        }
+        // mark position of subroutine body
+        if(child->ruleType == subroutineBody_rule){
+            markSubBody = child;
+        }
+        
+        // attach argument list
+        if(child->ruleType == parameterList_rule){
+            st->argumentsCount = child->varCount;
+            // this is a shallow copy, don't free this
+            st->arguments = child->varSymbolTable;
+        }
+        
+        // store annotation
+        if(child->ruleType == annotation_rule){
+            st->annotation = mystrdup(child->children[1]->assoToken->data.str_val);
+        }
+        
+    }
+    
+    st->name = mystrdup(markId->assoToken->data.str_val);
+    
+    // if no return type, it's a constructor
+    if(!markType){
+        st->isConstructor = true;
+    }
+    
+    // attach generics ST
+    if(markBound){
+        st->generics = attachTypeBoundSymbolTable(st->name, markBound);
+    }
+    
+    // link child STs to current ST
+    int localsCount = 0;
+    for(size_t i=0; i<markSubBody->childCount; i++){
+        if(markSubBody->children[i]->ruleType == variableDeclaration_rule){
+            localsCount += markSubBody->children[i]->varCount;
+        }
+    } 
+    st->localsCount = localsCount;
+    st->locals = localsCount==0?NULL:calloc(localsCount, sizeof(methodST*));
+    
+    int local_idx = 0;
+    for(size_t i=0; i<markSubBody->childCount; i++){
+        if(markSubBody->children[i]->ruleType == variableDeclaration_rule){
+            for(size_t j=0; j<markSubBody->children[i]->varCount; j++){
+                st->locals[local_idx] = markSubBody->children[i]->varSymbolTable[j];
+                local_idx++;
+            }
+        }
+    }
+    
+    return st;
+    
+}
+
+genST* attachTypeBoundSymbolTable(char* name, treeNode* typeBoundList) {
+    assert(typeBoundList);
+    assert(typeBoundList->ruleType == typeBoundList_rule);
+    
+    treeNode* tmp_gen = convertTypeBound2Generics(typeBoundList);
+    
+    genST* out = attachGenericsSymbolTable(name, tmp_gen);
+    
+    freeTreeNode(tmp_gen);
+    
+    return out;
+}
+
+treeNode* convertTypeBound2Generics(treeNode* typeBoundList){
+    //treeNode* deepCopySubtree(treeNode* n);
+    assert(typeBoundList);
+    assert(typeBoundList->ruleType == typeBoundList_rule);
+    
+    // first count how many typeArgument we need
+    int args = 0;
+    for(size_t i=0; i < typeBoundList->childCount; i++){
+        if(typeBoundList->children[i]->ruleType == typeBound_rule){
+            if(typeBoundList->children[i]->childCount == 1){
+                args++;
+            }else{
+                treeNode* constraint = typeBoundList->children[i]->children[1];
+                for(size_t j=0; j < constraint->childCount; j++){
+                    if(constraint->children[j]->ruleType == type_rule){
+                        args++;
+                    }
+                }
+            }
+        }
+    }
+    //printf("%sargs = %d%s\n", RED, args, NRM);
+    treeNode* root = createTreeNode(generics_rule, NULL);
+    insertNewNode2Parent(langle_rule, NULL, root);
+    for(size_t i=0; i < typeBoundList->childCount; i++){
+        if(typeBoundList->children[i]->ruleType == typeBound_rule){
+            // typeBound->identifier. the resulting generics is
+            // typeAgr->refType->identifier
+            if(typeBoundList->children[i]->childCount == 1){
+                treeNode* typeArg = insertNewNode2Parent(typeArgument_rule, NULL, root);
+                treeNode* ref = insertNewNode2Parent(referenceType_rule, NULL, typeArg);
+                treeNode* id_copy = deepCopySubtree(typeBoundList->children[i]->children[0]);
+                id_copy->parent = ref;
+                insertChildNode(ref, id_copy);
+                insertChildNode(root, typeArg);
+                args--;
+                if(args>0){
+                    insertNewNode2Parent(comma_rule, NULL, root);
+                }
+            // typeBound->identifier(copy this)
+            //          ->constraint->extends
+            //                      ->type->refType(copy this)
+            // resulting generics is 
+            // typeArg->identifier(copy)
+            //        ->extends
+            //        ->refType(copy)
+            }else{
+                treeNode* id = typeBoundList->children[i]->children[0];
+                treeNode* constraint = typeBoundList->children[i]->children[1];
+                for(size_t j=0; j < constraint->childCount; j++){
+                    if(constraint->children[j]->ruleType == type_rule){
+                        treeNode* ref = constraint->children[j]->children[0];
+                        treeNode* ref_copy = deepCopySubtree(ref);
+                        
+                        treeNode* typeArg = insertNewNode2Parent(typeArgument_rule, NULL, root);
+                        // insert id_copy to typeArg
+                        treeNode* id_copy = deepCopySubtree(id);
+                        id_copy->parent = typeArg;
+                        insertChildNode(typeArg, id_copy);
+                        // insert extends to typeArg
+                        insertNewNode2Parent(extends_rule, NULL, typeArg);
+                        // insert refType_copy into typeArg
+                        ref_copy->parent = typeArg;
+                        insertChildNode(typeArg, ref_copy);
+                        // insert typeArg into root
+                        insertChildNode(root, typeArg);
+                        // insert comma when eligible
+                        args--;
+                        if(args>0){
+                            insertNewNode2Parent(comma_rule, NULL, root);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    insertNewNode2Parent(rangle_rule, NULL, root);
+    
+    printf("---------------------------------------\n");
+    printLessTreeNode(root, 0);
+    return root;
+    
 }
 
 varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* parentMethod, treeNode* parentCompound){
@@ -261,6 +533,7 @@ varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* paren
         // if arrDimention>0, meaning we have already dealt with brackets
         if(child->ruleType == bracket_rule){
             int bracketCount = countBrackets('[', ']', n);
+            assert(bracketCount%2==0);
             arrDimension = bracketCount / 2;
         }
         
@@ -314,6 +587,99 @@ varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* paren
         }  
     }
     
+    return arr;
+}
+
+varST** attachArgListSymbolTable(treeNode* n, treeNode* parentMethod){
+    if(!n){
+        fprintf(stderr, "%sError attachArgListSymbolTable: tree node not passed in%s\n", RED, NRM);
+        exit(1);
+    }
+    if(n->ruleType != parameterList_rule){
+        fprintf(stderr, "%sError attachArgListSymbolTable: not parameter declaration node%s\n", RED, NRM);
+        exit(1);
+    }
+    if(!parentMethod){
+        fprintf(stderr, "%sError attachArgListSymbolTable: parent method not passed in%s\n", RED, NRM);
+        exit(1);
+    }
+    
+    // create the array of varST
+    int commaCount = countCommas(n);
+    varST** arr = calloc(commaCount + 1, sizeof(varST*));
+    if(!arr){
+        fprintf(stderr, "%sError attachArgListSymbolTable: not enough memory, cannot create an array of parameter symbol tables%s\n", RED, NRM);
+        exit(1);
+    }
+    n->varSymbolTable = arr;
+    
+    int idx_arr = 0;
+    
+    for(size_t i=0; i < n->childCount; i++){
+        treeNode* prevchild = (int)i-1>=0?n->children[i-1]:NULL;
+        treeNode* child = n->children[i];
+        treeNode* nextchild = i+1<n->childCount?n->children[i+1]:NULL;
+        
+        // create new var ST for every <type>
+        if(child->ruleType == type_rule){
+            varST* st = calloc(1, sizeof(varST));
+            if(!st){
+                fprintf(stderr, "%sError attachVarSymbolTable: not enough memory, cannot create a variable symbol table%s\n", RED, NRM);
+                exit(1);
+            }
+            st->attachNode = n;
+            st->cf = VAR_ST;
+            st->parentMethod = parentMethod;
+            
+            // is const?
+            if(prevchild && prevchild->ruleType == const_rule){
+                printf("Debug: const argument\n");
+                st->isFinal = true;
+            }
+            
+            // if nextchile is bracket,
+            // first count array dimension,
+            // then find the next identifier
+            if(nextchild->ruleType == bracket_rule){
+                int bracketCount = 0;
+                int k = 1;
+                while(n->children[i+k]->ruleType == bracket_rule){
+                    bracketCount++;
+                    k++;
+                }
+                assert(bracketCount%2==0);
+                st->arrDimension = bracketCount / 2;
+                if(n->children[i+k]->ruleType != identifier_rule){
+                    fprintf(stderr, "%slogical error finding identifier after array%s\n", RED, NRM);
+                    exit(1);
+                }
+                st->name = mystrdup(n->children[i+k]->assoToken->data.str_val);
+            }else{
+                st->name = mystrdup(nextchild->assoToken->data.str_val);
+            }
+            
+            // finally deal with the type
+            // primitive type
+            if(child->children[0]->ruleType == primitiveType_rule){
+                st->type = attachGenericsSymbolTable(getKeyword(child->children[0]->assoToken->data.key_val), NULL);
+            }
+            else if(child->children[0]->ruleType == referenceType_rule){
+                // reference type without generics
+                if(child->children[0]->childCount==1){
+                    st->type = attachGenericsSymbolTable(child->children[0]->children[0]->assoToken->data.str_val, NULL);
+                }
+                // reference type with generics
+                else{
+                    st->type = attachGenericsSymbolTable(child->children[0]->children[0]->assoToken->data.str_val, child->children[0]->children[1]);
+                }
+            }
+            
+            arr[idx_arr] = st;
+            idx_arr++;
+        }
+        
+    }
+
     return arr;
 }
 
@@ -441,27 +807,6 @@ int countBrackets(char c1, char c2, treeNode* n){
     return count;
 }
 
-void mergeVarST(int len0, varST*** dest, int len, varST** source){
-    varST** d = *dest;
-    if(!d){
-        d = source;
-        return;
-    }
-    varST** arr = calloc(len0+len, sizeof(varST*));
-    assert(arr);
-    for(int i=0; i<len0; i++){
-        arr[i] = d[i];
-    }
-    for(int i=0; i<len; i++){
-        arr[i+len0] = source[i];
-    }
-    
-    //free(d);
-    //free(source);
-    d = arr;
-}
-
-
 void printSymbolTables(CST* cst){
     if(!cst || !cst->root){
         return;
@@ -483,14 +828,13 @@ void printNodeSymbolTable(treeNode* n, int indent){
         flag = true;
     }
     if(n->ruleType == variableDeclaration_rule){
-        printf("Debug: variable declaration ST\n");
-        for(size_t i=0; i<(size_t)countCommas(n)+1; i++){
+        for(size_t i=0; i < n->varCount; i++){
             printVarST(n->varSymbolTable[i]);
         }
         flag = true;
     }
     if(n->ruleType == forStatement_rule){
-        printf("Debug: compound var ST\n");
+       
         for(size_t i=0; i<n->varCount; i++){
             printVarST(n->varSymbolTable[i]);
         }
@@ -542,33 +886,32 @@ void printMethodST(methodST* st){
         printf("abstract ");
     }
     
-    printf("return type = ");
-    printGenericsST(st->returnType);
+    printf("methodName = %s", st->name);
     
-    printf("type boundedness = ");
+    printf(", returnType = ");
+    if(!st->returnType){
+        printf("void ");
+    }else{
+        printGenericsST(st->returnType);
+    }
+    
+    printf(", type boundedness = ");
     printGenericsST(st->generics);
     
     if(st->arguments){
-        printf("arguments: ");
+        printf(", arguments: ");
         for(size_t i=0; i<st->argumentsCount; i++){
             printVarST(st->arguments[i]);
             printf(", ");
         }
     }
-    
-    if(st->locals){
-        printf("local variables: ");
-        for(size_t i=0; i<st->localsCount; i++){
-            printVarST(st->locals[i]);
-            printf(", ");
-        }
-    }
+    printf("\n");
     
 }
 
 void printVarST(varST* st){
     if(!st){
-        printf("Debug: null var ST\n");
+        printf("empty\n");
         return;
     }
     
@@ -643,6 +986,7 @@ void freeNodeSymbolTables(treeNode* n){
     freeMethodST(n->methodSymbolTable);
     free(n->methodSymbolTable);
     if(n->varSymbolTable){
+        
         for(size_t i=0; i<n->varCount; i++){
             freeVarST(n->varSymbolTable[i]); 
             free(n->varSymbolTable[i]);
@@ -662,30 +1006,17 @@ void freeClassST(classST* st){
         return;
     }
     freeGenericsST(st->generics);
+    free(st->generics);
     freeGenericsST(st->superclassGenerics);
+    free(st->superclassGenerics);
     if(st->interfacesGenerics){
         for(size_t i=0; i<st->interfacesCount; i++){
             freeGenericsST(st->interfacesGenerics[i]);
+            free(st->interfacesGenerics[i]);
         }
     }
     free(st->interfacesGenerics);
-    /*
-    if(st->fields){
-        for(size_t i=0; i<st->fieldsCount; i++){
-            freeVarST(st->fields[i]);
-            free(st->fields[i]);
-        }
-    }
-    */
     free(st->fields);
-    /*
-    if(st->methods){
-        for(size_t i=0; i<st->methodsCount; i++){
-            freeMethodST(st->methods[i]);
-            free(st->methods[i]);
-        }
-    }
-    */
     free(st->methods);
 }
 
@@ -693,25 +1024,12 @@ void freeMethodST(methodST* st){
     if(!st){
         return;
     }
+    free(st->name);
+    free(st->annotation);
     freeGenericsST(st->returnType);
+    free(st->returnType);
     freeGenericsST(st->generics);
-    /*
-    if(st->arguments){
-        for(size_t i=0; i<st->argumentsCount; i++){
-            freeVarST(st->arguments[i]);
-            free(st->arguments[i]);
-        }
-    }
-    */
-    free(st->arguments);
-    /*
-    if(st->locals){
-        for(size_t i=0; i<st->localsCount; i++){
-            freeVarST(st->locals[i]);
-            free(st->locals[i]);
-        }
-    }
-    */
+    free(st->generics);
     free(st->locals);
 }
 
@@ -729,9 +1047,7 @@ void freeGenericsST(genST* st){
         return;
     }
     free(st->name);
-    //st->name=NULL;
     free(st->type);
-    //st->type=NULL;
     if(st->nestedCount){
         for(size_t i=0; i<st->nestedCount; i++){
             freeGenericsST(st->nested[i]);
@@ -741,3 +1057,6 @@ void freeGenericsST(genST* st){
     free(st->nested);
 }
 
+void* testcalloc(size_t len, size_t size){
+    return calloc(len, size);
+}

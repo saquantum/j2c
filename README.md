@@ -191,7 +191,7 @@ For current version of grammar we only use annotations for method overridence.
 ```
 <subroutineDeclaration> ::= [<annotation>] [<accessModifier>] {<nonAccessModifier>} [`native`] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
 
-<parameterList> ::= [ ['final'] <type> [ '[' ']' ] <identifier> { ',' ['final'] <type> [ '[' ']' ] <identifier> }]
+<parameterList> ::= [ ['final'] <type> { '[' ']' } <identifier> { ',' ['final'] <type> { '[' ']' } <identifier> }]
 
 <typeBoundsList> ::= '<' <typeBound> {',' <typeBound>} '>'
 <typeBound> ::= <identifier> [ <constraint> ]

@@ -12,14 +12,17 @@ void attachSymbolTables2Nodes(treeNode* n);
 
 classST* attachClassSymbolTable(treeNode* n);
 methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass);
+genST* attachTypeBoundSymbolTable(char* name, treeNode* typeBoundList);
+treeNode* convertTypeBound2Generics(treeNode* typeBoundList);
 varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, 
         treeNode* parentMethod, treeNode* parentCompound);
+varST** attachArgListSymbolTable(treeNode* n, treeNode* parentMethod);
 genST* attachGenericsSymbolTable(char* type, treeNode* gen);
+
+
 
 int countCommas(treeNode* n);
 int countBrackets(char c1, char c2, treeNode* n);
-
-void mergeVarST(int len0, varST*** dest, int len, varST** source);
 
 void printSymbolTables(CST* cst);
 void printNodeSymbolTable(treeNode* n, int indent);
@@ -34,4 +37,6 @@ void freeClassST(classST* st);
 void freeMethodST(methodST* st);
 void freeVarST(varST* st);
 void freeGenericsST(genST* st);
+
+void* testcalloc(size_t len, size_t size);
 

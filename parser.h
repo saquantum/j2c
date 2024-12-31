@@ -121,11 +121,16 @@ typedef struct classST{
     treeNode* attachNode;
 } classST;
 
-// to access the name of a method, retrieve methodST->generics->type
+// to access the name of a method, retrieve methodST->name
 typedef struct methodST{
     classification_of_ST cf; // should be set to METHOD_ST by default
     
+    char* annotation;
+    char* name;
+    // if subroutine is a constructor, set returnType to NULL and isConstructor to true
+    // for ordinary method, isConstructor to false
     struct genST* returnType;
+    bool isConstructor;
     
     struct genST* generics; // type boundedness for this method, this affects arguments
     
@@ -140,6 +145,9 @@ typedef struct methodST{
     bool isAbstract;
     bool isStatic;
     bool isFinal;
+    
+    // refer to corresponding C source code if it is native
+    bool isNative;
     
     struct treeNode* parentClass;
     treeNode* attachNode;
@@ -295,3 +303,4 @@ char* getRule(ruletype r);
 void freeCST(CST** cst);
 void freeTreeNode(treeNode* n);
 
+treeNode* deepCopySubtree(treeNode* n);

@@ -7,10 +7,15 @@ public final abstract class student<E> extends Map<A extends List<B extends List
     List<String>[][][] c;
     public int a, b=1, c, d=2;
     
+    public <K, T extends Map<List<String>, ? extends Number> & Comparable<T> & Iterable, V extends Iterable> student(){
+        int k;
+        int j;
+    }
     /*
-    public void test(){
+    @override
+    public void test(final int[][] a, String b){
         for(int i=0;i<10;i++){
-            System.out.println("a" + i);
+            System.out.println(b + a);
         }
     }
     */

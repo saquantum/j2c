@@ -787,3 +787,40 @@ void freeTreeNode(treeNode* n){
     free(n->children);
     free(n);
 }
+
+treeNode* deepCopySubtree(treeNode* n){
+    /*
+    ruletype ruleType;
+    token* assoToken;
+    struct treeNode** children;
+    size_t capacity;
+    size_t childCount;
+    struct treeNode* parent;
+    struct classST* classSymbolTable; // attach this for a structural class node
+    struct methodST* methodSymbolTable; // attach this for a structural method node
+    struct varST** varSymbolTable; // attach this for a structural compound node
+    size_t varCount;
+    struct vtable* virtualTable; // attach this for a structural class node
+}treeNode;
+    */
+    if(!n){
+        return NULL;
+    }
+    treeNode* t = calloc(1, sizeof(treeNode));
+    assert(t);
+    t->ruleType = n->ruleType;
+    t->assoToken = n->assoToken;
+    t->capacity = n->capacity;
+    t->childCount = n->childCount;
+    t->classSymbolTable = n->classSymbolTable;
+    t->methodSymbolTable = n->methodSymbolTable;
+    t->varSymbolTable = n->varSymbolTable;
+    t->varCount = n->varCount;
+    t->virtualTable = n->virtualTable;
+    t->children = t->childCount>0?calloc(t->childCount, sizeof(treeNode*)):NULL;
+    for(size_t i=0;i<t->childCount;i++){
+        t->children[i] = deepCopySubtree(n->children[i]);
+        t->children[i]->parent = t;
+    }
+    return t;
+}
