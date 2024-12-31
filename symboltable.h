@@ -10,10 +10,16 @@ void attachSymbolTables2Nodes(treeNode* n);
 //                 ^        ^<-- varST (method local var)
 //                 |-- varST (class level var)
 
-void attachClassSymbolTable(treeNode* n);
+classST* attachClassSymbolTable(treeNode* n);
+methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass);
+varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, 
+        treeNode* parentMethod, treeNode* parentCompound);
 genST* attachGenericsSymbolTable(char* type, treeNode* gen);
-void attachMethodSymbolTable(treeNode* n, classST* parentClass);
-void attachVarSymbolTable(treeNode* n, classST* parentClass, methodST* methodST, varST* parentCompound);
+
+int countCommas(treeNode* n);
+int countBrackets(char c1, char c2, treeNode* n);
+
+void mergeVarST(int len0, varST*** dest, int len, varST** source);
 
 void printSymbolTables(CST* cst);
 void printNodeSymbolTable(treeNode* n, int indent);

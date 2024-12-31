@@ -48,9 +48,11 @@ this includes arrays.
 
 we have three accessibility: public > default > private.
 
+NOTICE: only java style array declaration (int[] a) is allowed.
+
 ```
 <variableDeclaration> ::=  
-[<accessModifier>] {<nonAccessModifier>} <type> [ '[' ']' ] ( <identifier> | <assignment>) {',' ( <identifier> | <assignment>)} 
+[<accessModifier>] {<nonAccessModifier>} <type> { '[' ']' } ( <identifier> | <assignment>) {',' ( <identifier> | <assignment>)} 
 
 <accessModifier> ::= 'public' | 'private'
 <nonAccessModifier> ::= 'static' | 'final' | 'abstract'
@@ -207,7 +209,7 @@ we will wait until semantics analysis to check if the expression are boolean or 
 for simplicity we don't allow compound statements without braces.
 
 ```
-<statement> ::= { <assignment> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | <breakStatement> | <continueStatement> | <staticStatement> | <codeBlock> | ';'}
+<statement> ::= { <variableDeclaration> ';' | <assignment> ';' | <expression> ';' | <ifStatement> | <switchStatement> | <forStatement> | <whileStatement> |  <doWhileStatement> | <returnStatement> | <breakStatement> | <continueStatement> | <staticStatement> | <codeBlock> | ';'}
 
 <ifStatement> ::= 'if' '(' <expression> ')' '{' [<statement>] '}' { 'else' 'if' '(' <expression> ')' '{' [<statement>] '}' } [ 'else' '{' [<statement>] '}' ]
 
@@ -216,7 +218,7 @@ for simplicity we don't allow compound statements without braces.
 <caseBranch> ::= 'case' <expression> ':' { <statement> }
 <defaultBranch> ::= 'default' ':' { <statement> }
 
-<forStatement> ::= 'for' '(' [ <assignment> ] ';' [ <expression> ] ';' [ <assignment> | <expression> ] ')' ( '{' { <statement> } '}' | ';' )
+<forStatement> ::= 'for' '(' [ <variableDeclaration> | <assignment> ] ';' [ <expression> ] ';' [ <assignment> | <expression> ] ')' ( '{' { <statement> } '}' | ';' )
 
 <whileStatement> ::= 'while' '(' <expression> ')' ( '{' { <statement> } '}' | ';' )
 

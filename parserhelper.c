@@ -145,7 +145,7 @@ bool isPotentialGenerics(tokenNode* current){
 
 bool isPotentialAssignment(tokenNode* current){
     // <assignment> ::= <lvalue> <assignmentOperator> <expression>
-    while(!isSemicolon(current) && !isSymbol(',', current)){
+    while(current && !isSemicolon(current) && !isSymbol(',', current)){
         if(isOperator("+=", current) || isOperator("-=", current) || isOperator("*=", current) || isOperator("/=", current)){
             return true;
         }
@@ -203,7 +203,7 @@ bool isVariableDeclarationStart(tokenNode* current){
         return false;
     }
     
-    if(isBracket('[', current)){
+    while(isBracket('[', current)){
         current = current->next;
         if(isBracket(']', current)){
             current = current->next;
@@ -211,6 +211,7 @@ bool isVariableDeclarationStart(tokenNode* current){
             return false;
         }
     }
+    
     //printf("Debug: 0reached here\n");
     //printCurrentToken(current);
     if(isIdentifier(current)){
@@ -303,6 +304,9 @@ bool isStatementStart(tokenNode* current){
         return true;
     }
     if(isKey(IF, current) || isKey(SWITCH, current) || isKey(FOR, current) || isKey(WHILE, current) || isKey(DO, current) || isKey(RETURN, current) || isKey(BREAK, current) || isKey(CONTINUE, current) || isKey(STATIC, current)){
+        return true;
+    }
+    if(isVariableDeclarationStart(current)){
         return true;
     }
     if(isExpressionStart(current)){

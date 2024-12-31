@@ -118,7 +118,7 @@ typedef struct classST{
     bool isStatic;
     bool isFinal;
     
-    treeNode* parentNode;
+    treeNode* attachNode;
 } classST;
 
 // to access the name of a method, retrieve methodST->generics->type
@@ -141,8 +141,8 @@ typedef struct methodST{
     bool isStatic;
     bool isFinal;
     
-    struct classST* parentClass;
-    treeNode* parentNode;
+    struct treeNode* parentClass;
+    treeNode* attachNode;
     
 }methodST;
 
@@ -164,22 +164,21 @@ typedef struct varST{
     struct genST* type; // type of a variable is with generics by default
     
     // array dimension determines number of asterisks for a pointer
-    int arrDimension; // if 0, not an array
-    int* arrSizes;
+    size_t arrDimension; // if 0, not an array
     
     bool isPublic;
     bool isPrivate;
     bool isStatic;
     bool isFinal;
     
-    struct classST* parentClass;
-    struct methodST* methodST;
-    struct varST* parentCompound;
-    treeNode* parentNode;
+    struct treeNode* parentClass;
+    struct treeNode* parentMethod;
+    struct treeNode* parentCompound;
+    treeNode* attachNode;
 }varST;
 
 typedef struct vtable{
-    treeNode* parentNode;
+    treeNode* attachNode;
 } vtable;
 
 

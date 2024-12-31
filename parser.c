@@ -161,6 +161,7 @@ void parseArrayInitialization(treeNode* parent, tokenTable* table){
             n = nextNode(table);
             insertNewNode2Parent(comma_rule, n->t, arrayInitialization);
             parseArrayInitialization(arrayInitialization, table);
+            peeknext = peekNextNode(table);
         }
     }else{
         parseTerm(arrayInitialization, table);
@@ -270,6 +271,8 @@ void parseSubroutineCall(treeNode* parent, tokenTable* table){
     n = nextNode(table);
     checkCharValueNodeExpected(n, BRACKET, '(', "parseSubroutineCall", "missing left parenthesis to start subroutine call");
     insertNewNode2Parent(bracket_rule, n->t, call);
+    
+    printf("Debug: subroutine call at line %d\n", n->t->lineNumber);
     
     // argument list
     parseExpressionList(call, table);
@@ -824,13 +827,15 @@ void parseVariableDeclaration(treeNode* parent, tokenTable* table){
     
     // an optional array definition
     peeknext = peekNextNode(table);
-    if(isBracket('[', peeknext)){
+    while(isBracket('[', peeknext)){
         n = nextNode(table);
         insertNewNode2Parent(bracket_rule, n->t, variableDeclaration);
         
         n = nextNode(table);
         checkCharValueNodeExpected(n, BRACKET, ']', "parseVariableDeclaration", "missing right square bracket to conclude array definition");
         insertNewNode2Parent(bracket_rule, n->t, variableDeclaration);
+        
+        peeknext = peekNextNode(table);
     }
     
     // an identifier, or an assignment
@@ -1117,6 +1122,7 @@ void parseStatement(treeNode* parent, tokenTable* table){
     tokenNode* peeknext;
     
     peeknext = peekNextNode(table);
+    printf("Debug: statement at line %d\n", peeknext->t->lineNumber);
     if(isKey(IF, peeknext)){
         parseIfStatement(statement, table);
     }else if(isKey(SWITCH, peeknext)){
@@ -1139,6 +1145,11 @@ void parseStatement(treeNode* parent, tokenTable* table){
         parseCodeBlock(statement, table);
     }else if(isSemicolon(peeknext)){
         n = nextNode(table);
+        insertNewNode2Parent(semicolon_rule, n->t, statement);
+    }else if(isVariableDeclarationStart(peeknext)){
+        parseVariableDeclaration(statement, table);
+        n = nextNode(table);
+        checkCharValueNodeExpected(n, SEMICOLON, ';', "parseStatement", "missing semicolon to conclude a variable declaration");
         insertNewNode2Parent(semicolon_rule, n->t, statement);
     }else if(isPotentialAssignment(peeknext)){
         parseAssignment(statement, table);
@@ -1343,15 +1354,20 @@ void parseForStatement(treeNode* parent, tokenTable* table){
     n = nextNode(table);
     checkKeyValueNodeExpected(n, KEYWORD, FOR, "parseForStatement", "missing 'for' keyword for a for statement");
     insertNewNode2Parent(for_rule, n->t, forStatement);
-    
+    printf("Debug: for statement at line %d\n", n->t->lineNumber);
     // '('
     n = nextNode(table);
     checkCharValueNodeExpected(n, BRACKET, '(', "parseForStatement", "missing left parenthesis for a for statement");
     insertNewNode2Parent(bracket_rule, n->t, forStatement);
     
-    // optional assignment
+    // optional variable declaration or assignment 
     peeknext = peekNextNode(table);
-    if(isPotentialAssignment(peeknext)){
+    if(isVariableDeclarationStart(peeknext)){
+        printf("Debug: varDec before first semicolon\n");
+        parseVariableDeclaration(forStatement, table);
+    }
+    else if(isPotentialAssignment(peeknext)){
+        printf("Debug: assignment before first semicolon\n");
         parseAssignment(forStatement, table);
     }
     
@@ -1697,6 +1713,7 @@ void parseClassDeclaration(treeNode* parent, tokenTable* table){
             if(isSymbol('<', peeknext)){
                 parseGenerics(classDeclaration, table);
             }
+            peeknext = peekNextNode(table);
         }
     }
     
@@ -1769,6 +1786,7 @@ void parseInterfaceDeclaration(treeNode* parent, tokenTable* table){
             if(isSymbol('<', peeknext)){
                 parseGenerics(interfaceDeclaration, table);
             }
+            peeknext = peekNextNode(table);
         }
     }
     
@@ -1819,6 +1837,7 @@ void parseInterfaceBody(treeNode* parent, tokenTable* table){
     peeknext = peekNextNode(table);
     while(!isBracket('}', peeknext)){
         parseSubroutineDeclaration(interbody, table);
+        peeknext = peekNextNode(table);
     }
 }
 
