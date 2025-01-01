@@ -321,6 +321,19 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
     // if no return type, it's a constructor
     if(!markType){
         st->isConstructor = true;
+    }else{
+        if(markType->childCount == 0){
+            st->returnType = attachGenericsSymbolTable(getKeyword(markType->assoToken->data.key_val), NULL);
+        }else if(markType->children[0]->ruleType == primitiveType_rule){
+            st->returnType = attachGenericsSymbolTable(getKeyword(markType->children[0]->assoToken->data.key_val), NULL);
+        }else{
+            if(markType->children[0]->childCount>0){
+                st->returnType = attachGenericsSymbolTable(markType->children[0]->children[0]->assoToken->data.str_val, markType->children[0]->children[1]);
+            }else{
+                st->returnType = attachGenericsSymbolTable(markType->children[0]->children[0]->assoToken->data.str_val, NULL);
+            }
+        }
+        
     }
     
     // attach generics ST
@@ -391,15 +404,15 @@ treeNode* convertTypeBound2Generics(treeNode* typeBoundList){
     insertNewNode2Parent(langle_rule, NULL, root);
     for(size_t i=0; i < typeBoundList->childCount; i++){
         if(typeBoundList->children[i]->ruleType == typeBound_rule){
+            treeNode* id = typeBoundList->children[i]->children[0];
             // typeBound->identifier. the resulting generics is
             // typeAgr->refType->identifier
             if(typeBoundList->children[i]->childCount == 1){
                 treeNode* typeArg = insertNewNode2Parent(typeArgument_rule, NULL, root);
                 treeNode* ref = insertNewNode2Parent(referenceType_rule, NULL, typeArg);
-                treeNode* id_copy = deepCopySubtree(typeBoundList->children[i]->children[0]);
+                treeNode* id_copy = deepCopySubtree(id);
                 id_copy->parent = ref;
                 insertChildNode(ref, id_copy);
-                insertChildNode(root, typeArg);
                 args--;
                 if(args>0){
                     insertNewNode2Parent(comma_rule, NULL, root);
@@ -412,7 +425,6 @@ treeNode* convertTypeBound2Generics(treeNode* typeBoundList){
             //        ->extends
             //        ->refType(copy)
             }else{
-                treeNode* id = typeBoundList->children[i]->children[0];
                 treeNode* constraint = typeBoundList->children[i]->children[1];
                 for(size_t j=0; j < constraint->childCount; j++){
                     if(constraint->children[j]->ruleType == type_rule){
@@ -429,8 +441,6 @@ treeNode* convertTypeBound2Generics(treeNode* typeBoundList){
                         // insert refType_copy into typeArg
                         ref_copy->parent = typeArg;
                         insertChildNode(typeArg, ref_copy);
-                        // insert typeArg into root
-                        insertChildNode(root, typeArg);
                         // insert comma when eligible
                         args--;
                         if(args>0){
@@ -443,8 +453,8 @@ treeNode* convertTypeBound2Generics(treeNode* typeBoundList){
     }
     insertNewNode2Parent(rangle_rule, NULL, root);
     
-    printf("---------------------------------------\n");
-    printLessTreeNode(root, 0);
+    //printf("---------------------------------------\n");
+    //printLessTreeNode(root, 0);
     return root;
     
 }
@@ -890,7 +900,7 @@ void printMethodST(methodST* st){
     
     printf(", returnType = ");
     if(!st->returnType){
-        printf("void ");
+        printf("constructor ");
     }else{
         printGenericsST(st->returnType);
     }

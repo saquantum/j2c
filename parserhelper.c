@@ -300,6 +300,9 @@ bool isPotentialSubroutineCall(tokenNode* current){
 } 
 
 bool isStatementStart(tokenNode* current){
+    if(isBracket('}', current)){
+        return false;
+    }
     if(isSemicolon(current) || isBracket('{', current)){
         return true;
     }
