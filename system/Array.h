@@ -2,25 +2,26 @@
 #include "Object.h"
 
 typedef struct Array$inner{
-    size_t size; // size of current array.
-    void* data; // if current array is an entry, then inner=NULL, size=0
-    Array$inner** inner; // current array contains subarray, then data=NULL
+    size_t size; 
+    void** data; 
+    struct Array$inner** inner; 
 }Array$inner;
 
-typedef struct Array$obj{
-    char* type; // for casting. String -> String$obj*
+typedef struct Array$obj
     size_t dimension; // int[][][] -> dimension=3
-    Array$inner** root; // contains a formal array which must not have data
-    Object$obj* super; 
+    size_t length; // int[5][2][] -> length=5
+    Array$inner* root; // contains a formal array which must not have data
+    struct Object$obj* super; 
 }Array$obj;
 
-// all methods below are for compiler to call, not for user
-
-Array$obj* Array$create(size_t dimension, int* sizes);
+// all methods below are for the compiler to call, not for user
 
 // initialize undeclared subarray. int[][] arr = new[2][]; arr[0] = new int[10];
-// the declaration calls Array$create, assignment calls Array$initSubarray. 
-Array$inner* Array$initSubarray();
+// the declaration calls Array$create, assignment calls Array$createLevel. 
+Array$inner* Array$createLevel(size_t currentDimension, size_t totalDimension, int* sizes);
+
+// before calling this function, compiler must first check the length of sizes equals length
+Array$obj* Array$create(size_t dimension, int* sizes, char* actualType, char* referenceType, char* objName);
 
 // insert an element 
 bool Array$insertEntry(Array$obj* this, int* indices, void* data);
