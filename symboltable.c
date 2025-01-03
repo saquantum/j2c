@@ -176,7 +176,7 @@ classST* attachClassSymbolTable(treeNode* n){
         }
         
         // mark position of classBody
-        if(child->ruleType == classBody_rule){
+        if(child->ruleType == classBody_rule || child->ruleType == interfaceBody_rule){
             markClassBody = child;
         }
         
@@ -225,11 +225,23 @@ classST* attachClassSymbolTable(treeNode* n){
     }
     
     if(st->isInterface){
-        
+        int methodsCount = 0;
+        for(size_t i=0; i<markClassBody->childCount; i++){
+            if(markClassBody->children[i]->ruleType == subroutinePrototype_rule){
+                methodsCount++;
+            }
+        }
+        st->methodsCount = methodsCount;
+        st->methods = methodsCount==0?NULL:calloc(methodsCount, sizeof(methodST*));
+        int method_idx = 0;
+        for(size_t i=0; i<markClassBody->childCount; i++){
+            if(markClassBody->children[i]->ruleType == subroutinePrototype_rule){
+                st->methods[method_idx] = markClassBody->children[i]->methodSymbolTable;
+                method_idx++;
+            }
+        }
     }
-    
-    
-    
+
     return st;
 }
 
@@ -260,6 +272,8 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
     treeNode* markType = NULL;
     treeNode* markId = NULL;
     treeNode* markSubBody = NULL;
+    
+    int arrCount = 0;
     
     for(size_t i=0; i < n->childCount; i++){
         treeNode* child = n->children[i];
@@ -301,6 +315,13 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
         // mark position of type
         if(child->ruleType == type_rule){
             markType = child;
+            // if next child is bracket, then count array dimension
+            int k = 1;
+            while(n->children[i+k]->ruleType == bracket_rule){
+                arrCount++;
+                k++;
+            }
+            st->arrDimension = arrCount/2;
         }
         // mark position of method name
         if(child->ruleType == identifier_rule){
@@ -949,6 +970,10 @@ void printMethodST(methodST* st){
         printf("constructor ");
     }else{
         printGenericsST(st->returnType);
+    }
+    
+    if(st->arrDimension>0){
+        printf(", array dimension = %ld", st->arrDimension);
     }
     
     printf(", type boundedness = ");

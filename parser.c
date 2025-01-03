@@ -919,8 +919,19 @@ void parseSubroutineDeclaration(treeNode* parent, tokenTable* table){
         if(isKey(VOID, peeknext)){
             n = nextNode(table);
             insertNewNode2Parent(type_rule, n->t, subroutineDeclaration);
+            
         }else{
             parseType(subroutineDeclaration, table);
+            // optional array
+            peeknext = peekNextNode(table);
+            while(isBracket('[', peeknext)){
+                n = nextNode(table);
+                insertNewNode2Parent(bracket_rule, n->t, subroutineDeclaration);
+                n = nextNode(table);
+                checkCharValueNodeExpected(n, BRACKET, ']', "parseSubroutineDeclaration", "missing right square bracket to conclude array");
+                insertNewNode2Parent(bracket_rule, n->t, subroutineDeclaration);
+                peeknext = peekNextNode(table);
+            }
         }
     
     }
@@ -1879,6 +1890,16 @@ void parseSubroutinePrototype(treeNode* parent, tokenTable* table){
         insertNewNode2Parent(type_rule, n->t, subroutinePrototype);
     }else{
         parseType(subroutinePrototype, table);
+        // optional array
+        peeknext = peekNextNode(table);
+        while(isBracket('[', peeknext)){
+            n = nextNode(table);
+            insertNewNode2Parent(bracket_rule, n->t, subroutinePrototype);
+            n = nextNode(table);
+            checkCharValueNodeExpected(n, BRACKET, ']', "parseSubroutinePrototype", "missing right square bracket to conclude array");
+            insertNewNode2Parent(bracket_rule, n->t, subroutinePrototype);
+            peeknext = peekNextNode(table);
+        }
     }
     
     // identifier

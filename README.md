@@ -189,7 +189,7 @@ if the subroutine does not have a return type or void, it's a constructor.
 For current version of grammar we only use annotations for method overridence.
 
 ```
-<subroutineDeclaration> ::= [<annotation>] [<accessModifier>] {<nonAccessModifier>} [`native`] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
+<subroutineDeclaration> ::= [<annotation>] [<accessModifier>] {<nonAccessModifier>} [`native`] [<typeBounds>] [ ( <type> {'[' ']'} | 'void' ) ] <identifier> '(' <parameterList> ')' '{' <subroutineBody> '}'
 
 <parameterList> ::= [ ['final'] <type> { '[' ']' } <identifier> { ',' ['final'] <type> { '[' ']' } <identifier> }]
 
@@ -248,7 +248,7 @@ no inner classes and initializer blocks allowed.
 
 <interfaceBody> ::= { <subroutinePrototype> }
 
-<subroutinePrototype> ::= [<annotation>] ['public'] ['abstract'] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' ';'
+<subroutinePrototype> ::= [<annotation>] ['public'] ['abstract'] [<typeBounds>] [ ( <type> {'[' ']'} | 'void' ) ] <identifier> '(' <parameterList> ')' ';'
 
 ```
 

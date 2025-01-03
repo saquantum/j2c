@@ -373,10 +373,6 @@ bool isSubroutineDeclarationStart(tokenNode* current){
         current = current->next;
     }
     
-    if(isKey(VOID, current)){
-        return true;
-    }
-    
     if(isSymbol('<', current)){
         int depth = 1;
         current = current->next;
@@ -390,7 +386,7 @@ bool isSubroutineDeclarationStart(tokenNode* current){
         }
     }
     
-    return isPotentialType(current);
+    return isKey(VOID, current) || isPotentialType(current);
 }
 
 bool isPotentialCasting(tokenNode* current){

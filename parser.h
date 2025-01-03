@@ -86,7 +86,17 @@ typedef struct CST{
     char* filename;
 }CST;
 
+typedef struct vtableEntry{
+    char* callName; // once assigned, the callName should be invariant
+    char* uniqueName; // will change if overridden
+    struct genST* returnType; // easier to check return type
+    int access; // public=4, default=2, private=1, easier to check accessibility
+    bool isAbstract; // abstract method can be overridden by another abstract method
+}vtableEntry;
+
 typedef struct vtable{
+    vtableEntry** entries;
+    size_t entryCount;
     treeNode* attachNode;
 } vtable;
 
@@ -138,6 +148,7 @@ typedef struct methodST{
     bool isConstructor;
     
     struct genST* generics; // type boundedness for this method, this affects arguments
+    size_t arrDimension; // if the return value is an array, then it's not zero
     
     struct varST** arguments; // array of arguments of this method, NULL -> no argument
     size_t argumentsCount;
