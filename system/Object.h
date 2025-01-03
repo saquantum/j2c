@@ -1,26 +1,28 @@
 #pragma once
 #include "../headers.h"
 
-typedef struct Object$obj{
+struct String$obj;
+
+struct Object$obj{
     char* actualType;
     char* referenceType;
-    char* className;
     char* objectName;
     char* address;
-}Object$obj;
+};
 
 // Object obj = new Object();
 // let compiler send LHS as the refType, RHS as the actualType , obj as objName into the function
 // new Object();
 // if the object is not received, set objName=NULL
-Object$obj* Object$Object$0(char* actualType, char* referenceType, char* objName);
+struct Object$obj* Object$Object$0(char* actualType, char* referenceType, char* objectName);
 
-int Object$hashCode$0(Object$obj* this);
+int Object$hashCode$0(struct Object$obj* this);
 
-bool Object$equals$0(Object$obj* that, Object$obj* this);
+bool Object$equals$0(struct Object$obj* that, struct Object$obj* this);
 
-String$obj* Object$getName$0(Object$obj* this);
+struct String$obj* Object$getName$0(struct Object$obj* this, char* referenceType, char* objectName);
     
-String$obj* Object$getAddress$0(Object$obj* this);
+struct String$obj* Object$getAddress$0(struct Object$obj* this, char* referenceType, char* objectName);
     
-String$obj* Object$toString$0(Object$obj* this);
+struct String$obj* Object$toString$0(struct Object$obj* this, char* referenceType, char* objectName);
+
