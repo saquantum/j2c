@@ -116,6 +116,7 @@ struct Array$obj* String$toCharArray$0(struct String$obj* this, char* referenceT
         *c = this->value[i];
         Array$insertEntry(obj, (int[]){i}, c);
     }
+    return obj;
 }
 
 void String$free(struct String$obj* this){

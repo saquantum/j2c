@@ -24,6 +24,9 @@ genST* attachGenericsSymbolTable(char* type, treeNode* gen);
 int countCommas(treeNode* n);
 int countBrackets(char c1, char c2, treeNode* n);
 
+bool isVirtualMethod(methodST* st);
+void assignUniqueName(classST* st);
+
 void printSymbolTables(CST* cst);
 void printNodeSymbolTable(treeNode* n, int indent);
 void printClassST(classST* st);

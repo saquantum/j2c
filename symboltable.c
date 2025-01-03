@@ -23,6 +23,7 @@ void attachSymbolTables2Nodes(treeNode* n){
     if(n->ruleType == classDeclaration_rule || n->ruleType == interfaceDeclaration_rule){
         printf("Debug: attach class symbol table to class or interface declaration\n");
         n->classSymbolTable = attachClassSymbolTable(n);
+        assignUniqueName(n->classSymbolTable);
     }
     
     // method declaration
@@ -187,41 +188,48 @@ classST* attachClassSymbolTable(treeNode* n){
     }
     
     if(st->isClass){
-    // link child STs to current ST
-    int fieldsCount = 0;
-    int methodsCount = 0;
-    for(size_t i=0; i<markClassBody->childCount; i++){
-        if(markClassBody->children[i]->ruleType == variableDeclaration_rule){
-            fieldsCount += markClassBody->children[i]->varCount;
-        }
-        if(markClassBody->children[i]->ruleType == subroutineDeclaration_rule){
-            methodsCount++;
-        }
-    }
-    //printf("Debug: fieldCount = %d, methodCount = %d\n", fieldCount, methodCount);
-    st->fieldsCount = fieldsCount;
-    st->fields = fieldsCount==0?NULL:calloc(fieldsCount, sizeof(varST*));
-
-    st->methodsCount = methodsCount;
-    st->methods = methodsCount==0?NULL:calloc(methodsCount, sizeof(methodST*));
-
-    
-    int field_idx = 0;
-    int method_idx = 0;
-    
-    for(size_t i=0; i<markClassBody->childCount; i++){
-        if(markClassBody->children[i]->ruleType == variableDeclaration_rule){
-            for(size_t j=0; j<markClassBody->children[i]->varCount; j++){
-                st->fields[field_idx] = markClassBody->children[i]->varSymbolTable[j];
-                field_idx++;
+        // link child STs to current ST
+        int fieldsCount = 0;
+        int methodsCount = 0;
+        for(size_t i=0; i<markClassBody->childCount; i++){
+            if(markClassBody->children[i]->ruleType == variableDeclaration_rule){
+                fieldsCount += markClassBody->children[i]->varCount;
+            }
+            if(markClassBody->children[i]->ruleType == subroutineDeclaration_rule){
+                methodsCount++;
             }
         }
-        if(markClassBody->children[i]->ruleType == subroutineDeclaration_rule){
-            st->methods[method_idx] = markClassBody->children[i]->methodSymbolTable;
-            method_idx++;
+        //printf("Debug: fieldCount = %d, methodCount = %d\n", fieldCount, methodCount);
+        st->fieldsCount = fieldsCount;
+        st->fields = fieldsCount==0?NULL:calloc(fieldsCount, sizeof(varST*));
+
+        st->methodsCount = methodsCount;
+        st->methods = methodsCount==0?NULL:calloc(methodsCount, sizeof(methodST*));
+
+    
+        int field_idx = 0;
+        int method_idx = 0;
+    
+        for(size_t i=0; i<markClassBody->childCount; i++){
+            if(markClassBody->children[i]->ruleType == variableDeclaration_rule){
+                for(size_t j=0; j<markClassBody->children[i]->varCount; j++){
+                    st->fields[field_idx] = markClassBody->children[i]->varSymbolTable[j];
+                    field_idx++;
+                }
+            }
+            if(markClassBody->children[i]->ruleType == subroutineDeclaration_rule){
+                st->methods[method_idx] = markClassBody->children[i]->methodSymbolTable;
+                method_idx++;
+            }
         }
     }
+    
+    if(st->isInterface){
+        
     }
+    
+    
+    
     return st;
 }
 
@@ -317,8 +325,6 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
         
     }
     
-    st->name = mystrdup(markId->assoToken->data.str_val);
-    
     // if no return type, it's a constructor
     if(!markType){
         st->isConstructor = true;
@@ -338,9 +344,8 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
     }
     
     // attach generics ST
-    if(markBound){
-        st->generics = attachTypeBoundSymbolTable(st->name, markBound);
-    }
+    st->generics = attachTypeBoundSymbolTable(markId->assoToken->data.str_val, markBound);
+    
     
     if(markSubBody){
         // link child STs to current ST
@@ -368,16 +373,20 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
 }
 
 genST* attachTypeBoundSymbolTable(char* name, treeNode* typeBoundList) {
-    assert(typeBoundList);
-    assert(typeBoundList->ruleType == typeBoundList_rule);
+
+    if(typeBoundList){
+        assert(typeBoundList->ruleType == typeBoundList_rule);
     
-    treeNode* tmp_gen = convertTypeBound2Generics(typeBoundList);
+        treeNode* tmp_gen = convertTypeBound2Generics(typeBoundList);
     
-    genST* out = attachGenericsSymbolTable(name, tmp_gen);
+        genST* out = attachGenericsSymbolTable(name, tmp_gen);
     
-    freeTreeNode(tmp_gen);
+        freeTreeNode(tmp_gen);
     
-    return out;
+        return out;
+    }
+    
+    return attachGenericsSymbolTable(name, NULL);
 }
 
 treeNode* convertTypeBound2Generics(treeNode* typeBoundList){
@@ -819,6 +828,36 @@ int countBrackets(char c1, char c2, treeNode* n){
     return count;
 }
 
+bool isVirtualMethod(methodST* st){
+    if(!st || st->isPrivate || st->isStatic || st->isFinal){
+        return false;
+    }
+    return true;
+}
+
+void assignUniqueName(classST* st){
+    if(!st || !st->methods){
+        return;
+    }
+    char tmp[256] = {0};
+    for(size_t i=0; i < st->methodsCount; i++){
+        strcpy(tmp, "");
+        int count = 0;
+        for(size_t j=0; j<i; j++){
+            if(!strcmp(st->methods[j]->generics->type, st->methods[i]->generics->type)){
+                count++;
+            }
+        }
+        strcat(tmp, st->generics->type);
+        strcat(tmp, "$");
+        strcat(tmp, st->methods[i]->generics->type);
+        strcat(tmp, "$");
+        sprintf(tmp+strlen(tmp), "%d", count);
+        st->methods[i]->name = mystrdup(tmp);
+    }
+    
+}
+
 void printSymbolTables(CST* cst){
     if(!cst || !cst->root){
         return;
@@ -901,8 +940,9 @@ void printMethodST(methodST* st){
     if(st->isAbstract){
         printf("abstract ");
     }
-    
+
     printf("methodName = %s", st->name);
+
     
     printf(", returnType = ");
     if(!st->returnType){

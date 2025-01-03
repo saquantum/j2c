@@ -6,6 +6,7 @@
 #include<string.h>
 #include<ctype.h>
 #include<assert.h>
+#include<time.h>
 
 #define NRM "\033[0m"
 #define RED "\033[1;31m"

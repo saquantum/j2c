@@ -86,6 +86,10 @@ typedef struct CST{
     char* filename;
 }CST;
 
+typedef struct vtable{
+    treeNode* attachNode;
+} vtable;
+
 typedef enum classification_of_ST{
     CLASS_ST,
     METHOD_ST,
@@ -122,7 +126,7 @@ typedef struct classST{
     treeNode* attachNode;
 } classST;
 
-// to access the name of a method, retrieve methodST->name
+// to access the name of a method, retrieve methodST->generics->type
 typedef struct methodST{
     classification_of_ST cf; // should be set to METHOD_ST by default
     
@@ -185,11 +189,6 @@ typedef struct varST{
     struct treeNode* parentCompound;
     treeNode* attachNode;
 }varST;
-
-typedef struct vtable{
-    treeNode* attachNode;
-} vtable;
-
 
 
 /* parsers */

@@ -2,6 +2,7 @@
 #include "Object.h"
 #include "String.h"
 #include "Array.h"
+#include "System.h"
 
 int main(){
     struct Object$obj* obj = Object$Object$0("Object", "Object", "obj");
@@ -54,7 +55,14 @@ int main(){
     assert(*((int*)Array$getEntry(arr, (int[]){0,0}))==1);
     
     struct Array$obj* arr2 = String$toCharArray$0(str, "char", "arr2");
-    printf("%c\n", *((char*)Array$getEntry(arr2, (int[]){0})));
+    char tmp[100] = {0};
+    for(int i=0; i<arr2->length; i++){
+        tmp[i] = *((char*)Array$getEntry(arr2, (int[]){i}));
+    }
+    assert(!strcmp(tmp, str->value));
+    
+    printf("%ld\n", System$currentTimeMillis$0());
+    
     Object$free(obj);
     Object$free(obj2);
     Object$free(obj3);
@@ -62,5 +70,5 @@ int main(){
     String$free(str2);
     String$free(str3);
     Array$free(arr);
-    //Array$free(arr2);
+    Array$free(arr2);
 }

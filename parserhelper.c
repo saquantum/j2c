@@ -793,20 +793,6 @@ void freeTreeNode(treeNode* n){
 }
 
 treeNode* deepCopySubtree(treeNode* n){
-    /*
-    ruletype ruleType;
-    token* assoToken;
-    struct treeNode** children;
-    size_t capacity;
-    size_t childCount;
-    struct treeNode* parent;
-    struct classST* classSymbolTable; // attach this for a structural class node
-    struct methodST* methodSymbolTable; // attach this for a structural method node
-    struct varST** varSymbolTable; // attach this for a structural compound node
-    size_t varCount;
-    struct vtable* virtualTable; // attach this for a structural class node
-}treeNode;
-    */
     if(!n){
         return NULL;
     }
