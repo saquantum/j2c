@@ -2,15 +2,16 @@ public class Object {
 
     public native Object(){}  
     
-    public native String getAddress(){}
+    // we dont need reflection
+    //public native Class<?> getClass(){}
+
+    public native int hashCode(){}
     
-    public native Object getClass(){}
+    public native boolean equals(Object that){}
     
     public native String getName(){}
     
-    public native int hashCode(){}
-    
-    public native boolean equals(Object obj){}
+    public native String getAddress(){}
     
     public native String toString(){}
     

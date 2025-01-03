@@ -27,7 +27,7 @@ void attachSymbolTables2Nodes(treeNode* n){
     
     // method declaration
     // classDec->classBody->subDec
-    if(n->ruleType == subroutineDeclaration_rule){
+    if(n->ruleType == subroutineDeclaration_rule || n->ruleType == subroutinePrototype_rule){
         printf("Debug: attach method symbol table to method declaration\n");
         n->methodSymbolTable = attachMethodSymbolTable(n, n->parent->parent);
     }
@@ -186,6 +186,7 @@ classST* attachClassSymbolTable(treeNode* n){
         st->superclassGenerics = attachGenericsSymbolTable("Object", NULL);
     }
     
+    if(st->isClass){
     // link child STs to current ST
     int fieldsCount = 0;
     int methodsCount = 0;
@@ -220,7 +221,7 @@ classST* attachClassSymbolTable(treeNode* n){
             method_idx++;
         }
     }
-    
+    }
     return st;
 }
 
@@ -229,7 +230,7 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
         fprintf(stderr, "%sError attachMethodSymbolTable: tree node not passed in%s\n", RED, NRM);
         exit(1);
     }
-    if(n->ruleType != subroutineDeclaration_rule){
+    if(n->ruleType != subroutineDeclaration_rule && n->ruleType != subroutinePrototype_rule){
         fprintf(stderr, "%sError attachMethodSymbolTable: not subroutine declaration node%s\n", RED, NRM);
         exit(1);
     }
@@ -341,26 +342,27 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
         st->generics = attachTypeBoundSymbolTable(st->name, markBound);
     }
     
-    // link child STs to current ST
-    int localsCount = 0;
-    for(size_t i=0; i<markSubBody->childCount; i++){
-        if(markSubBody->children[i]->ruleType == variableDeclaration_rule){
-            localsCount += markSubBody->children[i]->varCount;
-        }
-    } 
-    st->localsCount = localsCount;
-    st->locals = localsCount==0?NULL:calloc(localsCount, sizeof(methodST*));
+    if(markSubBody){
+        // link child STs to current ST
+        int localsCount = 0;
+        for(size_t i=0; i<markSubBody->childCount; i++){
+            if(markSubBody->children[i]->ruleType == variableDeclaration_rule){
+                localsCount += markSubBody->children[i]->varCount;
+            }
+        } 
+        st->localsCount = localsCount;
+        st->locals = localsCount==0?NULL:calloc(localsCount, sizeof(methodST*));
     
-    int local_idx = 0;
-    for(size_t i=0; i<markSubBody->childCount; i++){
-        if(markSubBody->children[i]->ruleType == variableDeclaration_rule){
-            for(size_t j=0; j<markSubBody->children[i]->varCount; j++){
-                st->locals[local_idx] = markSubBody->children[i]->varSymbolTable[j];
-                local_idx++;
+        int local_idx = 0;
+        for(size_t i=0; i<markSubBody->childCount; i++){
+            if(markSubBody->children[i]->ruleType == variableDeclaration_rule){
+                for(size_t j=0; j<markSubBody->children[i]->varCount; j++){
+                    st->locals[local_idx] = markSubBody->children[i]->varSymbolTable[j];
+                    local_idx++;
+                }
             }
         }
     }
-    
     return st;
     
 }
@@ -833,7 +835,7 @@ void printNodeSymbolTable(treeNode* n, int indent){
         printClassST(n->classSymbolTable);
         flag = true;
     }
-    if(n->ruleType == subroutineDeclaration_rule){
+    if(n->ruleType == subroutineDeclaration_rule || n->ruleType == subroutinePrototype_rule){
         printMethodST(n->methodSymbolTable);
         flag = true;
     }
@@ -843,7 +845,11 @@ void printNodeSymbolTable(treeNode* n, int indent){
         }
         flag = true;
     }
-    if(n->ruleType == forStatement_rule){
+    if(n->ruleType == ifStatement_rule || n->ruleType == switchStatement_rule ||
+       n->ruleType == forStatement_rule || n->ruleType == whileStatement_rule ||
+       n->ruleType == doWhileStatement_rule || n->ruleType == staticStatement_rule ||
+       n->ruleType == codeBlock_rule
+    ){
        
         for(size_t i=0; i<n->varCount; i++){
             printVarST(n->varSymbolTable[i]);

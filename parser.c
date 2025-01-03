@@ -1836,9 +1836,73 @@ void parseInterfaceBody(treeNode* parent, tokenTable* table){
     
     peeknext = peekNextNode(table);
     while(!isBracket('}', peeknext)){
-        parseSubroutineDeclaration(interbody, table);
+        parseSubroutinePrototype(interbody, table);
         peeknext = peekNextNode(table);
     }
+}
+
+void parseSubroutinePrototype(treeNode* parent, tokenTable* table){
+    treeNode* subroutinePrototype = insertNewNode2Parent(subroutinePrototype_rule, NULL, parent);
+    tokenNode* n;
+    tokenNode* peeknext;
+  
+    // optional annotation
+    peeknext = peekNextNode(table);
+    if(isSymbol('@', peeknext)){
+        parseAnnotation(subroutinePrototype, table);
+    }
+    
+    // optional public
+    peeknext = peekNextNode(table);
+    if(isKey(PUBLIC, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent(accessModifier_rule, n->t, subroutinePrototype); 
+    }
+    
+    // optional abstract
+    peeknext = peekNextNode(table);
+    if(isKey(ABSTRACT, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent(nonAccessModifier_rule, n->t, subroutinePrototype);
+    }
+    
+    // optional type bounds
+    peeknext = peekNextNode(table);
+    if(isSymbol('<', peeknext)){
+        parseTypeBoundList(subroutinePrototype, table);
+    }
+    
+    // a return type or void
+    peeknext = peekNextNode(table);
+    if(isKey(VOID, peeknext)){
+        n = nextNode(table);
+        insertNewNode2Parent(type_rule, n->t, subroutinePrototype);
+    }else{
+        parseType(subroutinePrototype, table);
+    }
+    
+    // identifier
+    n = nextNode(table);
+    checkStringValueNodeExpected(n, IDENTIFIER, NULL, "parseSubroutinePrototype", "missing identifier for the method");
+    insertNewNode2Parent(identifier_rule, n->t, subroutinePrototype);
+    
+    // mandatory left parenthesis
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, '(', "parseSubroutinePrototype", "missing left parenthesis to start the argument list");
+    insertNewNode2Parent(bracket_rule, n->t, subroutinePrototype);
+    
+    // parameter list
+    parseParameterList(subroutinePrototype, table);
+    
+    // mandatory right parenthesis
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, BRACKET, ')', "parseSubroutinePrototype", "missing right parenthesis to conclude the argument list");
+    insertNewNode2Parent(bracket_rule, n->t, subroutinePrototype);
+    
+    // mandatory semicolon
+    n = nextNode(table);
+    checkCharValueNodeExpected(n, SEMICOLON, ';', "parseSubroutinePrototype", "missing semicolon to conclude a method prototype");
+    insertNewNode2Parent(semicolon_rule, n->t, subroutinePrototype);
 }
 
 void parseFile(treeNode* parent, tokenTable* table){

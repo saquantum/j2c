@@ -246,7 +246,9 @@ no inner classes and initializer blocks allowed.
 
 <interfaceDeclaration> ::= [<accessModifier>] 'interface' <identifier> [ <generics> ] ['extends' <identifier> [ <generics> ] { ',' <identifier> [ <generics> ] }] '{' <interfaceBody> '}'
 
-<interfaceBody> ::= { <subroutineDeclaration> }
+<interfaceBody> ::= { <subroutinePrototype> }
+
+<subroutinePrototype> ::= [<annotation>] ['public'] ['abstract'] [<typeBounds>] [ ( <type> | 'void' ) ] <identifier> '(' <parameterList> ')' ';'
 
 ```
 
@@ -264,18 +266,33 @@ our import goes like `import home.kj24716.j2c.testfolder.*`. this will import al
 
 #### advanced techniques
 
-method reference, enhanced for, lambda expressions, varargs and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
+method reference, enhanced for, lambda expressions, varargs, multi-thread, reflection and exceptions (`try-catch-finally` and `throws`) are not included in this grammar to keep it simple.
 
-## Postprocessing
+## Symbol tables
 
-in this process, we
+before semantics, we attach symbol tables and virtual tables to class tree nodes.
 
-1. create virtual function table and function overload table for classes, variable symbol tables for classes methods and compounds. along with this process we should check the validity of variable and method definitions.
 
-2. convert cst into ast to simplify semantics analysis.
 
 
 ## Semantics
+
+
+#### modifiers
+
+
+interface: 
+
+access: can only be `public` or `default`. 
+
+non-access: implicitly `abstract`, cannot be declared explicitly.
+
+interface methods: implicitly `public` and `abstract`. can be declared explicitly.
+
+
+## Compile
+
+does not compile .c and .h file for a .java file in /system folder, but refer to its corresponding .c and .h file.
 
 
 

@@ -2,7 +2,7 @@
 a test file.
 */
 public final abstract class student<E> extends Map<A extends List<B extends List<C extends List<D extends String>>>, ? extends Number> implements Comparable<?>, Iterable{
-    /*
+    
     private static Map<List<String>, ? extends Number>[][] arr = new Map[2][3];
     List<String>[][][] c;
     public int a, b=1, c, d=2;
@@ -11,7 +11,7 @@ public final abstract class student<E> extends Map<A extends List<B extends List
         int k;
         int j;
     }
-    */
+    
     @override
     public void test(final int[][] a, String b){
         for(int i=0;i<10;i++){

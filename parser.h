@@ -58,6 +58,7 @@ typedef enum ruletype{
     classDeclaration_rule,abstract_rule,class_rule,
     interfaceDeclaration_rule,interface_rule,
     classBody_rule,interfaceBody_rule,
+    subroutinePrototype_rule,
     importStatement_rule,import_rule,
     file_rule
 }ruletype;
@@ -251,6 +252,7 @@ void parseClassDeclaration(treeNode* parent, tokenTable* table);
 void parseInterfaceDeclaration(treeNode* parent, tokenTable* table);
 void parseClassBody(treeNode* parent, tokenTable* table);
 void parseInterfaceBody(treeNode* parent, tokenTable* table);
+void parseSubroutinePrototype(treeNode* parent, tokenTable* table);
 void parseFile(treeNode* parent, tokenTable* table);
 void parseImportStatement(treeNode* parent, tokenTable* table);
 

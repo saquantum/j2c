@@ -764,6 +764,7 @@ char* getRule(ruletype r){
     "interface",
     "classBody",
     "interfaceBody",
+    "subroutinePrototype",
     "importStatement",
     "import",
     "file"

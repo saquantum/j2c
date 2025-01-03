@@ -12,3 +12,5 @@
 #define YLW "\033[1;33m"
 #define GRN "\033[1;32m"
 
+char* mystrdup(char* str);
+int hash_djb2(char* str);

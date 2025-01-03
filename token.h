@@ -56,8 +56,6 @@ typedef struct tokenTable{
     tokenNode* end;
 } tokenTable;
 
-char* mystrdup(char* str);
-
 char* getKeyword(keyword KEY);
 int isKeyword(char* str);
 
