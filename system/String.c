@@ -1,4 +1,5 @@
 #include "String.h"
+#include "Array.h"
 
 struct String$obj* String$String$0(char* value, char* actualType, char* referenceType, char* objName){
     if(!value){
@@ -101,11 +102,28 @@ int String$hashCode$0(struct String$obj* this){
     this->hash = hash;
     return hash;
 }
-    
-/*
-struct Array$obj* String$toCharArray$0(struct String$obj* this, char* referenceType, char* objName){
-    
-}
-*/
 
+struct Array$obj* String$toCharArray$0(struct String$obj* this, char* referenceType, char* objName){
+    if(!this){
+        return NULL;
+    }
+    int len = String$length$0(this);
+    
+    struct Array$obj* obj = Array$create(1, (int[]){len}, "char", referenceType, objName);
+    
+    for(int i=0; i<len; i++){
+        char* c = calloc(1, sizeof(char));
+        *c = this->value[i];
+        Array$insertEntry(obj, (int[]){i}, c);
+    }
+}
+
+void String$free(struct String$obj* this){
+    if(!this){
+        return;
+    }
+    Object$free(this->super);
+    free(this->value);
+    free(this);
+}
 

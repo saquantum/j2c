@@ -29,8 +29,9 @@ int String$compareTo$0(struct String$obj* that, struct String$obj* this);
 
 int String$hashCode$0(struct String$obj* this);
     
-//struct Array$obj* String$toCharArray$0(struct String$obj* this, char* referenceType, char* objName);
-    
+struct Array$obj* String$toCharArray$0(struct String$obj* this, char* referenceType, char* objName);
+
+void String$free(struct String$obj* this);
 
 
     

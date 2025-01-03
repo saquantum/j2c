@@ -63,3 +63,13 @@ struct String$obj* Object$toString$0(struct Object$obj* this, char* referenceTyp
     return String$String$0(tmp, "String", referenceType, objectName);
 }
 
+void Object$free(struct Object$obj* this){
+    if(!this){
+        return;
+    }
+    free(this->actualType);
+    free(this->referenceType);
+    free(this->objectName);
+    free(this->address);
+    free(this);
+}

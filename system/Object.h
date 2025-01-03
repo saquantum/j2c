@@ -26,3 +26,5 @@ struct String$obj* Object$getAddress$0(struct Object$obj* this, char* referenceT
     
 struct String$obj* Object$toString$0(struct Object$obj* this, char* referenceType, char* objectName);
 
+void Object$free(struct Object$obj* this);
+

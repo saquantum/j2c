@@ -1,12 +1,14 @@
-Array$inner* Array$createLevel(size_t currentDimension, size_t totalDimension, int* sizes){
+#include "Array.h"
+
+struct Array$inner* Array$createLevel(size_t currentDimension, size_t totalDimension, int* sizes){
     if(currentDimension>=totalDimension || sizes[currentDimension]==-1 ){
         return NULL;
     }
     
-    Array$inner* current = (Array$inner*)calloc(1, sizeof(Array$inner));
+    struct Array$inner* current = (struct Array$inner*)calloc(1, sizeof(struct Array$inner));
     current->size = sizes[currentDimension];
     if(currentDimension < totalDimension - 1){
-        current->inner = (Array$inner**)calloc(current->size, sizeof(Array$inner*));
+        current->inner = (struct Array$inner**)calloc(current->size, sizeof(struct Array$inner*));
         for(size_t i=0; i<current->size; i++){
             current->inner[i] = Array$createLevel(currentDimension+1, totalDimension, sizes);
         }
@@ -14,12 +16,12 @@ Array$inner* Array$createLevel(size_t currentDimension, size_t totalDimension, i
     return current;
 }
 
-Array$obj* Array$create(size_t dimension, int* sizes, char* actualType, char* referenceType, char* objName){
+struct Array$obj* Array$create(size_t dimension, int* sizes, char* actualType, char* referenceType, char* objName){
     if(dimension==0 || !sizes){
         return NULL;
     }
     
-    Array$obj* obj = calloc(1, sizeof(Array$obj));
+    struct Array$obj* obj = calloc(1, sizeof(struct Array$obj));
     assert(obj);
     
     obj->dimension = dimension;
@@ -35,10 +37,10 @@ Array$obj* Array$create(size_t dimension, int* sizes, char* actualType, char* re
 }
 
 // insert an element. if the entry to be inserted is not initialized, return false
-bool Array$insertEntry(Array$obj* this, int* indices, void* data){
+bool Array$insertEntry(struct Array$obj* this, int* indices, void* data){
     assert(this && indices);
     
-    Array$inner* current = this->root;
+    struct Array$inner* current = this->root;
     for(size_t i=0; i<this->dimension; i++){
         if(!current){
             return false; 
@@ -66,10 +68,10 @@ bool Array$insertEntry(Array$obj* this, int* indices, void* data){
 }
 
 // retrieve a void type pointer, the compiler use the type information stored in Array$obj to cast
-void* Array$getEntry(Array$obj* this, int* indices){
+void* Array$getEntry(struct Array$obj* this, int* indices){
     assert(this && indices);
     
-    Array$inner* current = this->root;
+    struct Array$inner* current = this->root;
     for(size_t i=0; i<this->dimension; i++){
         if(!current){
             return NULL; 
@@ -92,4 +94,29 @@ void* Array$getEntry(Array$obj* this, int* indices){
     }
     
     return NULL;
+}
+
+void Array$freeLevel(struct Array$inner* root){
+    if(!root){
+        return;
+    }
+    if(root->inner){
+        for(size_t i=0; i<root->size; i++){
+            Array$freeLevel(root->inner[i]);
+        }
+        free(root->inner);
+    }
+    if(root->data){
+        free(root->data);
+    }
+    free(root);
+}
+
+void Array$free(struct Array$obj* this){
+    if(!this){
+        return;
+    }
+    Array$freeLevel(this->root);
+    Object$free(this->super);
+    free(this);
 }
