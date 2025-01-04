@@ -13,6 +13,7 @@ void attachSymbolTables2Nodes(treeNode* n){
     }
     // post order traversal assures
     // we always first deal wtih child nodes
+    // so higher level ST can easily extract metadata
     if(n->childCount){
         for(size_t i=0; i<n->childCount; i++){
             attachSymbolTables2Nodes(n->children[i]); 
@@ -31,6 +32,7 @@ void attachSymbolTables2Nodes(treeNode* n){
     if(n->ruleType == subroutineDeclaration_rule || n->ruleType == subroutinePrototype_rule){
         printf("Debug: attach method symbol table to method declaration\n");
         n->methodSymbolTable = attachMethodSymbolTable(n, n->parent->parent);
+        methodAccess(n->methodSymbolTable);
     }
     
     // argument list
@@ -849,8 +851,41 @@ int countBrackets(char c1, char c2, treeNode* n){
     return count;
 }
 
+classSTManager* createCSTM(){
+    classSTManager* cstm = calloc(1, sizeof(classSTManager));
+    assert(cstm);
+    cstm->registeredTables = calloc(16, sizeof(classST*));
+    assert(cstm->registeredTables);
+    cstm->capacity = 16;
+    return cstm;
+}
+
+void insert2CSTM(classSTManager* cstm, classST* st){
+    if(!cstm || !st){
+        return;
+    }
+    if(cstm->capacity == cstm->length){
+        cstm->registeredTables = (classST**)realloc(cstm->registeredTables, 2*(cstm->capacity)*sizeof(classST*));
+        assert(cstm->registeredTables);
+        cstm->capacity = 2 * cstm->capacity;
+    }
+    cstm->registeredTables[cstm->length++] = st;
+}
+
+classST* lookupClassST(classSTManager* cstm, char* className){
+    if(!cstm || !className){
+        return NULL;
+    }
+    for(size_t i=0; i < cstm->length; i++){
+        if(!strcmp(cstm->registeredTables[i]->generics->type, className)){
+            return cstm->registeredTables[i];
+        }
+    }
+    return NULL;
+}
+
 bool isVirtualMethod(methodST* st){
-    if(!st || st->isPrivate || st->isStatic || st->isFinal){
+    if(!st || st->isPrivate || st->isStatic || st->isFinal || st->isConstructor){
         return false;
     }
     return true;
@@ -877,6 +912,81 @@ void assignUniqueName(classST* st){
         st->methods[i]->name = mystrdup(tmp);
     }
     
+}
+
+int methodAccess(methodST* st){
+    if(!st){
+        return 0;
+    }
+    
+    if(st->isPublic){
+        return 4;
+    }
+    if(!st->isPrivate){
+        return 2;
+    }
+    return 1;
+}
+
+bool areGenericsEqual(genST* st1, genST* st2, int mode){
+    
+}
+
+bool methodOverrides(methodST* st1, methodST* st2){
+    if(!st1 || !st2){
+        return false;
+    }
+    // they have the same name?
+    if(strcmp(st1->generics->type, st2->generics->type)){
+        return false;
+    }
+    
+    // same argument list?
+    
+    return true;
+}
+
+vtable* attachVirtualTable(classSTManager* cstm, classST* st){
+    if(!cstm || !st){
+        return NULL;
+    }
+    vtable* vt = calloc(1, sizeof(vtable));
+    assert(vt);
+    vt->attachClass = st;
+    st->virtualTable = vt;
+    
+    // if current class is Object, then we the base vtable
+    if(!strcmp("Object",st->generics->type)){
+        //printf("%sDebug: is Object%s\n", RED, NRM);
+        int count = 0;
+        for(size_t i=0; i < st->methodsCount; i++){
+            if(isVirtualMethod(st->methods[i])){
+                count++;
+            }
+        }
+        vt->entryCount = count;
+        vt->entries = calloc(vt->entryCount, sizeof(methodST*));
+        
+        int k = 0;
+        for(size_t i=0; i<st->methodsCount; i++){
+            if(isVirtualMethod(st->methods[i])){
+                vt->entries[k] = st->methods[i];
+                k++;
+            }
+        }
+        return vt;
+    }
+    
+    // current class is not Object, extends superclass's vtable
+    classST* super = lookupClassST(cstm, st->superclassGenerics->type);
+    if(!super){
+        fprintf(stderr, "%sError attachVirtualTable: superclass %s of %s is not in the registered table%s\n", RED, st->superclassGenerics->type, st->generics->type, NRM);
+        exit(1);
+    }
+    
+    
+    
+    return vt;
 }
 
 void printSymbolTables(CST* cst){
@@ -965,9 +1075,9 @@ void printMethodST(methodST* st){
     printf("methodName = %s", st->name);
 
     
-    printf(", returnType = ");
+    printf(", returnType =");
     if(!st->returnType){
-        printf("constructor ");
+        printf(" constructor");
     }else{
         printGenericsST(st->returnType);
     }
@@ -976,7 +1086,7 @@ void printMethodST(methodST* st){
         printf(", array dimension = %ld", st->arrDimension);
     }
     
-    printf(", type boundedness = ");
+    printf(", type boundedness =");
     printGenericsST(st->generics);
     
     if(st->arguments){
@@ -1099,6 +1209,10 @@ void freeClassST(classST* st){
     free(st->interfacesGenerics);
     free(st->fields);
     free(st->methods);
+    if(st->virtualTable && st->virtualTable->entryCount>0){
+        free(st->virtualTable->entries);
+    }
+    free(st->virtualTable);
 }
 
 void freeMethodST(methodST* st){
@@ -1136,6 +1250,14 @@ void freeGenericsST(genST* st){
         }
     }
     free(st->nested);
+}
+
+void freeCSTM(classSTManager* cstm){
+    if(!cstm){
+        return;
+    }
+    free(cstm->registeredTables);
+    free(cstm);
 }
 
 void* testcalloc(size_t len, size_t size){

@@ -63,6 +63,12 @@ typedef enum ruletype{
     file_rule
 }ruletype;
 
+/* forward declaration */
+
+struct classST;
+struct methodST;
+struct varST;
+
 typedef struct treeNode{
     // node info --------
     ruletype ruleType;
@@ -76,8 +82,6 @@ typedef struct treeNode{
     struct methodST* methodSymbolTable; // attach this for a structural method node
     struct varST** varSymbolTable; // attach this for a structural compound node
     size_t varCount;
-    // vtable ----------
-    struct vtable* virtualTable; // attach this for a structural class node
 }treeNode;
 
 // every .java file has one CST.
@@ -85,122 +89,6 @@ typedef struct CST{
     treeNode* root;
     char* filename;
 }CST;
-
-typedef struct vtableEntry{
-    char* callName; // once assigned, the callName should be invariant
-    char* uniqueName; // will change if overridden
-    struct genST* returnType; // easier to check return type
-    int access; // public=4, default=2, private=1, easier to check accessibility
-    bool isAbstract; // abstract method can be overridden by another abstract method
-}vtableEntry;
-
-typedef struct vtable{
-    vtableEntry** entries;
-    size_t entryCount;
-    treeNode* attachNode;
-} vtable;
-
-typedef enum classification_of_ST{
-    CLASS_ST,
-    METHOD_ST,
-    VAR_ST,
-    GEN_ST
-} classification_of_ST;
-
-// to access the name of a class, retrieve classST->generics->type
-typedef struct classST{
-    classification_of_ST cf; // should be set to CLASS_ST by default
-    
-    bool isClass;
-    bool isInterface; // one and only one of them can be true, the other must be false
-    
-    struct genST* generics; // class level generics
-    
-    struct genST* superclassGenerics; // if not designated during parsing, it's Object
-    
-    struct genST** interfacesGenerics; // if not designated during parsing, it's NULL
-    size_t interfacesCount;
-    
-    struct varST** fields;
-    size_t fieldsCount;
-    
-    struct methodST** methods;
-    size_t methodsCount;
-    
-    bool isPublic;
-    bool isPrivate;
-    bool isAbstract;
-    bool isStatic;
-    bool isFinal;
-    
-    treeNode* attachNode;
-} classST;
-
-// to access the name of a method, retrieve methodST->generics->type
-typedef struct methodST{
-    classification_of_ST cf; // should be set to METHOD_ST by default
-    
-    char* annotation;
-    char* name;
-    // if subroutine is a constructor, set returnType to NULL and isConstructor to true
-    // for ordinary method, isConstructor to false
-    struct genST* returnType;
-    bool isConstructor;
-    
-    struct genST* generics; // type boundedness for this method, this affects arguments
-    size_t arrDimension; // if the return value is an array, then it's not zero
-    
-    struct varST** arguments; // array of arguments of this method, NULL -> no argument
-    size_t argumentsCount;
-    
-    struct varST** locals; // array of local variables, NULL -> no local
-    size_t localsCount;
-    
-    bool isPublic;
-    bool isPrivate;
-    bool isAbstract;
-    bool isStatic;
-    bool isFinal;
-    
-    // refer to corresponding C source code if it is native
-    bool isNative;
-    
-    struct treeNode* parentClass;
-    treeNode* attachNode;
-    
-}methodST;
-
-// Map<? extends Comparable<?> , V extends List<String> >
-typedef struct genST{
-    classification_of_ST cf; // should be set to GEN_ST by default
-    char* name; // the identifier before extends or super. Map< ... , ... > -> name = NULL
-    bool isWildcard;
-    bool extends;
-    bool super;
-    char* type; // Map is the type!
-    struct genST** nested; // to next level. {name="?", extends=true, super=false, type=Comparable, nested={name=NULL, extends=false, super=false, type="?"}}, {name="V", extends=true, super=false, type=List, nested={name=NULL, extends=false, super=false, type="String"}}.
-    size_t nestedCount;
-}genST;
-
-typedef struct varST{
-    classification_of_ST cf; // should be set to VAR_ST by default
-    char* name;
-    struct genST* type; // type of a variable is with generics by default
-    
-    // array dimension determines number of asterisks for a pointer
-    size_t arrDimension; // if 0, not an array
-    
-    bool isPublic;
-    bool isPrivate;
-    bool isStatic;
-    bool isFinal;
-    
-    struct treeNode* parentClass;
-    struct treeNode* parentMethod;
-    struct treeNode* parentCompound;
-    treeNode* attachNode;
-}varST;
-
 
 /* parsers */
 

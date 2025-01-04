@@ -802,7 +802,6 @@ treeNode* deepCopySubtree(treeNode* n){
     t->methodSymbolTable = n->methodSymbolTable;
     t->varSymbolTable = n->varSymbolTable;
     t->varCount = n->varCount;
-    t->virtualTable = n->virtualTable;
     t->children = t->childCount>0?calloc(t->childCount, sizeof(treeNode*)):NULL;
     for(size_t i=0;i<t->childCount;i++){
         t->children[i] = deepCopySubtree(n->children[i]);
