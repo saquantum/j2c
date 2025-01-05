@@ -3,10 +3,8 @@
 how to use this program:
 
 ```
-
-$ make parse ( in parser only mode)
-$ ./t INPUTFILE OUTPUTFILE
-
+$ make 
+$ ./j2c INPUTFILE OUTPUTFILE
 ```
 
 ## Lexing
@@ -276,6 +274,27 @@ before semantics, we attach symbol tables and virtual tables to class tree nodes
 
 
 ## Semantics
+
+
+#### method overriding
+
+
+if two methods share name, argument type and order, type boundedness, then they can override.
+
+overrides:
+
+`void method(String str)` and `void method(String s)`
+`<K extends Number> void method(K k)` and `<T extends Number> void method(T t)`
+
+
+does not override:
+
+`<K extends Number> void method(K k)` and `<K extends Object> void method(K k)`
+
+
+overrides in java, but i want to simplify my code so they are invalid:
+
+`<K extends List<E>, E xtends Number> void method(K k)` and `<K extends List<V>, V extends Number> void method(K k)`
 
 
 #### modifiers

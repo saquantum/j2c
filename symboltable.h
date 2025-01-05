@@ -147,12 +147,14 @@ int countBrackets(char c1, char c2, treeNode* n);
 
 classSTManager* createCSTM();
 void insert2CSTM(classSTManager* cstm, classST* st);
+void insertClass2CSTM(classSTManager* cstm, CST* cst);
+void insertClass2CSTMHelper(classSTManager* cstm, treeNode* n);
 classST* lookupClassST(classSTManager* cstm, char* className);
 bool isVirtualMethod(methodST* st);
 void assignUniqueName(classST* st);
 // turn accessibility into a number
 int methodAccess(methodST* st);
-// decide if two genST are the same, with a mode to ignore formal identifier in arg list
+// decide if two genST are the same
 bool areGenericsEqual(genST* st1, genST* st2, int mode);
 // decide if method1 can override method2
 bool methodOverrides(methodST* st1, methodST* st2);
