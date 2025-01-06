@@ -16,12 +16,12 @@ public final class String implements Comparable<String>{
     
     public native boolean equals(String that){}
     
-    @override
+    @Override
     public native int compareTo(String that){}
     
     public native char[] toCharArray(){}
     
-    @override
+    @Override
     public native int hashCode(){}
     
     

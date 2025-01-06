@@ -24,16 +24,20 @@ int main(int argc, char** argv){
     combineSymbols(ttable);
     
     //printTokenTable(ttable);
-    printf("--------------\n");
+    //printf("--------------\n");
 
     CST* cst = parseTokenTable(argv[1], ttable);
     
-    printLessCST(cst);
-    printf("--------------\n");
+    //printLessCST(cst);
+    //printf("--------------\n");
     
     attachSymbolTables(cst);
-    printSymbolTables(cst);
+    //printSymbolTables(cst);
     insertClass2CSTM(cstm, cst);
+    
+    
+    printf("%s--------------------------%s\n", RED, NRM);
+    printCSTM(cstm);
     
     fclose(input);
     fclose(output);

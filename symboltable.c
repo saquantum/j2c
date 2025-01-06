@@ -887,6 +887,7 @@ void insertClass2CSTMHelper(classSTManager* cstm, treeNode* n){
     }
     if(n->classSymbolTable){
         insert2CSTM(cstm, n->classSymbolTable);
+        attachVirtualTable(cstm, n->classSymbolTable);
         return; // this return skips all child nodes, screening all inner classes
     }
     if(n->childCount>0){
@@ -1223,25 +1224,30 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
     vt->attachClass = st;
     st->virtualTable = vt;
     
+    printf("Debug: current class = %s\n", st->generics->type);
+    
     // if current class is Object, then create the base vtable
     if(!strcmp("Object",st->generics->type)){
         //printf("%sDebug: is Object%s\n", RED, NRM);
         int count = 0;
+        bool* record = calloc(st->methodsCount, sizeof(bool));
         for(size_t i=0; i < st->methodsCount; i++){
             if(isVirtualMethod(st->methods[i])){
                 count++;
+                record[i] = true;
             }
         }
         vt->entryCount = count;
-        vt->entries = calloc(vt->entryCount, sizeof(methodST*));
+        vt->entries = (methodST**)testcalloc(count, sizeof(methodST*));
         
         int k = 0;
         for(size_t i=0; i<st->methodsCount; i++){
-            if(isVirtualMethod(st->methods[i])){
+            if(record[i]){
                 vt->entries[k] = st->methods[i];
                 k++;
             }
         }
+        free(record);
         return vt;
     }
     
@@ -1256,8 +1262,12 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
     // record which method overrides theclassSymbolTable method from superclass, alleviate another loop
     // set default value = -1.
     int* record = calloc(super->virtualTable->entryCount, sizeof(int));
-    int tmp = -1;
-    memcpy(record, &tmp, sizeof(int)*super->virtualTable->entryCount);
+    for(size_t i=0; i<super->virtualTable->entryCount; i++){
+        record[i] = -1;
+    }
+    
+    //int tmp = -1;
+    //memcpy(record, &tmp, sizeof(int)*super->virtualTable->entryCount);
     
     // record current st's virtual methods that does override
     bool* nov = calloc(st->methodsCount, sizeof(bool));
@@ -1419,7 +1429,7 @@ bool hasInadequateOverride(methodST* st){
         return false;
     }
     if(!st->annotation){
-        return true;
+        return false;
     }
     if(!strcmp(st->annotation, "Override")){
         return true;
@@ -1595,6 +1605,29 @@ void printGenericsST(genST* st){
             }
         }
         printf("> ");
+    }
+}
+
+void printVtable(vtable* vt){
+    if(!vt){
+        printf("Empty Vtable\n");
+        return;
+    }
+    for(size_t i=0; i < vt->entryCount; i++){
+        printMethodST(vt->entries[i]);
+        //printf("\n");
+    }
+    
+}
+
+void printCSTM(classSTManager* cstm){
+    if(!cstm || !cstm->registeredTables){
+        return;
+    }
+    for(size_t i=0; i < cstm->length; i++){
+        printf("Class = %s, Vtable:\n", cstm->registeredTables[i]->generics->type);
+        printVtable(cstm->registeredTables[i]->virtualTable);
+        //printf("\n");
     }
 }
 

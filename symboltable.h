@@ -178,6 +178,8 @@ void printClassST(classST* st);
 void printMethodST(methodST* st);
 void printVarST(varST* st);
 void printGenericsST(genST* st);
+void printVtable(vtable* vt);
+void printCSTM(classSTManager* cstm);
 
 void freeSymbolTables(CST* cst);
 void freeNodeSymbolTables(treeNode* n);
