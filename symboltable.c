@@ -1350,22 +1350,28 @@ bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cst
         return true;
     }
     
+    classST* class1 = lookupClassST(cstm, st1->returnType->type);
+    classST* class2 = lookupClassST(cstm, st2->returnType->type);
+    if(!class1 || !class2){
+        return false;
+    }
+    
     // branch1 -- if method1 returns interface while method2 returns class: invalid
-    if(st1->parentClass->classSymbolTable->isInterface && st2->parentClass->classSymbolTable->isClass){
+    if(class1->isInterface && class2->isClass){
         return false;
     }
     
     // branch2&3 -- if method2 returns interface: trace back implemented interfaces
-    if(st1->parentClass->classSymbolTable->isInterface && st2->parentClass->classSymbolTable->isInterface){
-        for(size_t i=0; i < st1->parentClass->classSymbolTable->interfacesCount; i++){
-            classST* implInter = lookupClassST(cstm, st1->parentClass->classSymbolTable->interfacesGenerics[i]->type);
+    if(class1->isInterface && class2->isInterface){
+        for(size_t i=0; i < class1->interfacesCount; i++){
+            classST* implInter = lookupClassST(cstm, class1->interfacesGenerics[i]->type);
             if(!implInter){
                 continue;
             }
             if(!strcmp(implInter->generics->type, st2->returnType->type)){
                 return true;
             }
-            if(isCompatibleInterface(implInter, lookupClassST(cstm, st2->parentClass->classSymbolTable->generics->type), cstm)){
+            if(isCompatibleInterface(implInter, class2, cstm)){
                 return true;
             }
         }
@@ -1378,7 +1384,7 @@ bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cst
         return true;
     }
     // common case
-    classST* superclass = lookupClassST(cstm, st1->parentClass->classSymbolTable->superclassGenerics->type);
+    classST* superclass = lookupClassST(cstm, class1->superclassGenerics->type);
     // if superclass=NULL, it could be either imcompatible return types, or superclass not included in the registered table.
     while(superclass){
         if(!strcmp(superclass->generics->type, st2->returnType->type)){
