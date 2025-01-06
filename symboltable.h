@@ -165,6 +165,8 @@ bool compareUnorderedGenSTArrays(size_t size, genST** arr1, genST** arr2, int mo
 vtable* attachVirtualTable(classSTManager* cstm, classST* st);
 // checks if method1 has a smaller return type
 bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cstm);
+// helper
+bool isCompatibleInterface(classST* st1, classST* st2, classSTManager* cstm);
 // checks if method does not override but has override annotation
 bool hasInadequateOverride(methodST* st);
 

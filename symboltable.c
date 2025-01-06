@@ -1253,7 +1253,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
     }
     vt->super = super->virtualTable;
     
-    // record which method overrides the method from superclass, alleviate another loop
+    // record which method overrides theclassSymbolTable method from superclass, alleviate another loop
     // set default value = -1.
     int* record = calloc(super->virtualTable->entryCount, sizeof(int));
     int tmp = -1;
@@ -1268,7 +1268,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
         if(!isVirtualMethod(st->methods[i])){
             if(hasInadequateOverride(st->methods[i])){
                 fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
-                exit(1);
+                //exit(1);
             }else{
                 continue;
             }
@@ -1276,17 +1276,17 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
         nov[i] = true;
         bool overrides = false;
         for(size_t j=0; j < super->virtualTable->entryCount; j++){
-            if(strcmp(st->methods[i]->generics->type, super->virtualTable->entries[i]->generics->type))
+            if(strcmp(st->methods[i]->generics->type, super->virtualTable->entries[j]->generics->type))
             {
                 if(hasInadequateOverride(st->methods[i])){
                     fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
-                    exit(1);
+                    //exit(1);
                 }else{
                     continue;
                 }
             }else{
                 if(methodOverrides(st->methods[i], super->virtualTable->entries[i])){
-                    if(isValidOverrideReturnType(st->methods[i], super->virtualTable->entries[i], cstm) && st->methods[i]->access>=super->virtualTable->entries[i]->access){
+                    if(isValidOverrideReturnType(st->methods[i], super->virtualTable->entries[j], cstm) && st->methods[i]->access>=super->virtualTable->entries[j]->access){
                         overrides = true;
                         record[j] = i;
                         nov[i] = false;
@@ -1298,7 +1298,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
                 }else{
                     if(hasInadequateOverride(st->methods[i])){
                         fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
-                        exit(1);
+                        //exit(1);
                     }else{
                         continue;
                     }
@@ -1321,7 +1321,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
             vt->entries[i] = st->methods[record[i]];
         }
     }
-    
+    // insert non-overriding virtual methods
     int k = super->virtualTable->entryCount;
     for(size_t i=0; i < st->methodsCount; i++){
         if(nov[i]){
@@ -1344,18 +1344,41 @@ bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cst
         return false;
     }
     
-    // for reference type, trace back superclass until Object
-    // special case: if method2 returns Object
-    if(!strcmp("Object", st2->returnType->type)){
-        return true;
-    }
+    // for reference type, method1 and method2 can return class or interface, leading to 4 branches
     // special case: if they have equal return type
     if(!strcmp(st1->returnType->type, st2->returnType->type)){
         return true;
     }
+    
+    // branch1 -- if method1 returns interface while method2 returns class: invalid
+    if(st1->parentClass->classSymbolTable->isInterface && st2->parentClass->classSymbolTable->isClass){
+        return false;
+    }
+    
+    // branch2&3 -- if method2 returns interface: trace back implemented interfaces
+    if(st1->parentClass->classSymbolTable->isInterface && st2->parentClass->classSymbolTable->isInterface){
+        for(size_t i=0; i < st1->parentClass->classSymbolTable->interfacesCount; i++){
+            classST* implInter = lookupClassST(cstm, st1->parentClass->classSymbolTable->interfacesGenerics[i]->type);
+            if(!implInter){
+                continue;
+            }
+            if(!strcmp(implInter->generics->type, st2->returnType->type)){
+                return true;
+            }
+            if(isCompatibleInterface(implInter, lookupClassST(cstm, st2->parentClass->classSymbolTable->generics->type), cstm)){
+                return true;
+            }
+        }
+    return false;
+    }
+    
+    // branch4 -- if both return classes. trace back superclass until Object
+    // special case: if method2 returns Object
+    if(!strcmp("Object", st2->returnType->type)){
+        return true;
+    }
     // common case
     classST* superclass = lookupClassST(cstm, st1->parentClass->classSymbolTable->superclassGenerics->type);
-    bool found = false;
     // if superclass=NULL, it could be either imcompatible return types, or superclass not included in the registered table.
     while(superclass){
         if(!strcmp(superclass->generics->type, st2->returnType->type)){
@@ -1363,7 +1386,26 @@ bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cst
         }
         superclass = lookupClassST(cstm, superclass->superclassGenerics->type);
     }
-    return found;
+    return false;
+}
+
+bool isCompatibleInterface(classST* st1, classST* st2, classSTManager* cstm){
+    if(!st1 || !st2 || !cstm){
+        return false;
+    }
+    for(size_t i=0; i < st1->interfacesCount; i++){
+        classST* implInter = lookupClassST(cstm, st1->interfacesGenerics[i]->type);
+        if(!implInter){
+            return false;
+        }
+        if(!strcmp(implInter->generics->type, st2->generics->type)){
+            return true;
+        }
+        if(isCompatibleInterface(implInter, st2, cstm)){
+            return true;
+        }
+    }
+    return false;
 }
 
 bool hasInadequateOverride(methodST* st){
