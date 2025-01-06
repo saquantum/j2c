@@ -142,6 +142,7 @@ varST** attachArgListSymbolTable(treeNode* n, treeNode* parentMethod);
 genST* attachGenericsSymbolTable(char* type, treeNode* gen);
 
 int countCommas(treeNode* n);
+int countType(treeNode* n);
 int countBrackets(char c1, char c2, treeNode* n);
 
 /* virtual tables */
@@ -168,7 +169,7 @@ bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cst
 // helper
 bool isCompatibleInterface(classST* st1, classST* st2, classSTManager* cstm);
 // checks if method does not override but has override annotation
-bool hasInadequateOverride(methodST* st);
+bool hasOverride(methodST* st);
 
 /* print and free */
 

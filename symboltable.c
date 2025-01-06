@@ -40,7 +40,7 @@ void attachSymbolTables2Nodes(treeNode* n){
     if(n->ruleType == parameterList_rule){
         printf("Debug: attach var symbol table to parameter list\n");
         n->varSymbolTable = attachArgListSymbolTable(n, n->parent);
-        n->varCount += countCommas(n) + 1;
+        n->varCount += countType(n) > 0 ? countCommas(n) + 1 : 0;
     }
     
     // variable declaration
@@ -840,6 +840,16 @@ int countCommas(treeNode* n){
     return commaCount;
 }
 
+int countType(treeNode* n){
+    int count = 0;
+    for(size_t i=0; i<n->childCount; i++){
+        if(n->children[i]->ruleType==type_rule){
+            count++;
+        }
+    }
+    return count;
+}
+
 int countBrackets(char c1, char c2, treeNode* n){
     int count = 0;
     for(size_t i=0; i<n->childCount; i++){
@@ -1020,6 +1030,7 @@ bool methodOverridesSimpleChecks(methodST* st1, methodST* st2){
     // if they dont have bounds, then we can directly compare type of arguments
     if(st1->generics->nestedCount==0){
         for(size_t i=0; i < st1->argumentsCount; i++){
+            printf("%s argument count = %ld\n", st1->generics->type, st1->argumentsCount);
             // argument types are identifier-sensitive, mode=1
             if(!areGenericsEqual(st1->arguments[i]->type, st2->arguments[i]->type, 1)){
                 return false;
@@ -1238,7 +1249,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
             }
         }
         vt->entryCount = count;
-        vt->entries = (methodST**)testcalloc(count, sizeof(methodST*));
+        vt->entries = (methodST**)calloc(count, sizeof(methodST*));
         
         int k = 0;
         for(size_t i=0; i<st->methodsCount; i++){
@@ -1258,6 +1269,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
         exit(1);
     }
     vt->super = super->virtualTable;
+    printf("Debug: superclass is %s\n", super->generics->type);
     
     // record which method overrides theclassSymbolTable method from superclass, alleviate another loop
     // set default value = -1.
@@ -1266,9 +1278,6 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
         record[i] = -1;
     }
     
-    //int tmp = -1;
-    //memcpy(record, &tmp, sizeof(int)*super->virtualTable->entryCount);
-    
     // record current st's virtual methods that does override
     bool* nov = calloc(st->methodsCount, sizeof(bool));
     
@@ -1276,49 +1285,48 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
     int count = 0;
     for(size_t i=0; i < st->methodsCount; i++){
         if(!isVirtualMethod(st->methods[i])){
-            if(hasInadequateOverride(st->methods[i])){
-                fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
-                //exit(1);
-            }else{
-                continue;
-            }
+            printf("Debug: %s is not virtual\n", st->methods[i]->generics->type);
+            continue;
         }
         nov[i] = true;
         bool overrides = false;
+        bool hasOverrideAnnotation = hasOverride(st->methods[i]);
         for(size_t j=0; j < super->virtualTable->entryCount; j++){
             if(strcmp(st->methods[i]->generics->type, super->virtualTable->entries[j]->generics->type))
             {
-                if(hasInadequateOverride(st->methods[i])){
-                    fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
-                    //exit(1);
-                }else{
-                    continue;
-                }
+                printf("%s does not override %s\n", st->methods[i]->generics->type, super->virtualTable->entries[j]->generics->type);
+                continue;
             }else{
-                if(methodOverrides(st->methods[i], super->virtualTable->entries[i])){
+                printf("Potential override?\n");
+                if(methodOverrides(st->methods[i], super->virtualTable->entries[j])){
+                    printf("Potential override\n");
                     if(isValidOverrideReturnType(st->methods[i], super->virtualTable->entries[j], cstm) && st->methods[i]->access>=super->virtualTable->entries[j]->access){
                         overrides = true;
                         record[j] = i;
                         nov[i] = false;
+                        printf("%s overrides %s\n", st->methods[i]->generics->type, super->virtualTable->entries[j]->generics->type);
+                        hasOverrideAnnotation = false;
                         continue;
                     }else{
                         fprintf(stderr, "%sError attachVirtualTable: trying to overrides %s but curent method have smaller accessibility or larger return type.%s\n", RED, super->virtualTable->entries[i]->generics->type, NRM);
                         exit(1);
                     }
                 }else{
-                    if(hasInadequateOverride(st->methods[i])){
-                        fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
-                        //exit(1);
-                    }else{
-                        continue;
-                    }
+                    printf("%s does not override %s\n", st->methods[i]->generics->type, super->virtualTable->entries[j]->generics->type);
+                    continue;
+                    
                 }
             }
         }
         if(!overrides){
             count++;
         }
+        if(hasOverrideAnnotation){
+            fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
+        }
     }
+    
+    printf("count = %d\n", count);
     
     vt->entryCount = count + super->virtualTable->entryCount;
     vt->entries = (methodST**)calloc(vt->entryCount, sizeof(methodST*));
@@ -1424,7 +1432,7 @@ bool isCompatibleInterface(classST* st1, classST* st2, classSTManager* cstm){
     return false;
 }
 
-bool hasInadequateOverride(methodST* st){
+bool hasOverride(methodST* st){
     if(!st){
         return false;
     }
@@ -1460,6 +1468,7 @@ void printNodeSymbolTable(treeNode* n, int indent){
     if(n->ruleType == variableDeclaration_rule){
         for(size_t i=0; i < n->varCount; i++){
             printVarST(n->varSymbolTable[i]);
+            printf("\n");
         }
         flag = true;
     }
@@ -1471,6 +1480,7 @@ void printNodeSymbolTable(treeNode* n, int indent){
        
         for(size_t i=0; i<n->varCount; i++){
             printVarST(n->varSymbolTable[i]);
+            printf("\n");
         }
         flag = true;
     }
@@ -1537,14 +1547,20 @@ void printMethodST(methodST* st){
     printf(", type boundedness =");
     printGenericsST(st->generics);
     
+    printf(", argument count = %ld", st->argumentsCount);
+    
     if(st->arguments){
         printf(", arguments: ");
+        if(!st->argumentsCount){
+            printf("empty");
+        }
         for(size_t i=0; i<st->argumentsCount; i++){
+            printf(" (");
             printVarST(st->arguments[i]);
-            printf(", ");
+            printf("),");
         }
     }
-    printf("\n");
+    printf(".\n");
     
 }
 
@@ -1573,7 +1589,6 @@ void printVarST(varST* st){
     if(st->arrDimension>0){
         printf(", array dimension = %ld", st->arrDimension);
     }
-    printf("\n");
 }
 
 void printGenericsST(genST* st){
