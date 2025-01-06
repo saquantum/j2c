@@ -33,7 +33,7 @@ int main(int argc, char** argv){
     
     attachSymbolTables(cst);
     printSymbolTables(cst);
-    
+    insertClass2CSTM(cstm, cst);
     
     fclose(input);
     fclose(output);

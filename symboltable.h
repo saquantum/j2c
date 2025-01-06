@@ -57,6 +57,7 @@ typedef struct methodST{
     // if subroutine is a constructor, set returnType to NULL and isConstructor to true
     // for ordinary method, isConstructor to false
     struct genST* returnType;
+    bool returnsPrimitive;
     bool isConstructor;
     
     struct genST* generics; // type boundedness for this method, this affects arguments
@@ -157,9 +158,15 @@ int methodAccess(methodST* st);
 // decide if two genST are the same
 bool areGenericsEqual(genST* st1, genST* st2, int mode);
 // decide if method1 can override method2
+bool methodOverridesSimpleChecks(methodST* st1, methodST* st2);
 bool methodOverrides(methodST* st1, methodST* st2);
+bool compareUnorderedGenSTArrays(size_t size, genST** arr1, genST** arr2, int mode);
+// according to the information on the class that st extends from cstm, create st's vtable
 vtable* attachVirtualTable(classSTManager* cstm, classST* st);
-
+// checks if method1 has a smaller return type
+bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cstm);
+// checks if method does not override but has override annotation
+bool hasInadequateOverride(methodST* st);
 
 /* print and free */
 

@@ -356,6 +356,7 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
             st->returnType = attachGenericsSymbolTable(getKeyword(markType->assoToken->data.key_val), NULL);
         }else if(markType->children[0]->ruleType == primitiveType_rule){
             st->returnType = attachGenericsSymbolTable(getKeyword(markType->children[0]->assoToken->data.key_val), NULL);
+            st->returnsPrimitive = true;
         }else{
             if(markType->children[0]->childCount>0){
                 st->returnType = attachGenericsSymbolTable(markType->children[0]->children[0]->assoToken->data.str_val, markType->children[0]->children[1]);
@@ -964,7 +965,10 @@ bool areGenericsEqual(genST* st1, genST* st2, int mode){
     }
     
     // if mode<=0, we ignore name
-    if(st1->name && st2->name && strcmp(st1->name, st2->name) && mode>0){
+    // <K extends Number> and <T extends Number>
+    // mode=0 -> equal
+    // mode=1 -> not equal
+    if(mode>0 && st1->name && st2->name && strcmp(st1->name, st2->name)){
         return false;
     }
     
@@ -997,32 +1001,38 @@ bool areGenericsEqual(genST* st1, genST* st2, int mode){
     return true;
 }
 
-bool methodOverrides(methodST* st1, methodST* st2){
+bool methodOverridesSimpleChecks(methodST* st1, methodST* st2){
     if(!st1 || !st2){
         return false;
     }
-    
     // they have the same name?
     if(strcmp(st1->generics->type, st2->generics->type)){
         return false;
     }
-    
     // they have equal number of arguments?
     if(st1->argumentsCount != st2->argumentsCount){
         return false;
     }
-    
     if(st1->generics->nestedCount != st2->generics->nestedCount){
         return false;
     }
-    
-    if(st1->generics->nestedCount==0 && st2->generics->nestedCount==0){
+    // if they dont have bounds, then we can directly compare type of arguments
+    if(st1->generics->nestedCount==0){
         for(size_t i=0; i < st1->argumentsCount; i++){
+            // argument types are identifier-sensitive, mode=1
             if(!areGenericsEqual(st1->arguments[i]->type, st2->arguments[i]->type, 1)){
                 return false;
             }
         }
         return true;
+    }
+    // simple checks passed
+    return true;
+}
+
+bool methodOverrides(methodST* st1, methodST* st2){
+    if(!methodOverridesSimpleChecks(st1, st2)){
+        return false;
     }
     
     // <T extends Number> void method(T t)
@@ -1036,35 +1046,44 @@ bool methodOverrides(methodST* st1, methodST* st2){
     genST*** signature1 = st1->argumentsCount>0?calloc(st1->argumentsCount, sizeof(genST**)):NULL;
     genST*** signature2 = st1->argumentsCount>0?calloc(st1->argumentsCount, sizeof(genST**)):NULL;
     
-    // if they dont have argument, only compare type boundedness
+    // if they dont have argument, only compare non-argument boundedness
     if(!signature1 && !signature2){
-        if(st1->generics->nestedCount==0 && st2->generics->nestedCount==0){
-            return true;
-        }
-        for(size_t i=0; i < st1->generics->nestedCount; i++){
-            if(!areGenericsEqual(st1->generics->nested[i], st2->generics->nested[i], 1)){
-                return false;
-            }
-        }
-        return true;
+        // non-argument types are identifier-sensitive
+        return compareUnorderedGenSTArrays(st1->generics->nestedCount, st1->generics->nested, st2->generics->nested, 1);
     }
     
+    assert(signature1 && signature2);
     if(signature1 && signature2){
     
+        bool unmatched = false;
+        
+        // store size of each 1D array in signature
+        size_t* sizes = calloc(st1->argumentsCount, sizeof(size_t));
+        assert(sizes);
+        
         // seperate type bounds for arguments and non-arguments
+        
+        // detect status of argument boundedness
         bool* argBounds1 = calloc(st1->generics->nestedCount, sizeof(bool));
         bool* argBounds2 = calloc(st1->generics->nestedCount, sizeof(bool));
-        size_t* sizes = calloc(st1->argumentsCount, sizeof(int));
+        assert(argBounds1 && argBounds2);
         
+        // store non-argument boundedness
+        genST** na1 = calloc(st1->generics->nestedCount, sizeof(genST*));
+        genST** na2 = calloc(st1->generics->nestedCount, sizeof(genST*));
+        assert(na1 && na2);
+        
+        // count boundedness corresponding to argument, and initialize subaray
         for(size_t i=0; i < st1->argumentsCount; i++){
             int count1 = 0, count2 = 0;
             
+            // count boundedness
             for(size_t j=0; j < st1->generics->nestedCount; j++){
-                if(areGenericsEqual(st1->generics->nested[j], st1->arguments[i]->type, 0)){
+                if(areGenericsEqual(st1->generics->nested[j], st1->arguments[i]->type, 1)){
                     count1++;
                     argBounds1[j] = true;
                 }
-                if(areGenericsEqual(st2->generics->nested[j], st2->arguments[i]->type, 0)){
+                if(areGenericsEqual(st2->generics->nested[j], st2->arguments[i]->type, 1)){
                     count2++;
                     argBounds2[j] = true;
                 }
@@ -1072,20 +1091,11 @@ bool methodOverrides(methodST* st1, methodST* st2){
             
             // early exit
             if(count1 != count2){
-                for(size_t k=0; k < st1->argumentsCount; k++){
-                    free(signature1[k]);
-                }
-                for(size_t k=0; k < st1->argumentsCount; k++){
-                    free(signature2[k]);
-                }
-                free(signature1);
-                free(signature2);
-                free(argBounds1);
-                free(argBounds2);
-                free(sizes);
-                return false;
+                unmatched = true;
+                goto clear_and_return;
             }
             
+            // record size of 1D array
             sizes[i] = count1;
             
             // create subarray
@@ -1096,11 +1106,11 @@ bool methodOverrides(methodST* st1, methodST* st2){
             // insert bounds
             int k1 = 0, k2 = 0;
             for(size_t j=0; j < st1->generics->nestedCount; j++){
-                if(areGenericsEqual(st1->generics->nested[j], st1->arguments[i]->type, 0)){
+                if(areGenericsEqual(st1->generics->nested[j], st1->arguments[i]->type, 1)){
                     signature1[i][k1] = st1->generics->nested[j];
                     k1++;
                 }
-                if(areGenericsEqual(st2->generics->nested[j], st2->arguments[i]->type, 0)){
+                if(areGenericsEqual(st2->generics->nested[j], st2->arguments[i]->type, 1)){
                     signature2[i][k2] = st2->generics->nested[j];
                     k2++;
                 }
@@ -1108,9 +1118,6 @@ bool methodOverrides(methodST* st1, methodST* st2){
         }
         
         // unmarked bounds goes into non-argument
-        genST** na1 = calloc(st1->generics->nestedCount, sizeof(genST*));
-        genST** na2 = calloc(st1->generics->nestedCount, sizeof(genST*));
-        assert(na1 && na2);
         size_t k1 = 0, k2 = 0;
         for(size_t i=0; i < st1->generics->nestedCount; i++){
             if(!argBounds1[i]){
@@ -1122,87 +1129,36 @@ bool methodOverrides(methodST* st1, methodST* st2){
                 k2++;
             }
         }
-        
-        free(argBounds1);
-        free(argBounds2);
-        
         if(k1 != k2){
-            for(size_t k=0; k < st1->argumentsCount; k++){
-                free(signature1[k]);
-            }
-            for(size_t k=0; k < st1->argumentsCount; k++){
-                free(signature2[k]);
-            }
-            free(signature1);
-            free(signature2);
-            free(na1);
-            free(na2);
-            free(sizes);
-            return false;
+            unmatched = true;
+            goto clear_and_return;
         }
         
         // non-argument bounds matches?
-        bool unmatched = false;
-        for(size_t i=0; i<k1; i++){
-            bool matchCurrent = false;
-            for(size_t j=0; j<k1; j++){
-                if(areGenericsEqual(na1[i], na2[j], 1)){
-                    matchCurrent = true;
-                }
-            }
-            if(!matchCurrent){
-                unmatched = true;
-            }
+        // identifier-sensitive, mode=1
+        if(!compareUnorderedGenSTArrays(k1, na1, na2, 1)){
+            unmatched = true;
+            goto clear_and_return;
         }
-        
-        free(na1);
-        free(na2);
-        
-        if(unmatched){
-            for(size_t k=0; k < st1->argumentsCount; k++){
-                free(signature1[k]);
-            }
-            for(size_t k=0; k < st1->argumentsCount; k++){
-                free(signature2[k]);
-            }
-            free(signature1);
-            free(signature2);
-            free(sizes);
-            return false;
-        }
-        
+              
         // compare signature
-        unmatched = false;
+        // this is the only identifier-insensitive case, mode=0
         for(size_t i=0; i < st1->argumentsCount; i++){
             if(sizes[i]==0){
                 if(areGenericsEqual(st1->arguments[i]->type, st2->arguments[i]->type, 0)){
                     continue;
                 }else{
-                    for(size_t k=0; k < st1->argumentsCount; k++){
-                        free(signature1[k]);
-                    }
-                    for(size_t k=0; k < st1->argumentsCount; k++){
-                        free(signature2[k]);
-                    }
-                    free(signature1);
-                    free(signature2);
-                    free(sizes);
-                    return false;
+                    unmatched = true;
+                    goto clear_and_return;
                 }
             }
-            for(size_t j=0; j < sizes[i]; j++){
-                bool matchCurrent = false;
-                for(size_t k=0; k < sizes[i]; k++){
-                    if(areGenericsEqual(signature1[i][j], signature2[i][k], 0)){
-                        matchCurrent = true;
-                    }
-                }
-                if(!matchCurrent){
-                    unmatched = true;
-                }
+            if(!compareUnorderedGenSTArrays(sizes[i], signature1[i], signature2[i], 0)){
+                unmatched = true;
+                goto clear_and_return;
             }
         }
         
+clear_and_return:
         for(size_t k=0; k < st1->argumentsCount; k++){
             free(signature1[k]);
         }
@@ -1211,12 +1167,51 @@ bool methodOverrides(methodST* st1, methodST* st2){
         }
         free(signature1);
         free(signature2);
+        free(argBounds1);
+        free(argBounds2);
+        free(na1);
+        free(na2);
         free(sizes);
-        
         return !unmatched;
     }
-    
+
     return true;
+}
+
+bool compareUnorderedGenSTArrays(size_t size, genST** arr1, genST** arr2, int mode){
+    if(size==0){
+        return true;
+    }
+    if(!arr1 && !arr2){
+        return true;
+    }
+    if(!arr1 || !arr2){
+        return false;
+    }
+    
+    bool* record = calloc(size, sizeof(bool));
+    assert(record);
+    bool unmatched = false;
+    
+    for(size_t i=0; i<size; i++){
+        bool matchCurrent = false;
+        for(size_t j=0; j<size; j++){
+            if(record[j]){
+                continue;
+            }
+            if(areGenericsEqual(arr1[i], arr2[j], mode)){
+                record[j] = true;
+                matchCurrent = true;
+                break;
+            }
+        }
+        if(!matchCurrent){
+            unmatched = true;
+            break;
+        }
+    }
+    free(record);
+    return !unmatched;
 }
 
 vtable* attachVirtualTable(classSTManager* cstm, classST* st){
@@ -1228,7 +1223,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
     vt->attachClass = st;
     st->virtualTable = vt;
     
-    // if current class is Object, then we the base vtable
+    // if current class is Object, then create the base vtable
     if(!strcmp("Object",st->generics->type)){
         //printf("%sDebug: is Object%s\n", RED, NRM);
         int count = 0;
@@ -1256,15 +1251,132 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
         fprintf(stderr, "%sError attachVirtualTable: superclass %s of %s is not in the registered table%s\n", RED, st->superclassGenerics->type, st->generics->type, NRM);
         exit(1);
     }
-    /*
-    if(? && !strcmp(st->methods[i]->annotation, "Override")){
-                fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method%s\n", RED, st->methods[i]->generics->type, NRM); 
-            }
-    // if method1 has a smaller accessibility than method2
-    // if method1's return type is larger than method2
-       */
+    vt->super = super->virtualTable;
     
+    // record which method overrides the method from superclass, alleviate another loop
+    // set default value = -1.
+    int* record = calloc(super->virtualTable->entryCount, sizeof(int));
+    int tmp = -1;
+    memcpy(record, &tmp, sizeof(int)*super->virtualTable->entryCount);
+    
+    // record current st's virtual methods that does override
+    bool* nov = calloc(st->methodsCount, sizeof(bool));
+    
+    // traverse all virtual methods from current class, if not override, count++
+    int count = 0;
+    for(size_t i=0; i < st->methodsCount; i++){
+        if(!isVirtualMethod(st->methods[i])){
+            if(hasInadequateOverride(st->methods[i])){
+                fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
+                exit(1);
+            }else{
+                continue;
+            }
+        }
+        nov[i] = true;
+        bool overrides = false;
+        for(size_t j=0; j < super->virtualTable->entryCount; j++){
+            if(strcmp(st->methods[i]->generics->type, super->virtualTable->entries[i]->generics->type))
+            {
+                if(hasInadequateOverride(st->methods[i])){
+                    fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
+                    exit(1);
+                }else{
+                    continue;
+                }
+            }else{
+                if(methodOverrides(st->methods[i], super->virtualTable->entries[i])){
+                    if(isValidOverrideReturnType(st->methods[i], super->virtualTable->entries[i], cstm) && st->methods[i]->access>=super->virtualTable->entries[i]->access){
+                        overrides = true;
+                        record[j] = i;
+                        nov[i] = false;
+                        continue;
+                    }else{
+                        fprintf(stderr, "%sError attachVirtualTable: trying to overrides %s but curent method have smaller accessibility or larger return type.%s\n", RED, super->virtualTable->entries[i]->generics->type, NRM);
+                        exit(1);
+                    }
+                }else{
+                    if(hasInadequateOverride(st->methods[i])){
+                        fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
+                        exit(1);
+                    }else{
+                        continue;
+                    }
+                }
+            }
+        }
+        if(!overrides){
+            count++;
+        }
+    }
+    
+    vt->entryCount = count + super->virtualTable->entryCount;
+    vt->entries = (methodST**)calloc(vt->entryCount, sizeof(methodST*));
+
+    // copy all methods from superclass
+    memcpy(vt->entries, super->virtualTable->entries, sizeof(methodST*)*super->virtualTable->entryCount);
+    // then try to overwrite them, if overridden
+    for(size_t i=0; i < super->virtualTable->entryCount; i++){
+        if(record[i] != -1){
+            vt->entries[i] = st->methods[record[i]];
+        }
+    }
+    
+    int k = super->virtualTable->entryCount;
+    for(size_t i=0; i < st->methodsCount; i++){
+        if(nov[i]){
+            vt->entries[k] = st->methods[i];
+            k++;
+        }
+    }
+    
+    free(nov);
+    free(record);
     return vt;
+}
+
+bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cstm){
+    // for simplicity, return true if both returns primitive types
+    if(st1->returnsPrimitive && st2->returnsPrimitive){
+        return true;
+    }
+    if(st1->returnsPrimitive || st2->returnsPrimitive){
+        return false;
+    }
+    
+    // for reference type, trace back superclass until Object
+    // special case: if method2 returns Object
+    if(!strcmp("Object", st2->returnType->type)){
+        return true;
+    }
+    // special case: if they have equal return type
+    if(!strcmp(st1->returnType->type, st2->returnType->type)){
+        return true;
+    }
+    // common case
+    classST* superclass = lookupClassST(cstm, st1->parentClass->classSymbolTable->superclassGenerics->type);
+    bool found = false;
+    // if superclass=NULL, it could be either imcompatible return types, or superclass not included in the registered table.
+    while(superclass){
+        if(!strcmp(superclass->generics->type, st2->returnType->type)){
+            return true;
+        }
+        superclass = lookupClassST(cstm, superclass->superclassGenerics->type);
+    }
+    return found;
+}
+
+bool hasInadequateOverride(methodST* st){
+    if(!st){
+        return false;
+    }
+    if(!st->annotation){
+        return true;
+    }
+    if(!strcmp(st->annotation, "Override")){
+        return true;
+    }
+    return false;
 }
 
 void printSymbolTables(CST* cst){
