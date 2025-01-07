@@ -34,7 +34,7 @@ int main(int argc, char** argv){
     
     attachSymbolTables(cst);
     insertClass2CSTM(cstm, cst);
-    //printSymbolTables(cst);
+    printSymbolTables(cst);
     
     
     printf("%s--------------------------%s\n", RED, NRM);

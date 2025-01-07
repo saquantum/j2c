@@ -4,7 +4,7 @@ public class test<E> implements Comparable<E>{
     }
     
     @Override
-    public int compareTo(E e){
+    public <E> int compareTo(E e){
         return hashCode();
     }
 }

@@ -67,6 +67,8 @@ bool checkInterfaceImplementation(classSTManager* cstm, classST* st){
     if(!st->interfacesCount){
         return true;
     }
+    
+    
     // this function applies to both class and interface.
     // 3 tasks: check interfaces exist, check all methods are implemented, check cyclic implementation.
     
@@ -92,21 +94,25 @@ bool checkInterfaceImplementation(classSTManager* cstm, classST* st){
         return true;
     }
     
+    
+    
     // st is class, check if all methods have been implemented
     for(size_t i=0; i < st->interfacesCount; i++){
         classST* super = lookupClassST(cstm, st->interfacesGenerics[i]->type);
         for(size_t j=0; j < super->virtualTable->entryCount; j++){
             bool found = false;
             for(size_t k=0; k < st->methodsCount; k++){
-                if(methodOverrides(st->methods[k], super->virtualTable->entries[j]) && 
-                isValidOverrideReturnType(st->methods[k], super->virtualTable->entries[j], cstm)
+                printf("Debug: check method %s for %s\n", st->methods[k]->generics->type, super->virtualTable->entries[j]->generics->type);
+                if(methodOverrides(st->methods[k], super->virtualTable->entries[j])){  
+                printf("possible?\n");
+                if(isValidOverrideReturnType(st->methods[k], super->virtualTable->entries[j], cstm)
                 ){
                     found = true;
-                }
+                }}
             }
             if(!found){
-                fprintf(stderr, "%sError checkInterfaceImplementation: valid implementation of abstract method %s from interface %s not found%s\n", RED, super->virtualTable->entries[j]->generics->type, st->interfacesGenerics[i]->type, NRM);
-                exit(1);
+                fprintf(stderr, "%sError checkInterfaceImplementation: valid implementation in %s of abstract method %s from interface %s not found%s\n", RED, st->generics->type, super->virtualTable->entries[j]->generics->type, st->interfacesGenerics[i]->type, NRM);
+                //exit(1);
             }
         }
     }

@@ -1,3 +1,3 @@
 public interface Comparable<T>{
-    int compareTo(T obj);
+    <T> int compareTo(T obj);
 }

@@ -1037,6 +1037,9 @@ bool methodOverridesSimpleChecks(methodST* st1, methodST* st2){
     if(st1->argumentsCount != st2->argumentsCount){
         return false;
     }
+    printGenericsST(st1->generics);
+    printGenericsST(st2->generics);
+    printf("st1->generics->nestedCount = %ld, st2->generics->nestedCount = %ld\n", st1->generics->nestedCount, st2->generics->nestedCount);
     if(st1->generics->nestedCount != st2->generics->nestedCount){
         return false;
     }
@@ -1060,6 +1063,8 @@ bool methodOverrides(methodST* st1, methodST* st2){
         return false;
     }
     
+    printf("Debug: simple checks passed\n");
+    
     // <T extends Number> void method(T t)
     // <K extends Number> void method(K k)
     // to ignore the irrelavant difference
@@ -1079,7 +1084,6 @@ bool methodOverrides(methodST* st1, methodST* st2){
     
     assert(signature1 && signature2);
     if(signature1 && signature2){
-    
         bool unmatched = false;
         
         // store size of each 1D array in signature
@@ -1104,6 +1108,11 @@ bool methodOverrides(methodST* st1, methodST* st2){
             
             // count boundedness
             for(size_t j=0; j < st1->generics->nestedCount; j++){
+                printf("Debug: -------------------------\n");
+                printGenericsST(st1->generics->nested[j]);
+                printf("\n");
+                printGenericsST(st1->arguments[i]->type);
+                printf("\n");
                 if(areGenericsEqual(st1->generics->nested[j], st1->arguments[i]->type, 1)){
                     count1++;
                     argBounds1[j] = true;
@@ -1162,6 +1171,7 @@ bool methodOverrides(methodST* st1, methodST* st2){
         // non-argument bounds matches?
         // identifier-sensitive, mode=1
         if(!compareUnorderedGenSTArrays(k1, na1, na2, 1)){
+            printf("exit, k=%ld\n", k1);
             unmatched = true;
             goto clear_and_return;
         }
@@ -1706,7 +1716,7 @@ void printGenericsST(genST* st){
     }
     
     if(st->name){
-        printf("%s", st->name);
+        printf("Name = %s", st->name);
     }else if(st->isWildcard){
         printf("?");
     }
@@ -1717,7 +1727,7 @@ void printGenericsST(genST* st){
         printf(" super");
     }
     if(st->type){
-        printf(" %s", st->type);
+        printf(", Type = %s", st->type);
     }
     
     if(st->nestedCount>0){

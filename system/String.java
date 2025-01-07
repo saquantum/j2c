@@ -17,7 +17,7 @@ public final class String implements Comparable<String>{
     public native boolean equals(String that){}
     
     @Override
-    public native int compareTo(String that){}
+    public native <String> int compareTo(String that){}
     
     public native char[] toCharArray(){}
     
