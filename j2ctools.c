@@ -26,3 +26,47 @@ int hash_djb2(char* str){
     }
     return hash;
 }
+
+stack* stack_create(){
+    stack* s = calloc(1, sizeof(stack));
+    assert(s);
+    s->capacity = 16;
+    s->stack = calloc(16, sizeof(void*));
+    assert(s->stack);
+    return s;
+}
+
+bool stack_push(stack* s, void* p){
+    if(!s || !p){
+        return false;
+    }
+    if(s->length == s->capacity){
+        s->capacity *= 2;
+        s->stack = realloc(s->stack, s->capacity*sizeof(void*));
+        assert(s->stack);
+    }
+    s->stack[s->length++] = p;
+    return true;
+}
+
+void* stack_pop(stack* s){
+    if(!s || !s->length){
+        return NULL;
+    }
+    return s->stack[--s->length];
+}
+
+void* stack_peektop(stack* s){
+    if(!s || !s->length){
+        return NULL;
+    }
+    return s->stack[s->length-1];
+}
+
+void stack_free(stack* s){
+    if(!s){
+        return;
+    }
+    free(s->stack);
+    free(s);
+}

@@ -44,8 +44,10 @@ typedef struct classST{
     bool isStatic;
     bool isFinal;
     
+    bool isRunnable; // if it has main has an interior method
+    
     struct treeNode* attachNode;
-    vtable* virtualTable;
+    vtable* virtualTable; // for an interface, keep a 'vtable' to retrieve all methods quickly
 } classST;
 
 // to access the name of a method, retrieve methodST->generics->type
@@ -120,6 +122,7 @@ typedef struct classSTManager{
     classST** registeredTables;
     size_t length;
     size_t capacity;
+    bool hasMain;
 }classSTManager;
 
 /* Symbol tables */
@@ -170,6 +173,7 @@ bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cst
 bool isCompatibleInterface(classST* st1, classST* st2, classSTManager* cstm);
 // checks if method does not override but has override annotation
 bool hasOverride(methodST* st);
+bool implementsInterface(classSTManager* cstm, char* methodName, genST** interfacesGenerics, size_t interfacesCount);
 
 /* print and free */
 

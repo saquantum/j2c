@@ -185,12 +185,13 @@ classST* attachClassSymbolTable(treeNode* n){
     }
     
     // if no superclass, then it extends Object
-    if(st->isClass && !st->superclassGenerics){
+    if(st->isClass && !st->superclassGenerics && strcmp(st->generics->type, "Object")){
         st->superclassGenerics = attachGenericsSymbolTable("Object", NULL);
     }
-    
+
+    // link child STs to current ST
     if(st->isClass){
-        // link child STs to current ST
+        
         int fieldsCount = 0;
         int methodsCount = 0;
         for(size_t i=0; i<markClassBody->childCount; i++){
@@ -221,6 +222,9 @@ classST* attachClassSymbolTable(treeNode* n){
             }
             if(markClassBody->children[i]->ruleType == subroutineDeclaration_rule){
                 st->methods[method_idx] = markClassBody->children[i]->methodSymbolTable;
+                if(!strcmp(st->methods[method_idx]->generics->type, "main")){
+                    st->isRunnable = true;
+                }
                 method_idx++;
             }
         }
@@ -898,7 +902,16 @@ void insertClass2CSTMHelper(classSTManager* cstm, treeNode* n){
     if(n->classSymbolTable){
         insert2CSTM(cstm, n->classSymbolTable);
         attachVirtualTable(cstm, n->classSymbolTable);
-        return; // this return skips all child nodes, screening all inner classes
+        if(n->classSymbolTable->isRunnable){
+            if(!cstm->hasMain){
+                cstm->hasMain = true;
+            }else{
+                fprintf(stderr, "%sError insertClass2CSTMHelper: multiple main function detected\n%s", RED, NRM);
+                exit(1);
+            }
+        }
+        
+        return; // this return skips all child nodes, effectively screening all inner classes
     }
     if(n->childCount>0){
         for(size_t i=0; i < n->childCount; i++){
@@ -1230,6 +1243,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
     if(!cstm || !st){
         return NULL;
     }
+    
     vtable* vt = calloc(1, sizeof(vtable));
     assert(vt);
     vt->attachClass = st;
@@ -1250,6 +1264,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
         }
         vt->entryCount = count;
         vt->entries = (methodST**)calloc(count, sizeof(methodST*));
+        assert(vt->entries);
         
         int k = 0;
         for(size_t i=0; i<st->methodsCount; i++){
@@ -1259,6 +1274,65 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
             }
         }
         free(record);
+        return vt;
+    }
+    
+    // if current class is an interface
+    if(st->isInterface){
+        // if current interface does not implement any, create a base
+        if(!st->interfacesCount){
+            vt->entryCount = st->methodsCount;
+            vt->entries = (methodST**)calloc(st->methodsCount, sizeof(methodST*));
+            assert(vt->entries);
+            memcpy(vt->entries, st->methods, st->methodsCount*sizeof(methodST*));
+            return vt;
+        }
+        // else, combine all implemented interfaces
+        size_t upperbound = st->interfacesCount;
+        for(size_t i=0; i < st->interfacesCount; i++){
+            classST* super = lookupClassST(cstm, st->interfacesGenerics[i]->type);
+            if(!super){
+                fprintf(stderr, "%sError attachVirtualTable: interface %s implemented by %s does not exist%s\n", RED, st->interfacesGenerics[i]->type, st->generics->type, NRM);
+                exit(1);
+            }
+            if(!super->isInterface){
+                fprintf(stderr, "%sError attachVirtualTable: %s implemented by %s is not an interface%s\n", RED, st->interfacesGenerics[i]->type, st->generics->type, NRM);
+                exit(1);
+            }
+            upperbound += super->interfacesCount;
+        }
+        
+        vt->entries = (methodST**)calloc(upperbound, sizeof(methodST*));
+        
+        for(size_t i=0; i < st->methodsCount; i++){
+            vt->entries[vt->entryCount] = st->methods[vt->entryCount];
+            vt->entryCount++;
+        }
+        
+        for(size_t i=0; i < st->interfacesCount; i++){
+            classST* super = lookupClassST(cstm, st->interfacesGenerics[i]->type);
+            for(size_t j=0; j < super->virtualTable->entryCount; j++){
+                bool isOverridden = false;
+                bool overrides = false;
+                for(size_t k=0; k < vt->entryCount; k++){
+                    if(methodOverrides(vt->entries[k], super->virtualTable->entries[j])){
+                        if(isValidOverrideReturnType(vt->entries[k], super->virtualTable->entries[j], cstm))
+                        {
+                            isOverridden = true;
+                        }else{
+                            overrides = true;
+                            vt->entries[k] = super->virtualTable->entries[j];
+                        }
+                        break;
+                    }
+                }
+                if(isOverridden || overrides){
+                    continue;
+                }else{
+                    vt->entries[vt->entryCount++] = super->virtualTable->entries[j];
+                }
+            }
+        }
         return vt;
     }
     
@@ -1282,6 +1356,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
     bool* nov = calloc(st->methodsCount, sizeof(bool));
     
     // traverse all virtual methods from current class, if not override, count++
+    // only count methods that override superclass, not including interfaces!
     int count = 0;
     for(size_t i=0; i < st->methodsCount; i++){
         if(!isVirtualMethod(st->methods[i])){
@@ -1291,12 +1366,23 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
         nov[i] = true;
         bool overrides = false;
         bool hasOverrideAnnotation = hasOverride(st->methods[i]);
+        
+        if(implementsInterface(cstm, st->methods[i]->generics->type, st->interfacesGenerics, st->interfacesCount)){
+            if(!hasOverrideAnnotation){
+                fprintf(stderr, "%sWarning attachVirtualTable: method %s overrides interface's method but does not have override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
+            }
+            printf("%s overrides interface\n", st->methods[i]->generics->type);
+            count++;
+            continue;
+        }
+         
         for(size_t j=0; j < super->virtualTable->entryCount; j++){
             if(strcmp(st->methods[i]->generics->type, super->virtualTable->entries[j]->generics->type))
             {
                 printf("%s does not override %s\n", st->methods[i]->generics->type, super->virtualTable->entries[j]->generics->type);
                 continue;
-            }else{
+            }
+            else{
                 printf("Potential override?\n");
                 if(methodOverrides(st->methods[i], super->virtualTable->entries[j])){
                     printf("Potential override\n");
@@ -1322,7 +1408,7 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
             count++;
         }
         if(hasOverrideAnnotation){
-            fprintf(stderr, "%sError attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
+            fprintf(stderr, "%sWarning attachVirtualTable: method %s does not override superclass's method but has override annotation%s\n", RED, st->methods[i]->generics->type, NRM);
         }
     }
     
@@ -1441,6 +1527,29 @@ bool hasOverride(methodST* st){
     }
     if(!strcmp(st->annotation, "Override")){
         return true;
+    }
+    return false;
+}
+
+bool implementsInterface(classSTManager* cstm, char* methodName, genST** interfacesGenerics, size_t interfacesCount){
+    if(!methodName || !interfacesGenerics || !interfacesCount){
+        return false;
+    }
+    
+    for(size_t i=0; i<interfacesCount; i++){
+        classST* interface = lookupClassST(cstm, interfacesGenerics[i]->type);
+        if(!interface || !interface->isInterface){
+            fprintf(stderr, "%sWarning implementsInterface: %s is not an interface or not inserted in the registered table%s\n", RED, interfacesGenerics[i]->type, NRM);
+            return false;
+        }
+        for(size_t j=0; j < interface->methodsCount; j++){
+            if(!strcmp(methodName, interface->methods[i]->generics->type)){
+                return true;
+            }
+        }
+        if(implementsInterface(cstm, methodName, interface->interfacesGenerics, interface->interfacesCount)){
+            return true;
+        }
     }
     return false;
 }
@@ -1640,7 +1749,15 @@ void printCSTM(classSTManager* cstm){
         return;
     }
     for(size_t i=0; i < cstm->length; i++){
-        printf("Class = %s, Vtable:\n", cstm->registeredTables[i]->generics->type);
+        if(cstm->registeredTables[i]->isClass){
+            printf("Class = %s", cstm->registeredTables[i]->generics->type);
+            if(cstm->registeredTables[i]->isRunnable){
+                printf(" is runnable");
+            }
+            printf(", Vtable:\n");
+        }else{
+            printf("Interface = %s, Vtable:\n", cstm->registeredTables[i]->generics->type);
+        }
         printVtable(cstm->registeredTables[i]->virtualTable);
         //printf("\n");
     }
