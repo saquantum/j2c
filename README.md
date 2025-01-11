@@ -148,7 +148,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 
 ```
-<term> ::= 'true' | 'false' | 'null' | 'this'
+<term> ::= 'true' | 'false' | 'null' | 'this' | 'super'
 		 | <number>
 		 | <character>
 		 | <string>
@@ -163,9 +163,9 @@ we don't check if an expression is boolean or not until semantics analysis.
 <arrayAccess> ::= <term> '[' <expression> ']' 
 <fieldAccess> ::= <term> '.' <identifier>
 <subroutineCall> ::= (<fieldAccess> | <identifier>) '(' <expressionList> ')'
-<newObject> ::= 'new' <type> [ <generics> ] '(' <expressionList> ')' // constructor call
-              | 'new' <type> [ <generics> ] { '[' <expression> ']' } { '[' ']'} [ <arrayInitialization> ] // array
-              | 'new' <type> [ <generics> ] '{' <classBody> '}' // anonymous class
+<newObject> ::= 'new' <type> '(' <expressionList> ')' // constructor call
+              | 'new' <type> { '[' <expression> ']' } { '[' ']'} // array
+              | 'new' <type> '{' <classBody> '}' // anonymous class
 <arrayInitialization> ::= '{' [ <term> {',' <term>} ] '}' | '{' [ <arrayInitialization> {',' <arrayInitialization>} ] '}'
 
 <expressionList> ::= [ <expression> {',' <expression> } ]

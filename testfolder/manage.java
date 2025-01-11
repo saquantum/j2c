@@ -1,12 +1,17 @@
 public class manage{
-    public static void main(String[] args){
-        student s = new student("lcl", false, 27, "001");
-        while(s.getAge()>0){
-            System.out.println(s);
-            s.setAge(s.getAge()-1);
-        }
-    }
-    public static <E extends student> boolean isStudent(E e){
-        return e instanceof student;
+    private int age;
+    
+    public manage(){}
+    
+    public boolean met(String s){
+        x = {x,y,z};
+        (x.obj);
+        obj.method1().array1[1].method2();
+        int a;
+        a=0;
+        String s0 = s;
+        int b = a + 4;
+        String[][] A = {{new String("a"), new String("b")},{new String("c"), new String("d")}};
+        return true;
     }
 }

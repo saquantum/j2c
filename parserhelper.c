@@ -36,7 +36,7 @@ bool isExpressionStart(tokenNode* current){
             (current->t->type==KEYWORD && (
             current->t->data.key_val==BOOL_TRUE || current->t->data.key_val==BOOL_FALSE ||
             current->t->data.key_val==NULLER || current->t->data.key_val==THIS ||
-            current->t->data.key_val==NEW
+            current->t->data.key_val==SUPER || current->t->data.key_val==NEW
             ) ) ||
             (current->t->type==SYMBOL && (
             current->t->data.char_val=='!' || current->t->data.char_val=='-' ||

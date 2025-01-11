@@ -59,7 +59,8 @@ typedef struct methodST{
     // if subroutine is a constructor, set returnType to NULL and isConstructor to true
     // for ordinary method, isConstructor to false
     struct genST* returnType;
-    bool returnsPrimitive;
+    bool returnsNumber;
+    bool returnsBool;
     bool isConstructor;
     
     struct genST* generics; // type boundedness for this method, this affects arguments
@@ -112,6 +113,8 @@ typedef struct varST{
     bool isStatic;
     bool isFinal;
     
+    bool isPrimitive;
+    
     struct treeNode* parentClass;
     struct treeNode* parentMethod;
     struct treeNode* parentCompound;
@@ -119,6 +122,7 @@ typedef struct varST{
 }varST;
 
 typedef struct classSTManager{
+    // if we need a better lookup should use linked hash list but im lazy
     classST** registeredTables;
     size_t length;
     size_t capacity;
@@ -155,6 +159,9 @@ void insert2CSTM(classSTManager* cstm, classST* st);
 void insertClass2CSTM(classSTManager* cstm, CST* cst);
 void insertClass2CSTMHelper(classSTManager* cstm, treeNode* n);
 classST* lookupClassST(classSTManager* cstm, char* className);
+int lookupIndexClassST(classSTManager* cstm, char* className);
+int lookupVarInClass(classST* st, char* varName);
+int lookupVarInMethod(methodST* st, char* varName);
 bool isVirtualMethod(methodST* st);
 void assignUniqueName(classST* st);
 // turn accessibility into a number

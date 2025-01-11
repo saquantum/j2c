@@ -79,12 +79,6 @@ void parseNewObject(treeNode* parent, tokenTable* table){
     // type
     parseType(newObject, table);
     
-    // optional generics
-    peeknext = peekNextNode(table);
-    if(isBracket('<', peeknext)){
-        parseGenerics(newObject, table);
-    }
-    
     // branch: constructor, array or anonymous class
     peeknext = peekNextNode(table);
     if(isBracket('(', peeknext)){
@@ -101,25 +95,30 @@ void parseNewObject(treeNode* parent, tokenTable* table){
     }
     else if(isBracket('[', peeknext)){
         // array
-        // let's defer the rule, that int[10][] is valid while int[][10] is invalid to semantics.
+        // [10][] is valid, but [][10] is not
+        // so hasExpression can be turned to true from false, but not vice versa
+        bool hasExpression = true;
         printf("Debug: new array\n");
         while(isBracket('[', peeknext)){
             n = nextNode(table);
             insertNewNode2Parent(bracket_rule, n->t, newObject);
             
+            tokenNode* mark0 = peekNextNode(table);
             parseExpression(newObject, table);
-            
+            tokenNode* mark1 = peekNextNode(table);
+            if(mark0 == mark1){
+                hasExpression = false;
+            }else{
+                if(!hasExpression){
+                    fprintf(stderr, "%sError parseNewObject: invalid declaration of array sizes%s\n", RED, NRM);
+                    exit(1);
+                }
+            }
+
             n = nextNode(table);
             checkCharValueNodeExpected(n, BRACKET, ']', "parseNewObject", "missng right square bracket to conclude array length");
             insertNewNode2Parent(bracket_rule, n->t, newObject);
             peeknext = peekNextNode(table);
-        }
-        
-        // optional initialization
-        peeknext = peekNextNode(table);
-        if(isBracket('{', peeknext)){
-            printf("Debug: new array initialization\n");
-            parseArrayInitialization(newObject, table);
         }
     }
     else if(isBracket('{', peeknext)){
@@ -192,8 +191,8 @@ void parseBaseTerm(treeNode* parent, tokenTable* table){
         fprintf(stderr, "%sError parseBaseTerm: unexpected end of tokens.%s\n", RED, NRM);
         exit(1);
     }
-    // four terminal cases: true, false, null, this
-    if(isKey(BOOL_TRUE, peeknext) || isKey(BOOL_FALSE, peeknext) || isKey(NULLER, peeknext) || isKey(THIS, peeknext)){
+    // 5 terminal cases: true, false, null, this, super
+    if(isKey(BOOL_TRUE, peeknext) || isKey(BOOL_FALSE, peeknext) || isKey(NULLER, peeknext) || isKey(THIS, peeknext) || isKey(SUPER, peeknext)){
         n = nextNode(table);
         insertNewNode2Parent(terminalTerm_rule, n->t, parent);
     }

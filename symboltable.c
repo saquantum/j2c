@@ -360,7 +360,12 @@ methodST* attachMethodSymbolTable(treeNode* n, treeNode* parentClass){
             st->returnType = attachGenericsSymbolTable(getKeyword(markType->assoToken->data.key_val), NULL);
         }else if(markType->children[0]->ruleType == primitiveType_rule){
             st->returnType = attachGenericsSymbolTable(getKeyword(markType->children[0]->assoToken->data.key_val), NULL);
-            st->returnsPrimitive = true;
+            if(markType->children[0]->assoToken->data.key_val == BOOLEAN){
+                st->returnsBool = true;
+            }else{
+                st->returnsNumber = true;
+            }
+            
         }else{
             if(markType->children[0]->childCount>0){
                 st->returnType = attachGenericsSymbolTable(markType->children[0]->children[0]->assoToken->data.str_val, markType->children[0]->children[1]);
@@ -613,6 +618,7 @@ varST** attachVarSymbolTable(treeNode* n, treeNode* parentClass, treeNode* paren
             switch(typeOption){
                 case 1:
                     st->type = attachGenericsSymbolTable(getKeyword(markType->children[0]->assoToken->data.key_val), NULL);
+                    st->isPrimitive = true;
                     break;
                 case 2:
                     st->type = attachGenericsSymbolTable(markType->children[0]->children[0]->assoToken->data.str_val, NULL);
@@ -932,6 +938,42 @@ classST* lookupClassST(classSTManager* cstm, char* className){
     return NULL;
 }
 
+int lookupIndexClassST(classSTManager* cstm, char* className){
+    if(!cstm || !className){
+        return -1;
+    }
+    for(size_t i=0; i < cstm->length; i++){
+        if(!strcmp(cstm->registeredTables[i]->generics->type, className)){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int lookupVarInClass(classST* st, char* varName){
+    if(!st || !varName){
+        return -1;
+    }
+    for(size_t i=0; i < st->fieldsCount; i++){
+        if(!strcmp(st->fields[i]->name, varName)){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int lookupVarInMethod(methodST* st, char* varName){
+    if(!st || !varName){
+        return -1;
+    }
+    for(size_t i=0; i < st->localsCount; i++){
+        if(!strcmp(st->locals[i]->name, varName)){
+            return i;
+        }
+    }
+    return -1;
+}
+
 bool isVirtualMethod(methodST* st){
     if(!st || st->isPrivate || st->isStatic || st->isFinal || st->isConstructor){
         return false;
@@ -1037,9 +1079,6 @@ bool methodOverridesSimpleChecks(methodST* st1, methodST* st2){
     if(st1->argumentsCount != st2->argumentsCount){
         return false;
     }
-    printGenericsST(st1->generics);
-    printGenericsST(st2->generics);
-    printf("st1->generics->nestedCount = %ld, st2->generics->nestedCount = %ld\n", st1->generics->nestedCount, st2->generics->nestedCount);
     if(st1->generics->nestedCount != st2->generics->nestedCount){
         return false;
     }
@@ -1062,8 +1101,6 @@ bool methodOverrides(methodST* st1, methodST* st2){
     if(!methodOverridesSimpleChecks(st1, st2)){
         return false;
     }
-    
-    printf("Debug: simple checks passed\n");
     
     // <T extends Number> void method(T t)
     // <K extends Number> void method(K k)
@@ -1108,16 +1145,11 @@ bool methodOverrides(methodST* st1, methodST* st2){
             
             // count boundedness
             for(size_t j=0; j < st1->generics->nestedCount; j++){
-                printf("Debug: -------------------------\n");
-                printGenericsST(st1->generics->nested[j]);
-                printf("\n");
-                printGenericsST(st1->arguments[i]->type);
-                printf("\n");
-                if(areGenericsEqual(st1->generics->nested[j], st1->arguments[i]->type, 1)){
+                if(!strcmp(st1->generics->nested[j]->name, st1->arguments[i]->type->type)){
                     count1++;
                     argBounds1[j] = true;
                 }
-                if(areGenericsEqual(st2->generics->nested[j], st2->arguments[i]->type, 1)){
+                if(!strcmp(st2->generics->nested[j]->name, st2->arguments[i]->type->type)){
                     count2++;
                     argBounds2[j] = true;
                 }
@@ -1150,6 +1182,7 @@ bool methodOverrides(methodST* st1, methodST* st2){
                 }
             }
         }
+
         
         // unmarked bounds goes into non-argument
         size_t k1 = 0, k2 = 0;
@@ -1451,10 +1484,13 @@ vtable* attachVirtualTable(classSTManager* cstm, classST* st){
 
 bool isValidOverrideReturnType(methodST* st1, methodST* st2, classSTManager* cstm){
     // for simplicity, return true if both returns primitive types
-    if(st1->returnsPrimitive && st2->returnsPrimitive){
+    if(st1->returnsNumber && st2->returnsNumber){
         return true;
     }
-    if(st1->returnsPrimitive || st2->returnsPrimitive){
+    if(st1->returnsBool && st2->returnsBool){
+        return true;
+    }
+    if(st1->returnsNumber || st2->returnsNumber || st1->returnsBool || st2->returnsBool){
         return false;
     }
     
@@ -1702,7 +1738,6 @@ void printVarST(varST* st){
     }
     
     printf("varName = %s,", st->name);
-    printf(" varType =");
     printGenericsST(st->type);
     
     if(st->arrDimension>0){

@@ -29,8 +29,8 @@ int main(int argc, char** argv){
 
     CST* cst = parseTokenTable(argv[1], ttable);
     
-    //printLessCST(cst);
-    //printf("--------------\n");
+    printLessCST(cst);
+    printf("--------------\n");
     
     attachSymbolTables(cst);
     insertClass2CSTM(cstm, cst);
