@@ -8,6 +8,8 @@ typedef struct hll{
     struct hll* next;
 } hll;
 
+void resetLineNumber();
+
 tokenTable* lexFile(FILE* f);
 
 token* lexToken(char* str, int lineNumber);

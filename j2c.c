@@ -15,6 +15,7 @@ int main(int argc, char** argv){
     classSTManager* cstm = createCSTM();
     
     // import system files
+    // remember to always process Object first, so we can find Object by accessing cstm->table[0]
     processFile(cstm, rm, "./system/Object.java");
     processFile(cstm, rm, "./system/Comparable.java");
     processFile(cstm, rm, "./system/String.java");
@@ -24,7 +25,7 @@ int main(int argc, char** argv){
     tokenTable* ttable = lexFile(input);
     combineSymbols(ttable);
     
-    //printTokenTable(ttable);
+    printTokenTable(ttable);
     //printf("--------------\n");
 
     CST* cst = parseTokenTable(argv[1], ttable);
@@ -62,6 +63,7 @@ void processFile(classSTManager* cstm, resourceManager* rm, char* filepath){
     insertClass2CSTM(cstm, cst);
     fclose(input);
     insert2RM(rm, table, cst);
+    resetLineNumber();
 }
    
 resourceManager* createResourceManager(){

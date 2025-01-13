@@ -434,13 +434,11 @@ void parseEqualityExpression(treeNode* parent, tokenTable* table){
     parseRelationalExpression(equality, table);
     
     peeknext = peekNextNode(table);
-    while(isOperator("==", peeknext) || isOperator("!=", peeknext)){
+    if(isOperator("==", peeknext) || isOperator("!=", peeknext)){
         n = nextNode(table);
         insertNewNode2Parent(operator_rule, n->t, equality);
         printf("Debug: equality operator %s at line %d\n", n->t->data.str_val, n->t->lineNumber);
         parseRelationalExpression(equality, table);
-        
-        peeknext = peekNextNode(table);
     }
 }
 
@@ -596,7 +594,7 @@ void parseCastExpression(treeNode* parent, tokenTable* table){
         checkCharValueNodeExpected(n, BRACKET, ')', "parseCastExpression", "missing right parenthesis to conclude casting");
         insertNewNode2Parent(bracket_rule, n->t, cast);
         printf("Debug: casting at line %d\n", n->t->lineNumber);
-        parseCastExpression(cast, table);
+        parseExpression(cast, table);
     }else{
         parseUnaryExpression(cast, table);
     }

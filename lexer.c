@@ -2,6 +2,10 @@
 
 static int lineNumber = 1;
 
+void resetLineNumber(){
+    lineNumber = 1;
+}
+
 tokenTable* lexFile(FILE* f){
     if(!f){
         return NULL;

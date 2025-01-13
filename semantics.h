@@ -16,10 +16,13 @@ bool isEmptyMethod(methodST* st);
 bool checkMethodTree(classSTManager* cstm, methodST* st);
 bool checkMethodTreeHelper(classSTManager* cstm, treeNode* n);
 bool checkVariableDeclaration(classSTManager* cstm, treeNode* n);
+int countArrayDimension(classSTManager* cstm, treeNode* n);
+bool checkAssignmentCompatible(classSTManager* cstm, treeNode* n);
 
-bool checkExpression(classSTManager* cstm, treeNode* n);
 int typeOfTerm(classSTManager* cstm, treeNode* n);
 int typeOfIdentifier(classSTManager* cstm, treeNode* n, treeNode* parentMethod, treeNode* parentClass);
 int typeOfExpression(classSTManager* cstm, treeNode* n);
+bool isvalidInheritance(classSTManager* cstm, int super, int sub);
 
+bool checkStatement(classSTManager* cstm, treeNode* n);
 

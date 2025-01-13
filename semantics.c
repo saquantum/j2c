@@ -248,6 +248,7 @@ bool checkMethods(classSTManager* cstm, classST* st){
         }
         // check method details
         if(!checkMethodTree(cstm, st->methods[i])){
+            fprintf(stderr, "%sError checkMethods: empty or wild pointer has been sent in for method %s%s\n", RED, st->methods[i]->generics->type, NRM);
             exit(1);
         }
         // check no duplicate method
@@ -315,18 +316,31 @@ bool isEmptyMethod(methodST* st){
 
 bool checkMethodTree(classSTManager* cstm, methodST* st){
     if(!cstm || !st){
-        return true;
+        return false;
     }
-    
+    if(!checkMethodTreeHelper(cstm, st->attachNode)){
+        return false;
+    }
     return true;
 }
 
 bool checkMethodTreeHelper(classSTManager* cstm, treeNode* n){
     if(!cstm || !n){
-        return true;
+        return true; // returns true so one can recursively call this
     }
+    // this function, should check all details in a method
     if(n->ruleType == variableDeclaration_rule){
         if(!checkVariableDeclaration(cstm, n)){
+            return false;
+        }
+    }
+    if(n->ruleType == statement_rule){
+        if(!checkStatement(cstm, n)){
+            return false;
+        }
+    }
+    for(size_t i=0; i < n->childCount; i++){
+        if(!checkMethodTreeHelper(cstm, n->children[i])){
             return false;
         }
     }
@@ -335,13 +349,13 @@ bool checkMethodTreeHelper(classSTManager* cstm, treeNode* n){
 
 
 bool checkVariableDeclaration(classSTManager* cstm, treeNode* n){
-    if(!n){
-        return true;
+    if(!cstm || !n){
+        return false;
     }
     if(n->ruleType != variableDeclaration_rule){
         return false;
     }
-    // check existing reference type
+    // check reference type exists
     if(!n->varSymbolTable[0]->isPrimitive){
         classST* tmp = lookupClassST(cstm, n->varSymbolTable[0]->type->type);
         if(!tmp){
@@ -349,12 +363,62 @@ bool checkVariableDeclaration(classSTManager* cstm, treeNode* n){
             exit(1);
         }
     }
-    // check for assignments, RHS has the correct type
-    // check reference type and actual type compatible (reference type <= actual type)
-    
-    // check array dimension 
-    
+    // check assignment
+    for(size_t i=0; i < n->childCount; i++){
+        if(n->children[i]->ruleType == assignment_rule && !checkAssignmentCompatible(cstm, n->children[i])){
+            fprintf(stderr, "%sError checkVariableDeclaration: invalid assignment%s\n", RED, NRM);
+            exit(1);
+        }
+    }
     return true;
+}
+
+int countArrayDimension(classSTManager* cstm, treeNode* n){
+    if(!cstm || !n){
+        return -1;
+    }
+    if(n->ruleType != arrayInitialization_rule){
+        return -1;
+    }
+    int max = 1;
+    int tmp = 1;
+    bool firstEntry = true;
+    
+    for(size_t i=0; i < n->childCount; i++){
+        if(n->children[i]->ruleType != arrayInitialization_rule){
+            tmp = countArrayDimension(cstm, n->children[i]);
+            if(tmp != max && !firstEntry){
+                fprintf(stderr, "%sError countArrayDimension line %d: invalid array initialization%s\n", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            max = tmp;
+            firstEntry = false;
+        }
+    }
+    return max;
+}
+
+bool checkAssignmentCompatible(classSTManager* cstm, treeNode* n){
+    if(!cstm || !n){
+        return false;
+    }
+    if(n->ruleType != assignment_rule){
+        return false;
+    }
+    // if RHS is array init, count its dimension
+    
+    
+    // check LHS and RHS of assignment has compatible type
+    int typeLHS = typeOfTerm(cstm, n->children[0]);
+    int typeRHS = typeOfExpression(cstm, n->children[2]);
+    if(-5 <= typeLHS && typeLHS <= -2 && -5 <= typeRHS && typeRHS <= -2){
+        return true;
+    }
+    if(typeLHS >= 0 && typeRHS >= 0 && isvalidInheritance(cstm, typeLHS, typeRHS)){
+        return true;
+    }
+    printf("typeLHS = %d, typeRHS = %d, line number = %d\n", typeLHS, typeRHS, n->children[1]->assoToken->lineNumber);
+    return typeLHS == typeRHS;
 }
 
 int typeOfTerm(classSTManager* cstm, treeNode* n){
@@ -543,6 +607,217 @@ int typeOfExpression(classSTManager* cstm, treeNode* n){
     if(!cstm || !n){
         return -1;
     }
-    // placeholder
+    // ternary
+    if(n->ruleType == ternaryExpression_rule){
+        // test whether it has ternary operators.
+        if(n->childCount == 1){
+            // in this case the logical or expression can be of any type.
+            return typeOfExpression(cstm, n->children[0]);
+        }else{
+            // in this case the logical or expression can only be boolean
+            if(typeOfExpression(cstm, n->children[0]) != -10){
+                fprintf(stderr, "%sError typeOfExpression line %d: the first part of ternary expression is not boolean\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+
+            int t1 = typeOfExpression(cstm, n->children[2]);
+            int t2 = typeOfExpression(cstm, n->children[4]);
+            if(t1 != t2){
+                printf("%s Error typeOfExpression: for simplicity of code, the two branches of the ternary expression at line %d must not be of defferent types\n%s", RED, n->assoToken->lineNumber, NRM);
+            }
+            return t1;
+        }
+    }
+    // logical or, and
+    if(n->ruleType == logicalOrExpression_rule || n->ruleType == logicalAndExpression_rule){
+        if(n->childCount == 1){
+            return typeOfExpression(cstm, n->children[0]);
+        }else{
+            for(size_t i=0; i < n->childCount; i+=2){
+                if(typeOfExpression(cstm, n->children[i]) != -10){
+                    fprintf(stderr, "%sError typeOfExpression line %d: logical operator combines non-boolean expressions.\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+                }
+                return -10;
+            }
+        }
+    }
+    // bitwise or, and, xor
+    if(n->ruleType == bitwiseOrExpression_rule || n->ruleType == bitwiseXorExpression_rule || n->ruleType == bitwiseAndExpression_rule){
+        if(n->childCount == 1){
+            return typeOfExpression(cstm, n->children[0]);
+        }else{
+            int type = -2;
+            for(size_t i=0; i < n->childCount; i+=2){
+                int tmp = typeOfExpression(cstm, n->children[i]);
+                if( tmp <=-5 || tmp >=-2 ){
+                    fprintf(stderr, "%sError typeOfExpression line %d: bitwise operator combines non-number expressions.\n%s", RED, n->assoToken->lineNumber, NRM);
+                    exit(1);
+                }
+                type = tmp<type ? tmp : type;
+            }
+            return type;
+        }
+    }
+    // equality 
+    if(n->ruleType == equalityExpression_rule){
+        if(n->childCount == 1){
+            return typeOfExpression(cstm, n->children[0]);
+        }else{
+            int type = -2;
+            bool firstEntry = true;
+            for(size_t i=0; i < n->childCount; i+=2){
+                int tmp = typeOfExpression(cstm, n->children[i]);
+                if( tmp <=-10 || tmp >=-2){
+                    fprintf(stderr, "%sError typeOfExpression line %d: compares non-number and non-boolean expressions.\n%s", RED, n->assoToken->lineNumber, NRM);
+                    exit(1);
+                }
+                if((tmp==-10 || type==-10) && tmp!=type && !firstEntry){
+                    fprintf(stderr, "%sError typeOfExpression line %d: compares a number and a boolean expressions in one expression.\n%s", RED, n->assoToken->lineNumber, NRM);
+                    exit(1);
+                }
+                firstEntry = false;
+                type = tmp<type ? tmp : type;
+            }
+            return type;
+        }
+    }
+    // relational 
+    if(n->ruleType == relationalExpression_rule){
+        if(n->childCount == 1){
+            return typeOfExpression(cstm, n->children[0]);
+        }else if(n->children[1]->ruleType != instanceof_rule){
+            int type = -2;
+            for(size_t i=0; i < n->childCount; i+=2){
+                int tmp = typeOfExpression(cstm, n->children[i]);
+                if( tmp <=-5 || tmp >=-2){
+                    fprintf(stderr, "%sError typeOfExpression line %d: compares non-number expressions.\n%s", RED, n->assoToken->lineNumber, NRM);
+                    exit(1);
+                }
+                type = tmp<type ? tmp : type;
+            }
+            return type;
+        // instanceof
+        }else{
+            int type0 = typeOfExpression(cstm, n->children[0]);
+            if(type0 < 0){
+                fprintf(stderr, "%sError typeOfExpression line %d: cannot test primitive type using instanceof\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            int type2 = typeOfExpression(cstm, n->children[2]);
+            if(type2 < 0){
+                fprintf(stderr, "%sError typeOfExpression line %d: invalid reference type instanceof clause\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            return -10;
+        }
+    }
+    // shift, additive, multiplicative
+    if(n->ruleType == shiftExpression_rule || n->ruleType == additiveExpression_rule || n->ruleType == multiplicativeExpression_rule){
+        if(n->childCount == 1){
+            return typeOfExpression(cstm, n->children[0]);
+        }else{
+            int type = -2;
+            for(size_t i=0; i < n->childCount; i+=2){
+                int tmp = typeOfExpression(cstm, n->children[i]);
+                if( tmp <=-5 || tmp >=-2 ){
+                    fprintf(stderr, "%sError typeOfExpression line %d: arithmetic operator combines non-number expressions.\n%s", RED, n->assoToken->lineNumber, NRM);
+                    exit(1);
+                }
+                type = tmp<type ? tmp : type;
+            }
+            return type;
+        }
+    }
+    // cast 
+    if(n->ruleType == castExpression_rule){
+        if(n->childCount == 1){
+            return typeOfExpression(cstm, n->children[0]);
+        }else{
+            int type1 = typeOfExpression(cstm, n->children[1]);
+            int type3 = typeOfExpression(cstm, n->children[3]);
+            if(type1 < 0 && type3 >= 0){
+                fprintf(stderr, "%sError typeOfExpression line %d: cannot cast an reference type object into primitive type\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            if(type1 >= 0 && type3 < 0){
+                fprintf(stderr, "%sError typeOfExpression line %d: cannot cast an primitive type expression into reference type\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            return type1;
+        }
+    }
+    // unary 
+    if(n->ruleType == unaryExpression_rule){
+        if(n->childCount == 1){
+            return typeOfExpression(cstm, n->children[0]);
+        // unary operator + unary expression
+        }else if(n->children[1]->ruleType == unaryExpression_rule){
+            int type1 = typeOfExpression(cstm, n->children[1]);
+            if(type1 >= 0){
+                fprintf(stderr, "%sError typeOfExpression line %d: unary operator cannot act on reference type object\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            return type1;
+        // self operator + term
+        }else{
+            int type1 = typeOfTerm(cstm, n->children[1]);
+            if(type1 >= 0){
+                fprintf(stderr, "%sError typeOfExpression line %d: unary operator cannot act on reference type object\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            return type1;
+        }
+    }
+    // postfix
+    if(n->ruleType == postfixExpression_rule){
+        if(n->childCount == 1){
+            return typeOfTerm(cstm, n->children[0]);
+        }else{
+            int type0 = typeOfTerm(cstm, n->children[0]);
+            if(type0 >= 0){
+                fprintf(stderr, "%sError typeOfExpression line %d: unary operator cannot act on reference type object\n%s", RED, n->assoToken->lineNumber, NRM);
+                exit(1);
+            }
+            return type0;
+        } 
+    }
     return -1;
 }
+
+bool isvalidInheritance(classSTManager* cstm, int super, int sub){
+    if(!cstm || super<0 || sub<0){
+        return false;
+    }
+    if(super == sub || !super){
+        return true;
+    }
+    int tmp = sub;
+    while(tmp){
+        tmp = lookupIndexClassST(cstm, cstm->registeredTables[sub]->superclassGenerics->type);
+        if(tmp == super){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool checkStatement(classSTManager* cstm, treeNode* n){
+    if(!cstm || !n){
+        return false;
+    }
+    if(n->ruleType != statement_rule){
+        return false;
+    }
+    if(n->childCount == 2){
+        if(n->children[0]->ruleType == assignment_rule){
+            if(!checkAssignmentCompatible(cstm, n->children[0])){
+                return false;
+            }
+        }
+    }
+    // placeholder
+    return true;
+}
+
+
