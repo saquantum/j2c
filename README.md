@@ -119,7 +119,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 <multiplicativeExpression> ::= <castExpression> { ('*' | '/' | '%') <castExpression> }
 
-<castExpression> ::= '(' <type> ')' <castExpression> | <unaryExpression>
+<castExpression> ::= '(' <type> ')' <expression> | <unaryExpression>
 
 <unaryExpression> ::= <unaryOperator> <unaryExpression>
                     | <selfOperator> <term>   // Prefix: ++x, --y
@@ -272,7 +272,7 @@ before semantics, we attach symbol tables and virtual tables to class tree nodes
 
 
 
-
+castExpression
 ## Semantics
 
 
