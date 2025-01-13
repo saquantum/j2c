@@ -107,7 +107,7 @@ we don't check if an expression is boolean or not until semantics analysis.
 
 <bitwiseAndExpression> ::= <equalityExpression> { '&' <equalityExpression> }
 
-<equalityExpression> ::= <relationalExpression> { ('==' | '!=') <relationalExpression> }
+<equalityExpression> ::= <relationalExpression> [ ('==' | '!=') <relationalExpression> ]
 
 <relationalExpression> ::= <shiftExpression> [ ('<' | '<=' | '>' | '>=') <shiftExpression> ]
                          | <shiftExpression> <generics> // this is to simply parser
